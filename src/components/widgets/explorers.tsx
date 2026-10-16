@@ -44,7 +44,7 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         className="h-2 min-w-0 flex-1 cursor-pointer accent-[#1d6b66]"
       />
-      <span className="w-20 shrink-0 tabular-nums text-ink-2">
+      <span className="min-w-20 shrink-0 whitespace-nowrap tabular-nums text-ink-2">
         <Tex tex={display ?? n2(value, 2)} />
       </span>
     </label>
@@ -338,7 +338,7 @@ export function MachineWidget({
         </p>
       ) : (
         <p className="mt-3 text-sm text-ink-2">
-          El resultado final es <Tex tex={`${fns.map((g) => g.name).reverse().join("(")}(${n2(x0, 2)}${")".repeat(fns.length - 1)} = ${n2(steps[steps.length - 1], 3)}`} />.
+          El resultado final es <Tex tex={`${fns.map((g) => g.name).reverse().join("(")}(${n2(x0, 2)}${")".repeat(fns.length)} = ${n2(steps[steps.length - 1], 3)}`} />.
         </p>
       )}
     </div>

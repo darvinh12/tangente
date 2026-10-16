@@ -140,9 +140,9 @@ const dominioSuma: ExerciseGen = {
     return {
       statement: `Sean $f(x) = ${fTex}$ y $g(x) = ${gTex}$. Halla el dominio de $f + g$.`,
       parts: [{ kind: "interval", before: "\\text{Dom}(f + g) =", answer: D, mistakes: [{ answer: Df, feedback: "Ese es solo el dominio de $f$. Para sumar hacen falta las dos imágenes, así que $x$ tiene que estar en los dos dominios." }] }],
-      hints: ["$\\text{Dom}(f + g) = \\text{Dom} f \\cap \\text{Dom} g$.", "Halla cada dominio por separado y dibújalos en la misma recta."],
+      hints: ["$\\text{Dom}(f + g) = \\text{Dom } f \\cap \\text{Dom } g$.", "Halla cada dominio por separado y dibújalos en la misma recta."],
       solution: [
-        `$\\text{Dom} f = ${ivTex(Df)}$ y $\\text{Dom} g = ${ivTex(Dg)}$.`,
+        `$\\text{Dom } f = ${ivTex(Df)}$ y $\\text{Dom } g = ${ivTex(Dg)}$.`,
         `La suma solo existe donde existen las dos: $\\text{Dom}(f + g) = ${ivTex(D)}$.`,
       ],
     };
@@ -212,16 +212,16 @@ const dominioCociente: ExerciseGen = {
       }],
       hints: [
         "El dominio de un cociente es la intersección de los dominios, menos los puntos donde el denominador vale cero.",
-        isFg ? "Iguala $g(x) = 0$ y quita solo las raíces que estén dentro de $\\text{Dom} f$." : "Aquí el denominador es la raíz. ¿Dónde vale cero?",
+        isFg ? "Iguala $g(x) = 0$ y quita solo las raíces que estén dentro de $\\text{Dom } f$." : "Aquí el denominador es la raíz. ¿Dónde vale cero?",
       ],
       solution: isFg
         ? [
-            `$\\text{Dom} f = [${a}, +\\infty)$ y $\\text{Dom} g = \\mathbb{R}$. La intersección es $[${a}, +\\infty)$.`,
+            `$\\text{Dom } f = [${a}, +\\infty)$ y $\\text{Dom } g = \\mathbb{R}$. La intersección es $[${a}, +\\infty)$.`,
             `$g(x) = 0$ en $x = ${zeros.join("$ y $x = ")}$. ${inside.length ? `Dentro de $[${a}, +\\infty)$ ${inside.length > 1 ? "están" : "está"} $${inside.join(", ")}$, que se quita${inside.length > 1 ? "n" : ""}.` : `Ninguno está en $[${a}, +\\infty)$, así que no hay que quitar nada.`}`,
             `$\\text{Dom}\\,\\frac{f}{g} = ${ivTex(D)}$.`,
           ]
         : [
-            `$\\text{Dom} f = [${a}, +\\infty)$ y $\\text{Dom} g = \\mathbb{R}$. La intersección es $[${a}, +\\infty)$.`,
+            `$\\text{Dom } f = [${a}, +\\infty)$ y $\\text{Dom } g = \\mathbb{R}$. La intersección es $[${a}, +\\infty)$.`,
             `El denominador $f(x) = ${fTex}$ vale 0 solo en $x = ${a}$, así que ese extremo sale.`,
             `$\\text{Dom}\\,\\frac{g}{f} = (${a}, +\\infty)$.`,
           ],
@@ -243,7 +243,7 @@ const dominioCompuesta: ExerciseGen = {
       fTex = "\\sqrt{x}";
       comp = `\\sqrt{${gTex}}`;
       D = m > 0 ? [iv(x0, Infinity, true)] : [iv(-Infinity, x0, false, true)];
-      steps = [`Necesitamos $g(x) \\in \\text{Dom} f = [0, +\\infty)$, o sea $${gTex} \\ge 0$.`, `Despejando: $x ${m > 0 ? "\\ge" : "\\le"} ${x0}$.`];
+      steps = [`Necesitamos $g(x) \\in \\text{Dom } f = [0, +\\infty)$, o sea $${gTex} \\ge 0$.`, `Despejando: $x ${m > 0 ? "\\ge" : "\\le"} ${x0}$.`];
     } else if (kind === "ln-lin") {
       const a = r.int(-5, 5);
       const left = r.bool();
@@ -251,31 +251,31 @@ const dominioCompuesta: ExerciseGen = {
       fTex = "\\ln x";
       comp = `\\ln(${gTex})`;
       D = left ? [iv(-Infinity, a)] : [iv(a, Infinity)];
-      steps = [`Necesitamos $g(x) \\in \\text{Dom} f = (0, +\\infty)$, o sea $${gTex} > 0$.`, `Despejando: $x ${left ? "<" : ">"} ${a}$.`];
+      steps = [`Necesitamos $g(x) \\in \\text{Dom } f = (0, +\\infty)$, o sea $${gTex} > 0$.`, `Despejando: $x ${left ? "<" : ">"} ${a}$.`];
     } else if (kind === "frac-sq") {
       const k = r.int(1, 4);
       gTex = "x^{2}";
       fTex = `\\frac{1}{x - ${k * k}}`;
       comp = `\\frac{1}{x^{2} - ${k * k}}`;
       D = minusPoints(R, [-k, k]);
-      steps = [`Necesitamos $g(x) \\in \\text{Dom} f = \\mathbb{R} - \\{${k * k}\\}$, o sea $x^2 \\ne ${k * k}$.`, `Eso excluye $x = ${k}$ y $x = ${-k}$.`];
+      steps = [`Necesitamos $g(x) \\in \\text{Dom } f = \\mathbb{R} - \\{${k * k}\\}$, o sea $x^2 \\ne ${k * k}$.`, `Eso excluye $x = ${k}$ y $x = ${-k}$.`];
     } else {
       const k = r.int(1, 4);
       gTex = "x^{2}";
       fTex = `\\sqrt{x - ${k * k}}`;
       comp = `\\sqrt{x^{2} - ${k * k}}`;
       D = [iv(-Infinity, -k, false, true), iv(k, Infinity, true)];
-      steps = [`Necesitamos $g(x) \\in \\text{Dom} f = [${k * k}, +\\infty)$, o sea $x^2 \\ge ${k * k}$.`, `Eso pasa cuando $x \\le ${-k}$ o $x \\ge ${k}$.`];
+      steps = [`Necesitamos $g(x) \\in \\text{Dom } f = [${k * k}, +\\infty)$, o sea $x^2 \\ge ${k * k}$.`, `Eso pasa cuando $x \\le ${-k}$ o $x \\ge ${k}$.`];
     }
     return {
       statement: `Sean $f(x) = ${fTex}$ y $g(x) = ${gTex}$. Halla el dominio de $f \\circ g$.`,
       parts: [{ kind: "interval", before: "\\text{Dom}(f \\circ g) =", answer: D, mistakes: [{ answer: R, feedback: "Ese es el dominio de $g$. Además hace falta que $g(x)$ caiga dentro del dominio de $f$." }] }],
       hints: [
-        "$\\text{Dom}(f \\circ g) = \\{ x \\in \\text{Dom} g \\;/\\; g(x) \\in \\text{Dom} f \\}$.",
+        "$\\text{Dom}(f \\circ g) = \\{ x \\in \\text{Dom } g \\;/\\; g(x) \\in \\text{Dom } f \\}$.",
         `La compuesta es $(f \\circ g)(x) = ${comp}$. Pide lo que exige esa fórmula.`,
       ],
       solution: [
-        `$(f \\circ g)(x) = f(g(x)) = ${comp}$. Además $\\text{Dom} g = \\mathbb{R}$.`,
+        `$(f \\circ g)(x) = f(g(x)) = ${comp}$. Además $\\text{Dom } g = \\mathbb{R}$.`,
         ...steps,
         `$\\text{Dom}(f \\circ g) = ${ivTex(D)}$.`,
       ],
@@ -365,8 +365,8 @@ const definirCompuesta: ExerciseGen = {
       D = [iv(thr, Infinity, true)];
       const pow = base === 0 ? "e^{0} = 1" : `${base}^{${c}} = ${base ** c}`;
       steps = [
-        `$\\text{Dom} f = (${a}, +\\infty)$ y $\\text{Dom} g = [${c}, +\\infty)$.`,
-        `Condición: $x \\in \\text{Dom} f$ y $f(x) \\in \\text{Dom} g$, es decir, $x > ${a}$ y $${fTex} \\ge ${c}$.`,
+        `$\\text{Dom } f = (${a}, +\\infty)$ y $\\text{Dom } g = [${c}, +\\infty)$.`,
+        `Condición: $x \\in \\text{Dom } f$ y $f(x) \\in \\text{Dom } g$, es decir, $x > ${a}$ y $${fTex} \\ge ${c}$.`,
         `Como el logaritmo es creciente, $${fTex} \\ge ${c}$ equivale a $${minus("x", a)} \\ge ${pow}$, o sea $x \\ge ${thr}$.`,
         `Las dos condiciones juntas dan $x \\ge ${thr}$.`,
       ];
@@ -382,7 +382,7 @@ const definirCompuesta: ExerciseGen = {
       Df = [iv(-a, Infinity, true)];
       D = [iv(thr, Infinity)];
       steps = [
-        `$\\text{Dom} f = [${-a}, +\\infty)$ y $\\text{Dom} g = (${c}, +\\infty)$.`,
+        `$\\text{Dom } f = [${-a}, +\\infty)$ y $\\text{Dom } g = (${c}, +\\infty)$.`,
         `Condición: $x \\ge ${-a}$ y $f(x) > ${c}$, es decir, $${fTex} > ${c}$.`,
         `Ambos lados son positivos, así que elevamos al cuadrado: $${minus("x", -a)} > ${c * c}$, o sea $x > ${thr}$.`,
         `Como $${thr} > ${-a}$, la condición $x > ${thr}$ ya incluye a la primera.`,
@@ -403,12 +403,12 @@ const definirCompuesta: ExerciseGen = {
       ],
       hints: [
         "$(g \\circ f)(x) = g(f(x))$: en la fórmula de $g$, cambia $x$ por $f(x)$.",
-        "$\\text{Dom}(g \\circ f) = \\{ x \\in \\text{Dom} f \\;/\\; f(x) \\in \\text{Dom} g \\}$.",
+        "$\\text{Dom}(g \\circ f) = \\{ x \\in \\text{Dom } f \\;/\\; f(x) \\in \\text{Dom } g \\}$.",
       ],
       solution: [
         `$(g \\circ f)(x) = g(f(x)) = ${comp}$.`,
         ...steps,
-        `Definición: $g \\circ f : ${ivTex(D)} \\to \\mathbb{R}$, $(g \\circ f)(x) = ${comp}$.`,
+        `Definición: $g \\circ f : ${ivTex(D)} \\to \\mathbb{R} \\;/\\; (g \\circ f)(x) =${comp}$.`,
       ],
     };
   },
@@ -466,12 +466,12 @@ const propiedadesVF: ExerciseGen = {
     const claims: [string, boolean, string][] = [
       ["La composición de funciones cumple la propiedad asociativa: $h \\circ (g \\circ f) = (h \\circ g) \\circ f$.", true, "Los dos lados significan aplicar $f$, después $g$ y después $h$: $h(g(f(x)))$. Solo cambia cómo se agrupan, no el orden."],
       ["La composición de funciones es conmutativa: $f \\circ g = g \\circ f$.", false, "Contraejemplo: con $f(x) = x^2$ y $g(x) = x + 1$, $(f \\circ g)(x) = (x + 1)^2$ pero $(g \\circ f)(x) = x^2 + 1$. En $x = 1$ dan 4 y 2."],
-      ["$\\text{Dom}(g \\circ f) \\subseteq \\text{Dom} f$.", true, "Para calcular $g(f(x))$ primero hay que calcular $f(x)$, así que $x$ tiene que estar en el dominio de $f$."],
-      ["$\\text{Dom}(f + g) = \\text{Dom} f \\cup \\text{Dom} g$.", false, "Para sumar hacen falta las dos imágenes, así que es la intersección: $\\text{Dom} f \\cap \\text{Dom} g$."],
+      ["$\\text{Dom}(g \\circ f) \\subseteq \\text{Dom } f$.", true, "Para calcular $g(f(x))$ primero hay que calcular $f(x)$, así que $x$ tiene que estar en el dominio de $f$."],
+      ["$\\text{Dom}(f + g) = \\text{Dom } f \\cup \\text{Dom } g$.", false, "Para sumar hacen falta las dos imágenes, así que es la intersección: $\\text{Dom } f \\cap \\text{Dom } g$."],
       ["$(f \\circ g)(x) = f(x) \\cdot g(x)$.", false, "Componer es meter $g(x)$ dentro de $f$, no multiplicar. Con $f(x) = x + 1$ y $g(x) = 2x$, $(f \\circ g)(x) = 2x + 1$ pero $f(x)g(x) = 2x^2 + 2x$."],
       ["Si $i(x) = x$ es la identidad, entonces $f \\circ i = f$ e $i \\circ f = f$.", true, "$f(i(x)) = f(x)$ e $i(f(x)) = f(x)$. La identidad no cambia nada."],
-      ["El producto de funciones es conmutativo: $f \\cdot g = g \\cdot f$.", true, "Se multiplican imágenes, que son números reales, y el producto de reales es conmutativo. El dominio $\\text{Dom} f \\cap \\text{Dom} g$ también es el mismo."],
-      ["$\\text{Dom}\\,\\frac{f}{g} = \\text{Dom} f \\cap \\text{Dom} g$.", false, "Falta quitar los puntos donde $g(x) = 0$, porque ahí no se puede dividir."],
+      ["El producto de funciones es conmutativo: $f \\cdot g = g \\cdot f$.", true, "Se multiplican imágenes, que son números reales, y el producto de reales es conmutativo. El dominio $\\text{Dom } f \\cap \\text{Dom } g$ también es el mismo."],
+      ["$\\text{Dom}\\,\\frac{f}{g} = \\text{Dom } f \\cap \\text{Dom } g$.", false, "Falta quitar los puntos donde $g(x) = 0$, porque ahí no se puede dividir."],
       ["$f \\cdot (g + h) = f \\cdot g + f \\cdot h$.", true, "Es la propiedad distributiva de los reales aplicada a las imágenes en cada $x$."],
     ];
     const [claim, ok, why] = r.pick(claims);
@@ -491,7 +491,7 @@ const topic: Topic = {
   objectives: [
     "Sumar, restar, multiplicar y dividir funciones y hallar el dominio de cada resultado.",
     "Calcular $f \\circ g$ y $g \\circ f$, evaluarlas y comprobar que el orden importa.",
-    "Hallar el dominio de una compuesta con la condición $x \\in \\text{Dom} g$ y $g(x) \\in \\text{Dom} f$.",
+    "Hallar el dominio de una compuesta con la condición $x \\in \\text{Dom } g$ y $g(x) \\in \\text{Dom } f$.",
     "Descomponer una función complicada en dos funciones más simples.",
   ],
   sections: [
@@ -506,15 +506,15 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Operaciones con funciones",
-          md: "Sean $f$ y $g$ con dominios $\\text{Dom} f$ y $\\text{Dom} g$.\n\n- $(f + g)(x) = f(x) + g(x)$ y $(f - g)(x) = f(x) - g(x)$, con dominio $\\text{Dom} f \\cap \\text{Dom} g$.\n- $(f \\cdot g)(x) = f(x) \\cdot g(x)$, con dominio $\\text{Dom} f \\cap \\text{Dom} g$.\n- $\\left(\\dfrac{f}{g}\\right)(x) = \\dfrac{f(x)}{g(x)}$, con dominio $(\\text{Dom} f \\cap \\text{Dom} g) - \\{x \\;/\\; g(x) = 0\\}$.",
+          md: "Sean $f$ y $g$ con dominios $\\text{Dom } f$ y $\\text{Dom } g$.\n\n- $(f + g)(x) = f(x) + g(x)$ y $(f - g)(x) = f(x) - g(x)$, con dominio $\\text{Dom } f \\cap \\text{Dom } g$.\n- $(f \\cdot g)(x) = f(x) \\cdot g(x)$, con dominio $\\text{Dom } f \\cap \\text{Dom } g$.\n- $\\left(\\dfrac{f}{g}\\right)(x) = \\dfrac{f(x)}{g(x)}$, con dominio $(\\text{Dom } f \\cap \\text{Dom } g) - \\{x \\;/\\; g(x) = 0\\}$.",
         },
         {
           type: "example",
           title: "El ejemplo de la guía",
           problem: "Sean $f(x) = \\sqrt{x^2 - 4}$ y $g(x) = \\log(x - 3)$. Halla los dominios de $f + g$ y de $\\frac{f}{g}$.",
           steps: [
-            "$\\text{Dom} f$: $x^2 - 4 \\ge 0$, que da $(-\\infty, -2] \\cup [2, +\\infty)$.",
-            "$\\text{Dom} g$: $x - 3 > 0$, que da $(3, +\\infty)$.",
+            "$\\text{Dom } f$: $x^2 - 4 \\ge 0$, que da $(-\\infty, -2] \\cup [2, +\\infty)$.",
+            "$\\text{Dom } g$: $x - 3 > 0$, que da $(3, +\\infty)$.",
             "La intersección es $(3, +\\infty)$, porque todo número mayor que 3 ya cumple $x \\ge 2$. Ese es el dominio de $f + g$, $f - g$ y $f \\cdot g$.",
             "Para el cociente quitamos donde $g(x) = 0$: $\\log(x - 3) = 0$ cuando $x - 3 = 1$, o sea $x = 4$.",
           ],
@@ -522,11 +522,13 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Propiedad", "Suma", "Producto"],
+          headers: ["Propiedad", "Se escribe"],
           rows: [
-            ["Conmutativa", "$f + g = g + f$", "$f \\cdot g = g \\cdot f$"],
-            ["Asociativa", "$(f + g) + h = f + (g + h)$", "$(f \\cdot g) \\cdot h = f \\cdot (g \\cdot h)$"],
-            ["Distributiva", "$f \\cdot (g + h) = f \\cdot g + f \\cdot h$", ""],
+            ["Conmutativa de la suma", "$f + g = g + f$"],
+            ["Conmutativa del producto", "$f \\cdot g = g \\cdot f$"],
+            ["Asociativa de la suma", "$(f + g) + h = f + (g + h)$"],
+            ["Asociativa del producto", "$(f \\cdot g) \\cdot h = f \\cdot (g \\cdot h)$"],
+            ["Distributiva", "$f \\cdot (g + h) = f \\cdot g + f \\cdot h$"],
           ],
           caption: "Se heredan de las propiedades de los números reales, porque se opera imagen por imagen.",
         },
@@ -547,7 +549,7 @@ const topic: Topic = {
           exercise: {
             statement: "Sean $f(x) = \\sqrt{x}$ y $g(x) = x - 4$. Halla el dominio de $\\frac{f}{g}$.",
             parts: [{ kind: "interval", answer: [iv(0, 4, true, false), iv(4, Infinity)], mistakes: [{ answer: [iv(0, Infinity, true)], feedback: "Falta quitar $x = 4$, donde el denominador vale cero." }] }],
-            solution: ["$\\text{Dom} f \\cap \\text{Dom} g = [0, +\\infty)$. El denominador vale 0 en $x = 4$, que está adentro. Resultado: $[0, 4) \\cup (4, +\\infty)$."],
+            solution: ["$\\text{Dom } f \\cap \\text{Dom } g = [0, +\\infty)$. El denominador vale 0 en $x = 4$, que está adentro. Resultado: $[0, 4) \\cup (4, +\\infty)$."],
           },
         },
       ],
@@ -613,7 +615,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Dominio de la compuesta",
-          md: "$$\\text{Dom}(f \\circ g) = \\{ x \\in \\text{Dom} g \\;/\\; g(x) \\in \\text{Dom} f \\}$$\n\nSon dos condiciones: que $g$ acepte a $x$, y que $f$ acepte lo que sale de $g$.",
+          md: "$$\\begin{gathered} \\text{Dom}(f \\circ g) = \\\\ \\{ x \\in \\text{Dom } g \\;/\\; g(x) \\in \\text{Dom } f \\} \\end{gathered}$$\n\nSon dos condiciones: que $g$ acepte a $x$, y que $f$ acepte lo que sale de $g$.",
         },
         {
           type: "example",
@@ -621,12 +623,12 @@ const topic: Topic = {
           problem: "Dadas $f(x) = \\ln(x - e)$ y $g(x) = \\sqrt{x - 1}$, define $g \\circ f$.",
           steps: [
             "Regla: $(g \\circ f)(x) = g(f(x)) = \\sqrt{\\ln(x - e) - 1}$.",
-            "Primera condición, $x \\in \\text{Dom} f$: $x - e > 0$, o sea $x > e$.",
-            "Segunda condición, $f(x) \\in \\text{Dom} g = [1, +\\infty)$: $\\ln(x - e) \\ge 1$.",
+            "Primera condición, $x \\in \\text{Dom } f$: $x - e > 0$, o sea $x > e$.",
+            "Segunda condición, $f(x) \\in \\text{Dom } g = [1, +\\infty)$: $\\ln(x - e) \\ge 1$.",
             "El logaritmo natural es creciente y $\\ln e = 1$, así que $\\ln(x - e) \\ge 1$ equivale a $x - e \\ge e$, o sea $x \\ge 2e$.",
             "Como $2e > e$, las dos condiciones juntas dan $x \\ge 2e$.",
           ],
-          answer: "$g \\circ f : [2e, +\\infty) \\to \\mathbb{R}$, $(g \\circ f)(x) = \\sqrt{\\ln(x - e) - 1}$.",
+          answer: "$g \\circ f : [2e, +\\infty) \\to \\mathbb{R} \\;/\\; (g \\circ f)(x) =\\sqrt{\\ln(x - e) - 1}$.",
         },
         {
           type: "example",
@@ -634,10 +636,10 @@ const topic: Topic = {
           problem: "Dadas $f(x) = \\sqrt{x + 1}$ y $g(x) = \\ln(x - 4)$, define $g \\circ f$.",
           steps: [
             "Regla: $(g \\circ f)(x) = \\ln\\left(\\sqrt{x + 1} - 4\\right)$.",
-            "$x \\in \\text{Dom} f$: $x \\ge -1$.",
-            "$f(x) \\in \\text{Dom} g = (4, +\\infty)$: $\\sqrt{x + 1} > 4$. Elevando al cuadrado, $x + 1 > 16$, o sea $x > 15$.",
+            "$x \\in \\text{Dom } f$: $x \\ge -1$.",
+            "$f(x) \\in \\text{Dom } g = (4, +\\infty)$: $\\sqrt{x + 1} > 4$. Elevando al cuadrado, $x + 1 > 16$, o sea $x > 15$.",
           ],
-          answer: "$g \\circ f : (15, +\\infty) \\to \\mathbb{R}$, $(g \\circ f)(x) = \\ln\\left(\\sqrt{x + 1} - 4\\right)$.",
+          answer: "$g \\circ f : (15, +\\infty) \\to \\mathbb{R} \\;/\\; (g \\circ f)(x) =\\ln\\left(\\sqrt{x + 1} - 4\\right)$.",
         },
         {
           type: "note",
@@ -661,15 +663,15 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "La composición se porta distinto a la suma y al producto. Tiene dos propiedades que vale la pena saber justificar, porque salen como verdadero o falso en los parciales.",
+          md: "La composición se porta distinto a la suma y al producto. Tiene dos propiedades que debes saber justificar, porque salen como verdadero o falso en los parciales.",
         },
         {
           type: "table",
-          headers: ["Propiedad", "¿Se cumple?", "Por qué"],
+          headers: ["Propiedad", "¿Se cumple?"],
           rows: [
-            ["Conmutativa: $f \\circ g = g \\circ f$", "No", "Con $f(x) = x^2$ y $g(x) = x + 3$ salen $(x + 3)^2$ y $x^2 + 3$"],
-            ["Asociativa: $h \\circ (g \\circ f) = (h \\circ g) \\circ f$", "Sí", "Los dos lados son $h(g(f(x)))$"],
-            ["Identidad: $f \\circ i = i \\circ f = f$", "Sí", "$i(x) = x$ no cambia nada"],
+            ["Conmutativa: $f \\circ g = g \\circ f$", "**No.** Con $f(x) = x^2$ y $g(x) = x + 3$ salen $(x + 3)^2$ y $x^2 + 3$"],
+            ["Asociativa: $h \\circ (g \\circ f) = (h \\circ g) \\circ f$", "**Sí.** Los dos lados son $h(g(f(x)))$"],
+            ["Identidad: $f \\circ i = i \\circ f = f$", "**Sí.** $i(x) = x$ no cambia nada"],
           ],
         },
         {
@@ -705,7 +707,7 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "A veces conviene hacer el camino inverso: ver una función complicada como dos sencillas encadenadas. Esto va a ser clave para derivar con la regla de la cadena.\n\nEl truco es pensar como una calculadora. Para calcular $h(x) = \\sqrt{3x^2 + 1}$ con un número, primero harías $3x^2 + 1$ y al final sacarías la raíz. Lo que haces primero es la función de adentro, $g$, y lo último es la de afuera, $f$.",
+          md: "A veces conviene hacer el camino inverso: ver una función complicada como dos sencillas encadenadas. Esto es lo que vas a usar al derivar con la regla de la cadena.\n\nEl truco es pensar como una calculadora. Para calcular $h(x) = \\sqrt{3x^2 + 1}$ con un número, primero harías $3x^2 + 1$ y al final sacarías la raíz. Lo que haces primero es la función de adentro, $g$, y lo último es la de afuera, $f$.",
         },
         {
           type: "example",

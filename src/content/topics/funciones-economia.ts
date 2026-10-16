@@ -11,6 +11,8 @@ const plusK = (k: number) => (k === 0 ? "" : k > 0 ? ` + ${k}` : ` - ${-k}`);
 /** Número con separador de miles al estilo venezolano: 12500 -> 12.500 */
 const miles = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 const P = (cs: number[]) => poly(cs, "q");
+/** Factor de un producto escrito: mul(1) = "", mul(3) = "3 \cdot " */
+const mul = (k: number) => (k === 1 ? "" : `${k} \\cdot `);
 
 const PRODUCTOS = ["camisas", "tortas", "bolsos", "pares de zapatos", "mesas", "cuadernos", "lámparas"];
 
@@ -39,7 +41,7 @@ const evaluarDemanda: ExerciseGen = {
       parts,
       hints: askQ ? ["Sustituye el precio en la fórmula."] : ["Nadie compra significa $q = 0$. Plantea $0 = " + a + " - " + b + "p$ y despeja."],
       solution: askQ
-        ? [`$q = ${a} - ${b} \\cdot ${p0} = ${a} - ${b * p0} = ${q0}$ unidades.`]
+        ? [`$q = ${a} - ${mul(b)}${p0} = ${a} - ${b * p0} = ${q0}$ unidades.`]
         : [`$0 = ${a} - ${b}p$, así que $${b}p = ${a}$ y $p = ${Pmax}$.`, `Con un precio de $${Pmax}$ o más, la cantidad demandada es cero.`],
     };
   },
@@ -70,7 +72,7 @@ const costoTotal: ExerciseGen = {
       hints: ["Costo total = costo fijo + costo variable. El variable es el costo por unidad por la cantidad."],
       solution: askFormula
         ? [`Costo fijo: $${CF}$. Costo variable: $${cv}q$.`, `$C(q) = ${P([cv, CF])}$.`]
-        : [`$C(q) = ${P([cv, CF])}$.`, `$C(${q0}) = ${CF} + ${cv} \\cdot ${q0} = ${CF + cv * q0}$ bolívares.`],
+        : [`$C(q) = ${P([cv, CF])}$.`, `$C(${q0}) = ${CF} + ${mul(cv)}${q0} = ${CF + cv * q0}$ bolívares.`],
     };
   },
 };
@@ -96,7 +98,7 @@ const costoPromedio: ExerciseGen = {
       }],
       hints: ["$\\overline{C}(q) = \\dfrac{C(q)}{q}$."],
       solution: [
-        `$C(${q0}) = ${CF} + ${cv} \\cdot ${q0} = ${C0}$.`,
+        `$C(${q0}) = ${CF} + ${mul(cv)}${q0} = ${C0}$.`,
         `$\\overline{C}(${q0}) = \\dfrac{${C0}}{${q0}} = ${avg}$ por unidad.`,
         `Fíjate que es mayor que ${cv}, porque cada unidad carga además con su parte del costo fijo: $\\frac{${CF}}{${q0}} = ${CF / q0}$.`,
       ],
@@ -128,7 +130,7 @@ const utilidadPrecioFijo: ExerciseGen = {
       hints: ["Ingreso: $I(q) = p \\cdot q$.", "Utilidad: $U(q) = I(q) - C(q)$."],
       solution: [
         `$I(${q0}) = ${p} \\cdot ${q0} = ${I}$.`,
-        `$C(${q0}) = ${CF} + ${cv} \\cdot ${q0} = ${C}$.`,
+        `$C(${q0}) = ${CF} + ${mul(cv)}${q0} = ${C}$.`,
         `$U(${q0}) = ${I} - ${C} = ${U}$ bolívares.${U < 0 ? " Es negativa: con esa cantidad hay pérdida." : ""}`,
       ],
     };
@@ -187,7 +189,7 @@ const equilibrioMercado: ExerciseGen = {
       solution: [
         `Igualamos: $${a} - ${b === 1 ? "" : b}p = ${d === 1 ? "" : d}p${plusK(c)}$.`,
         `Pasamos términos: $${a}${plusK(-c)} = ${b + d}p$, o sea $${a - c} = ${b + d}p$ y $p_e = ${pe}$.`,
-        `Demanda: $q_d = ${a} - ${b} \\cdot ${pe} = ${qe}$. Oferta: $q_s = ${d} \\cdot ${pe}${plusK(c)} = ${qe}$. Coinciden.`,
+        `Demanda: $q_d = ${a} - ${b === 1 ? "" : `${b} \\cdot `}${pe} = ${qe}$. Oferta: $q_s = ${d === 1 ? "" : `${d} \\cdot `}${pe}${plusK(c)} = ${qe}$. Coinciden.`,
         `Equilibrio: precio $${pe}$ y cantidad $${qe}$.`,
       ],
     };
@@ -316,8 +318,8 @@ const ingresoMaximo: ExerciseGen = {
       solution: [
         `$I(q) = (${a} - ${b === 1 ? "" : b}q)\\,q = ${P([-b, a, 0])}$.`,
         `Vértice: $q = -\\dfrac{${a}}{2(${-b})} = ${qm}$.`,
-        `$I(${qm}) = ${a} \\cdot ${qm} - ${b} \\cdot ${qm}^2 = ${a * qm} - ${b * qm * qm} = ${Imax}$.`,
-        `El precio en ese punto es $p = ${a} - ${b} \\cdot ${qm} = ${pm}$, justo la mitad del precio máximo $${a}$.`,
+        `$I(${qm}) = ${a} \\cdot ${qm} - ${mul(b)}${qm}^2 = ${a * qm} - ${b * qm * qm} = ${Imax}$.`,
+        `El precio en ese punto es $p = ${a} - ${mul(b)}${qm} = ${pm}$, justo la mitad del precio máximo $${a}$.`,
       ],
     };
   },
@@ -393,10 +395,10 @@ const impuestoEquilibrio: ExerciseGen = {
         `El impuesto sube la oferta: el productor ahora pide $${t}$ más por cada unidad, $p = ${c + t} + ${co(d)}q$.`,
       ],
       solution: [
-        `Sin impuesto: $${a} - ${co(b)}q = ${c} + ${co(d)}q$, así que $${a - c} = ${s}q$ y $q_e = ${qe}$. Precio: $p_e = ${a} - ${b} \\cdot ${qe} = ${pe}$.`,
+        `Sin impuesto: $${a} - ${co(b)}q = ${c} + ${co(d)}q$, así que $${a - c} = ${s}q$ y $q_e = ${qe}$. Precio: $p_e = ${a} - ${mul(b)}${qe} = ${pe}$.`,
         `Con impuesto la oferta pasa a ser $p = ${c + t} + ${co(d)}q$.`,
         `$${a} - ${co(b)}q = ${c + t} + ${co(d)}q$ da $${a - c - t} = ${s}q$, así que $q_t = ${qt}$.`,
-        `El consumidor paga $p_t = ${a} - ${b} \\cdot ${qt} = ${pt}$. Subió $${pt - pe}$ de los $${t}$ del impuesto. El resto lo absorbe el productor, que recibe $${pt - t}$ por unidad.`,
+        `El consumidor paga $p_t = ${a} - ${mul(b)}${qt} = ${pt}$. Subió $${pt - pe}$ de los $${t}$ del impuesto. El resto lo absorbe el productor, que recibe $${pt - t}$ por unidad.`,
       ],
     };
   },
@@ -492,7 +494,8 @@ const topic: Topic = {
               { fn: "\\frac{x+10}{3}", domain: [0, 45], color: "blue", label: "oferta" },
             ],
             points: [{ x: 20, y: 10, label: "equilibrio (20, 10)" }],
-            hlines: [{ y: 14, dashed: true, color: "red", label: "p = 14" }],
+            hlines: [{ y: 14, dashed: true, color: "red" }],
+            labels: [{ x: 1, y: 14.4, text: "p = 14", color: "red" }],
           },
           caption: "Con $p = 14$ se piden 12 tazas pero se ofrecen 32: hay un excedente de 20. Ese sobrante empuja el precio hacia abajo, hacia el equilibrio.",
         },
@@ -557,7 +560,8 @@ const topic: Topic = {
           spec: {
             x: [0, 20], y: [0, 14],
             curves: [{ fn: "2+\\frac{20}{x}", domain: [1.5, 20], color: "accent", label: "costo promedio" }],
-            hlines: [{ y: 2, dashed: true, color: "muted", label: "c_v = 2" }],
+            hlines: [{ y: 2, dashed: true, color: "muted" }],
+            labels: [{ x: 15, y: 0.6, text: "cᵥ = 2", color: "muted" }],
           },
           caption: "Costo promedio de $C(q) = 20 + 2q$. Mientras más se produce, más se reparte el costo fijo y el promedio se acerca al costo por unidad, sin llegar a él.",
         },
@@ -699,7 +703,7 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Precio $p$", "Cantidad $q = 100 - 2p$", "Ingreso $p \\cdot q$"],
+          headers: ["Precio $p$", "Cantidad $q$", "Ingreso $p \\cdot q$"],
           rows: [
             ["$10$", "$80$", "$800$"],
             ["$20$", "$60$", "$1200$"],

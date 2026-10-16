@@ -804,15 +804,9 @@ const topic: Topic = {
           md: "Hay formas que conviene reconocer de vista, porque se factorizan de inmediato. Son los productos notables leídos al revés.",
         },
         {
-          type: "table",
-          headers: ["Nombre", "Forma", "Se factoriza como"],
-          rows: [
-            ["Diferencia de cuadrados", "$a^2 - b^2$", "$(a - b)(a + b)$"],
-            ["Trinomio cuadrado perfecto", "$a^2 + 2ab + b^2$", "$(a + b)^2$"],
-            ["Trinomio cuadrado perfecto", "$a^2 - 2ab + b^2$", "$(a - b)^2$"],
-            ["Diferencia de cubos", "$a^3 - b^3$", "$(a - b)(a^2 + ab + b^2)$"],
-            ["Suma de cubos", "$a^3 + b^3$", "$(a + b)(a^2 - ab + b^2)$"],
-          ],
+          type: "definition",
+          title: "Formas que se factorizan de vista",
+          md: "**Diferencia de cuadrados**\n\n$$a^2 - b^2 = (a - b)(a + b)$$\n\n**Trinomio cuadrado perfecto**\n\n$$a^2 + 2ab + b^2 = (a + b)^2$$\n\n$$a^2 - 2ab + b^2 = (a - b)^2$$\n\n**Diferencia de cubos**\n\n$$a^3 - b^3 = (a - b)(a^2 + ab + b^2)$$\n\n**Suma de cubos**\n\n$$a^3 + b^3 = (a + b)(a^2 - ab + b^2)$$",
         },
         {
           type: "example",
@@ -989,13 +983,8 @@ const topic: Topic = {
           answer: "$P(x) = (x - 1)(x - 3)(x + 2)$",
         },
         {
-          type: "table",
-          headers: ["", "$1$", "$-2$", "$-5$", "$6$"],
-          rows: [
-            ["$1$", "", "$1$", "$-1$", "$-6$"],
-            ["", "$1$", "$-1$", "$-6$", "$0$"],
-          ],
-          caption: "Ruffini con $x = 1$. Arriba van los coeficientes de $P$, en el medio los productos y abajo las sumas. El último número es el residuo.",
+          type: "text",
+          md: "$$\\begin{array}{c|rrrr} & 1 & -2 & -5 & 6 \\\\ 1 & & 1 & -1 & -6 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\nEsa es la tabla de Ruffini con $x = 1$. Arriba van los coeficientes de $P$, en el medio los productos y abajo las sumas. El último número es el residuo.",
         },
         {
           type: "note",

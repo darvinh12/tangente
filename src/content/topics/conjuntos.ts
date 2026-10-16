@@ -86,7 +86,7 @@ const extension: ExerciseGen = {
     const I = iv(a, b, loClosed, hiClosed);
     const elems = integersIn([I]);
     return {
-      statement: `Escribe por extensión el conjunto $A = \\{ x \\in \\mathbb{Z} \\;/\\; ${ineqTex(I)} \\}$.`,
+      statement: `Escribe por extensión el conjunto $A = \\{ x \\in \\mathbb{Z} \\;/\\; {${ineqTex(I)}} \\}$.`,
       parts: [
         {
           kind: "set",
@@ -312,7 +312,7 @@ const enterosEnIntervalo: ExerciseGen = {
     const b = r.int(1, 4);
     const res = integersIn([iv(a, b)]).filter((x) => x !== 0);
     return {
-      statement: `Determina por extensión $B = \\{ x \\in \\mathbb{Z} - \\{0\\} \\;/\\; ${a} < x < ${b} \\}$.`,
+      statement: `Determina por extensión $B = \\{ x \\in \\mathbb{Z} - \\{0\\} \\;/\\; {${a}} < x < ${b} \\}$.`,
       parts: [
         {
           kind: "set",
@@ -367,7 +367,7 @@ const conjuntoRacional: ExerciseGen = {
     const xb = b === 0 ? "x" : b > 0 ? `x - ${b}` : `x + ${-b}`;
     const minusK = k === 1 ? `- (${xb})` : k === -1 ? `+ (${xb})` : `- ${k}(${xb})`;
     return {
-      statement: `Dados los conjuntos $A = \\left\\{ x \\in \\mathbb{R} \\;/\\; \\dfrac{${xa}}{${xb}} ${opTex} ${k} \\right\\}$ y $B = \\{ x \\in \\mathbb{Z} - \\{0\\} \\;/\\; ${lo} < x < ${hi} \\}$, resuelve paso a paso.`,
+      statement: `Dados los conjuntos $A = \\left\\{ x \\in \\mathbb{R} \\;/\\; \\dfrac{${xa}}{${xb}} ${opTex} ${k} \\right\\}$ y $B = \\{ x \\in \\mathbb{Z} - \\{0\\} \\;/\\; {${lo}} < x < ${hi} \\}$, resuelve paso a paso.`,
       sequential: true,
       parts: [
         { kind: "interval", prompt: "Determina $A$ como intervalo o unión de intervalos.", before: "A =", answer: A },
@@ -470,7 +470,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Pasar de comprensión a extensión",
-          problem: "Escribe por extensión $A = \\{ x \\in \\mathbb{Z} \\;/\\; -2 \\le x < 3 \\}$.",
+          problem: "Escribe por extensión $A = \\{ x \\in \\mathbb{Z} \\;/\\; {-2} \\le x < 3 \\}$.",
           steps: [
             "Los $x$ tienen que ser enteros, es decir, números sin parte decimal: $\\dots, -2, -1, 0, 1, 2, \\dots$",
             "La condición $-2 \\le x$ deja entrar al $-2$ porque el símbolo $\\le$ incluye la igualdad.",
@@ -517,13 +517,13 @@ const topic: Topic = {
         { type: "widget", widget: { kind: "venn", a: ["1", "2", "3", "4"], b: ["3", "4", "5", "6", "7"], universe: ["8", "9"] } },
         {
           type: "table",
-          headers: ["Operación", "Se escribe", "Contiene", "Con el diagrama"],
+          headers: ["Operación", "Contiene", "Con el diagrama"],
           rows: [
-            ["Unión", "$A \\cup B$", "Lo que está en $A$ o en $B$", "$\\{1, 2, 3, 4, 5, 6, 7\\}$"],
-            ["Intersección", "$A \\cap B$", "Lo que está en $A$ y en $B$", "$\\{3, 4\\}$"],
-            ["Diferencia", "$A - B$", "Lo de $A$ que no está en $B$", "$\\{1, 2\\}$"],
-            ["Complemento", "$A^c$", "Lo del universo que no está en $A$", "$\\{5, 6, 7, 8, 9\\}$"],
-            ["Diferencia simétrica", "$A \\triangle B$", "Lo que está en uno solo de los dos", "$\\{1, 2, 5, 6, 7\\}$"],
+            ["Unión $A \\cup B$", "Lo que está en $A$ o en $B$", "$\\{1, 2, 3, 4, 5, 6, 7\\}$"],
+            ["Intersección $A \\cap B$", "Lo que está en $A$ y en $B$", "$\\{3, 4\\}$"],
+            ["Diferencia $A - B$", "Lo de $A$ que no está en $B$", "$\\{1, 2\\}$"],
+            ["Complemento $A^c$", "Lo del universo que no está en $A$", "$\\{5, 6, 7, 8, 9\\}$"],
+            ["Diferencia simétrica $A \\triangle B$", "Lo que está en uno solo de los dos", "$\\{1, 2, 5, 6, 7\\}$"],
           ],
         },
         {
@@ -536,7 +536,7 @@ const topic: Topic = {
           type: "note",
           tone: "idea",
           title: "Leyes de De Morgan",
-          md: "El complemento cambia unión por intersección y al revés:\n\n$$(A \\cup B)^c = A^c \\cap B^c \\qquad (A \\cap B)^c = A^c \\cup B^c$$",
+          md: "El complemento cambia unión por intersección y al revés:\n\n$$(A \\cup B)^c = A^c \\cap B^c$$\n\n$$(A \\cap B)^c = A^c \\cup B^c$$",
         },
         {
           type: "example",
@@ -632,7 +632,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Ejercicio tipo parcial",
-          problem: "Dados $A = \\left\\{ x \\in \\mathbb{R} \\;/\\; \\dfrac{x+4}{x-2} < 1 \\right\\}$ y $B = \\{ x \\in \\mathbb{Z} - \\{0\\} \\;/\\; -5 < x < 2 \\}$, determina $A$, $B$, $A - B$ y $A \\cap B$.",
+          problem: "Dados $A = \\left\\{ x \\in \\mathbb{R} \\;/\\; \\dfrac{x+4}{x-2} < 1 \\right\\}$ y $B = \\{ x \\in \\mathbb{Z} - \\{0\\} \\;/\\; {-5} < x < 2 \\}$, determina $A$, $B$, $A - B$ y $A \\cap B$.",
           steps: [
             "No se puede multiplicar por $x - 2$ porque no sabemos si es positivo o negativo, y eso decide si la desigualdad se voltea. Mejor pasamos el $1$ restando: $\\dfrac{x+4}{x-2} - 1 < 0$.",
             "Común denominador: $\\dfrac{x + 4 - (x - 2)}{x-2} < 0$, que queda $\\dfrac{6}{x-2} < 0$.",

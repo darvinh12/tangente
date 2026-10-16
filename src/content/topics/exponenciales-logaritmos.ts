@@ -814,16 +814,9 @@ const topic: Topic = {
           md: "Una potencia es una multiplicación repetida: $2^3 = 2 \\cdot 2 \\cdot 2 = 8$. El número de abajo es la **base** y el de arriba el **exponente**. Las leyes de los exponentes salen de contar factores. Después se usan para darle sentido a exponentes negativos, fraccionarios y hasta irracionales.",
         },
         {
-          type: "table",
-          headers: ["Ley", "Fórmula", "Ejemplo"],
-          rows: [
-            ["Producto con la misma base", "$a^m \\cdot a^n = a^{m+n}$", "$2^3 \\cdot 2^4 = 2^7$"],
-            ["Cociente con la misma base", "$\\dfrac{a^m}{a^n} = a^{m-n}$", "$\\dfrac{5^6}{5^2} = 5^4$"],
-            ["Potencia de una potencia", "$(a^m)^n = a^{mn}$", "$(3^2)^4 = 3^8$"],
-            ["Exponente cero", "$a^0 = 1$ (con $a \\ne 0$)", "$7^0 = 1$"],
-            ["Exponente negativo", "$a^{-n} = \\dfrac{1}{a^n}$", "$2^{-3} = \\dfrac{1}{8}$"],
-            ["Exponente fraccionario", "$a^{m/n} = \\sqrt[n]{a^m}$", "$8^{2/3} = \\sqrt[3]{64} = 4$"],
-          ],
+          type: "definition",
+          title: "Leyes de los exponentes",
+          md: "- **Producto con la misma base:** $a^m \\cdot a^n = a^{m+n}$. Por ejemplo, $2^3 \\cdot 2^4 = 2^7$.\n- **Cociente con la misma base:** $\\dfrac{a^m}{a^n} = a^{m-n}$. Por ejemplo, $\\dfrac{5^6}{5^2} = 5^4$.\n- **Potencia de una potencia:** $(a^m)^n = a^{mn}$. Por ejemplo, $(3^2)^4 = 3^8$.\n- **Exponente cero:** $a^0 = 1$ si $a \\ne 0$. Por ejemplo, $7^0 = 1$.\n- **Exponente negativo:** $a^{-n} = \\dfrac{1}{a^n}$. Por ejemplo, $2^{-3} = \\dfrac{1}{8}$.\n- **Exponente fraccionario:** $a^{m/n} = \\sqrt[n]{a^m}$. Por ejemplo, $8^{2/3} = \\sqrt[3]{64} = 4$.",
         },
         {
           type: "example",
@@ -865,8 +858,15 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["$x$", "$-2$", "$-1$", "$0$", "$1$", "$2$", "$3$"],
-          rows: [["$2^x$", "$\\frac{1}{4}$", "$\\frac{1}{2}$", "$1$", "$2$", "$4$", "$8$"]],
+          headers: ["$x$", "$2^x$"],
+          rows: [
+            ["$-2$", "$\\frac{1}{4}$"],
+            ["$-1$", "$\\frac{1}{2}$"],
+            ["$0$", "$1$"],
+            ["$1$", "$2$"],
+            ["$2$", "$4$"],
+            ["$3$", "$8$"],
+          ],
           caption: "Cada paso a la derecha duplica el valor. Hacia la izquierda se reduce a la mitad, pero nunca llega a cero.",
         },
         {
@@ -987,7 +987,7 @@ const topic: Topic = {
           type: "note",
           tone: "idea",
           title: "Consecuencias inmediatas de la definición",
-          md: "$$\\log_b 1 = 0 \\qquad \\log_b b = 1 \\qquad \\log_b (b^x) = x \\qquad b^{\\log_b x} = x$$\n\nLa exponencial y el logaritmo de la misma base se deshacen el uno al otro: son funciones inversas. Por ejemplo $\\ln(e^5) = 5$ y $e^{\\ln 7} = 7$.",
+          md: "$$\\log_b 1 = 0 \\qquad \\log_b b = 1$$\n\n$$\\log_b (b^x) = x \\qquad b^{\\log_b x} = x$$\n\nLa exponencial y el logaritmo de la misma base se deshacen el uno al otro: son funciones inversas. Por ejemplo $\\ln(e^5) = 5$ y $e^{\\ln 7} = 7$.",
         },
         {
           type: "graph",
@@ -996,11 +996,15 @@ const topic: Topic = {
             y: [-4, 6],
             height: 320,
             curves: [
-              { fn: "e^{x}", color: "accent", label: "y = e^x" },
-              { fn: "\\ln x", color: "blue", label: "y = ln x", domain: [0.02, 6] },
+              { fn: "e^{x}", color: "accent" },
+              { fn: "\\ln x", color: "blue", domain: [0.02, 6] },
               { fn: "x", color: "muted", dashed: true, label: "y = x" },
             ],
             points: [{ x: 0, y: 1, label: "(0, 1)" }, { x: 1, y: 0, label: "(1, 0)" }],
+            labels: [
+              { x: -2.3, y: 3.6, text: "y = eˣ", color: "accent" },
+              { x: 3, y: 0.25, text: "y = ln x", color: "blue" },
+            ],
             vlines: [{ x: 0, dashed: true, color: "muted" }],
           },
           caption: "$\\ln x$ es el reflejo de $e^x$ sobre la recta $y = x$. Solo existe para $x > 0$, vale $0$ en $x = 1$ y es negativo entre $0$ y $1$.",
@@ -1030,15 +1034,9 @@ const topic: Topic = {
           md: "Como un logaritmo es un exponente, sus propiedades son las leyes de los exponentes vistas al revés. Multiplicar potencias suma exponentes, así que el logaritmo de un producto es la suma de los logaritmos. Dividir resta exponentes, y elevar a una potencia los multiplica.",
         },
         {
-          type: "table",
-          headers: ["Propiedad", "Fórmula", "Ejemplo"],
-          rows: [
-            ["Producto", "$\\log_b(MN) = \\log_b M + \\log_b N$", "$\\log_6 4 + \\log_6 9 = \\log_6 36 = 2$"],
-            ["Cociente", "$\\log_b \\dfrac{M}{N} = \\log_b M - \\log_b N$", "$\\log_2 24 - \\log_2 3 = \\log_2 8 = 3$"],
-            ["Potencia", "$\\log_b(M^k) = k \\log_b M$", "$\\ln(x^5) = 5\\ln x$"],
-            ["Cambio de base", "$\\log_b M = \\dfrac{\\ln M}{\\ln b}$", "$\\log_3 7 = \\dfrac{\\ln 7}{\\ln 3} \\approx 1{,}7712$"],
-          ],
-          caption: "Valen para $M > 0$ y $N > 0$.",
+          type: "definition",
+          title: "Propiedades de los logaritmos",
+          md: "Valen para $M > 0$ y $N > 0$.\n\n**Producto**\n\n$$\\log_b(MN) = \\log_b M + \\log_b N$$\n\nPor ejemplo, $\\log_6 4 + \\log_6 9 = \\log_6 36 = 2$.\n\n**Cociente**\n\n$$\\log_b \\frac{M}{N} = \\log_b M - \\log_b N$$\n\nPor ejemplo, $\\log_2 24 - \\log_2 3 = \\log_2 8 = 3$.\n\n**Potencia**\n\n$$\\log_b(M^k) = k \\log_b M$$\n\nPor ejemplo, $\\ln(x^5) = 5\\ln x$.\n\n**Cambio de base**\n\n$$\\log_b M = \\frac{\\ln M}{\\ln b}$$\n\nPor ejemplo, $\\log_3 7 = \\dfrac{\\ln 7}{\\ln 3} \\approx 1{,}7712$.",
         },
         {
           type: "example",

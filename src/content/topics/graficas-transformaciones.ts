@@ -284,7 +284,7 @@ const evaluarTrozos: ExerciseGen = {
     const other = bs.find((q, j) => j !== idx && (q.lo === x0 || q.hi === x0));
     const wrong = other ? other.f(x0) : NaN;
     return {
-      statement: `Sea $f(x) = ${piecewiseTex(bs)}$. Calcula $f(${x0})$.`,
+      statement: `Sea\n\n$$f(x) = ${piecewiseTex(bs)}$$\n\nCalcula $f(${x0})$.`,
       parts: [{
         kind: "expr", before: `f(${x0}) =`, answer: String(val),
         mistakes: other && wrong !== val ? [{ answer: String(wrong), feedback: `Usaste la rama $${other.tex}$, pero $x = ${x0}$ no cumple su condición. Revisa quién lleva el $\\le$ o el $\\ge$.` }] : [],
@@ -313,10 +313,10 @@ const rangoTransformada: ExerciseGen = {
     const rango = s > 0 ? [iv(k, Infinity, closed)] : [iv(-Infinity, k, false, closed)];
     const parts: Part[] = [];
     if (kind === "sqrt") {
-      parts.push({ kind: "interval", prompt: "Dominio", before: "\\text{Dom} f =", answer: [iv(h, Infinity, true)], mistakes: [{ answer: [iv(-h, Infinity, true)], feedback: `El radicando es $${minus("x", h)} \\ge 0$, que da $x \\ge ${h}$.` }] });
+      parts.push({ kind: "interval", prompt: "Dominio", before: "\\text{Dom } f =", answer: [iv(h, Infinity, true)], mistakes: [{ answer: [iv(-h, Infinity, true)], feedback: `El radicando es $${minus("x", h)} \\ge 0$, que da $x \\ge ${h}$.` }] });
     }
     parts.push({
-      kind: "interval", prompt: "Rango", before: "\\text{Rgo} f =", answer: rango,
+      kind: "interval", prompt: "Rango", before: "\\text{Ran } f =", answer: rango,
       mistakes: [{ answer: s > 0 ? [iv(-Infinity, k, false, closed)] : [iv(k, Infinity, closed)], feedback: s > 0 ? "No hay signo menos delante, así que la gráfica no se refleja: va hacia arriba." : "El signo menos delante refleja la gráfica: ahora va hacia abajo desde la altura $k$." }],
     });
     const baseR = kind === "exp" ? "(0, +\\infty)" : "[0, +\\infty)";
@@ -331,7 +331,7 @@ const rangoTransformada: ExerciseGen = {
         ...(kind === "sqrt" ? [`Dominio: $${minus("x", h)} \\ge 0$, o sea $x \\ge ${h}$.`] : []),
         `La parte ${kind === "sqrt" ? `$\\sqrt{${minus("x", h)}}$` : kind === "abs" ? `$|${minus("x", h)}|$` : `$e^{${minus("x", h)}}$`} toma los valores $${baseR}$.`,
         s < 0 ? "Con el signo menos pasa a tomar los valores opuestos, hacia abajo desde 0." : "Sin signo menos se queda igual.",
-        `Al sumar $${k}$ todo se traslada: $\\text{Rgo} f = ${ivTex(rango)}$.`,
+        `Al sumar $${k}$ todo se traslada: $\\text{Ran } f = ${ivTex(rango)}$.`,
       ],
     };
   },
@@ -498,15 +498,15 @@ const rangoTrozos2: ExerciseGen = {
     const bs = makePiecewise(r, 2);
     const rango = union(...bs.map((b) => [b.img]));
     return {
-      statement: `Halla el rango de $f(x) = ${piecewiseTex(bs)}$.`,
-      parts: [{ kind: "interval", before: "\\text{Rgo} f =", answer: rango }],
+      statement: `Halla el rango de\n\n$$f(x) = ${piecewiseTex(bs)}$$`,
+      parts: [{ kind: "interval", before: "\\text{Ran } f =", answer: rango }],
       hints: [
         "Calcula qué valores toma cada rama dentro de su propio tramo, sin salirte de él.",
         "El rango es la unión de esos dos conjuntos. Un hueco de una rama puede quedar tapado por la otra.",
       ],
       solution: [
         ...bs.map((b, i) => `Rama ${i + 1}, $${b.tex}$ para $${condTex(b.lo, b.hi, b.loC, b.hiC)}$. ${b.why} Toma $${ivTex([b.img])}$.`),
-        `Uniendo: $\\text{Rgo} f = ${ivTex(rango)}$.`,
+        `Uniendo: $\\text{Ran } f = ${ivTex(rango)}$.`,
       ],
     };
   },
@@ -526,9 +526,9 @@ const rangoTrozosParcial: ExerciseGen = {
       prompt: `Valores que toma la rama ${i + 1}, $${b.tex}$, en su tramo.`,
       answer: [b.img],
     }));
-    parts.push({ kind: "interval", prompt: "Rango de $f$", before: "\\text{Rgo} f =", answer: rango });
+    parts.push({ kind: "interval", prompt: "Rango de $f$", before: "\\text{Ran } f =", answer: rango });
     return {
-      statement: `Dada $f: \\mathbb{R} \\to \\mathbb{R}$, $f(x) = ${piecewiseTex(bs)}$, grafícala en tu cuaderno y determina su rango.`,
+      statement: `Dada $f: \\mathbb{R} \\to \\mathbb{R}$ con\n\n$$f(x) = ${piecewiseTex(bs)}$$\n\ngrafícala en tu cuaderno y determina su rango.`,
       sequential: true,
       parts,
       hints: [
@@ -538,7 +538,7 @@ const rangoTrozosParcial: ExerciseGen = {
       ],
       solution: [
         ...bs.map((b, i) => `Rama ${i + 1}. ${b.why} Aporta $${ivTex([b.img])}$.`),
-        `Uniendo todo: $\\text{Rgo} f = ${ivTex(rango)}$.`,
+        `Uniendo todo: $\\text{Ran } f = ${ivTex(rango)}$.`,
       ],
     };
   },
@@ -565,7 +565,7 @@ const elegirGraficaTrozos: ExerciseGen = {
     const order = r.shuffle([0, 1, 2, 3]);
     const owner = bs[0].hiC ? 1 : 2;
     return {
-      statement: `¿Cuál es la gráfica de $f(x) = ${piecewiseTex(bs)}$?`,
+      statement: `¿Cuál es la gráfica de esta función?\n\n$$f(x) = ${piecewiseTex(bs)}$$`,
       parts: [{
         kind: "choice",
         shuffle: false,
@@ -603,9 +603,9 @@ const transformacionCompuesta: ExerciseGen = {
     const parts: Part[] = [
       { kind: "point", prompt: `Marca el ${kind === "sqrt" ? "punto donde arranca la gráfica" : "vértice"}.`, graph: { x: [-7, 7], y: [-7, 7] }, answer: [h, k] },
     ];
-    if (kind === "sqrt") parts.push({ kind: "interval", prompt: "Dominio", before: "\\text{Dom} g =", answer: [iv(h, Infinity, true)] });
+    if (kind === "sqrt") parts.push({ kind: "interval", prompt: "Dominio", before: "\\text{Dom } g =", answer: [iv(h, Infinity, true)] });
     parts.push(
-      { kind: "interval", prompt: "Rango", before: "\\text{Rgo} g =", answer: rango, mistakes: [{ answer: A > 0 ? [iv(-Infinity, k, false, true)] : [iv(k, Infinity, true)], feedback: A > 0 ? "El coeficiente es positivo, así que no hay reflexión." : "El coeficiente negativo refleja la gráfica hacia abajo." }] },
+      { kind: "interval", prompt: "Rango", before: "\\text{Ran } g =", answer: rango, mistakes: [{ answer: A > 0 ? [iv(-Infinity, k, false, true)] : [iv(k, Infinity, true)], feedback: A > 0 ? "El coeficiente es positivo, así que no hay reflexión." : "El coeficiente negativo refleja la gráfica hacia abajo." }] },
       { kind: "expr", prompt: `Calcula $g(${x1})$.`, before: `g(${x1}) =`, answer: String(y1) },
     );
     const baseName = kind === "sqrt" ? "\\sqrt{x}" : kind === "abs" ? "|x|" : "x^2";
@@ -621,9 +621,9 @@ const transformacionCompuesta: ExerciseGen = {
         `Paso 1: $y = ${inner}$ mueve la gráfica ${uds(Math.abs(h))} a la ${h > 0 ? "derecha" : "izquierda"}. El punto clave pasa a $(${h}, 0)$.`,
         `Paso 2: multiplicar por $${A}$ ${A < 0 ? "refleja sobre el eje $x$ y " : ""}${Math.abs(A) === 1 ? "no cambia el tamaño" : `estira la gráfica por un factor ${Math.abs(A)}`}. El punto clave sigue en $(${h}, 0)$.`,
         `Paso 3: ${k === 0 ? "no hay traslación vertical" : `${k > 0 ? "sumar" : "restar"} $${Math.abs(k)}$ mueve todo ${uds(Math.abs(k))} hacia ${k > 0 ? "arriba" : "abajo"}`}. El punto clave queda en $(${h}, ${k})$.`,
-        ...(kind === "sqrt" ? [`Dominio: $${minus("x", h)} \\ge 0$, así que $\\text{Dom} g = [${h}, +\\infty)$.`] : []),
-        `La gráfica ${A > 0 ? "sube" : "baja"} desde la altura $${k}$: $\\text{Rgo} g = ${ivTex(rango)}$.`,
-        `$g(${x1}) = ${A} \\cdot 1${plusK(k)} = ${y1}$.`,
+        ...(kind === "sqrt" ? [`Dominio: $${minus("x", h)} \\ge 0$, así que $\\text{Dom } g = [${h}, +\\infty)$.`] : []),
+        `La gráfica ${A > 0 ? "sube" : "baja"} desde la altura $${k}$: $\\text{Ran } g = ${ivTex(rango)}$.`,
+        `En $x = ${x1}$ la parte de adentro vale $1$, así que $g(${x1}) = ${A === -1 ? "-1" : `${A} \\cdot 1`}${plusK(k)} = ${y1}$.`,
       ],
     };
   },
@@ -634,11 +634,11 @@ const transformacionCompuesta: ExerciseGen = {
 const quickRangoGrafica: Exercise = {
   statement: "La gráfica muestra una función en su dominio completo. ¿Cuál es su rango?",
   graph: {
-    x: [-2, 5], y: [-1, 5],
+    x: [-2, 5], y: [-1, 5], step: 1,
     segments: [{ from: [0, 1], to: [3, 4], color: "accent" }],
     points: [{ x: 0, y: 1, color: "accent" }, { x: 3, y: 4, open: true, color: "accent" }],
   },
-  parts: [{ kind: "interval", before: "\\text{Rgo} f =", answer: [iv(1, 4, true, false)], mistakes: [{ answer: [iv(0, 3, true, false)], feedback: "Ese es el dominio, que se lee en el eje $x$. El rango se lee en el eje $y$." }] }],
+  parts: [{ kind: "interval", before: "\\text{Ran } f =", answer: [iv(1, 4, true, false)], mistakes: [{ answer: [iv(0, 3, true, false)], feedback: "Ese es el dominio, que se lee en el eje $x$. El rango se lee en el eje $y$." }] }],
   solution: ["Proyectando sobre el eje $y$, la gráfica cubre desde la altura 1, con punto relleno, hasta la altura 4, con punto hueco. El rango es $[1, 4)$."],
 };
 
@@ -700,7 +700,7 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-4, 6], y: [-3, 4],
+            x: [-4, 6], y: [-3, 4], step: 1,
             curves: [
               { fn: "\\sqrt{x}", color: "muted", dashed: true, domain: [0, 6], label: "√x" },
               { fn: "\\sqrt{x+2}-1", color: "accent", domain: [-2, 6], label: "g" },
@@ -731,9 +731,9 @@ const topic: Topic = {
           spec: {
             x: [-4, 4], y: [-5, 5],
             curves: [
-              { fn: "e^{x}", color: "accent", label: "e^x" },
-              { fn: "-e^{x}", color: "red", label: "-e^x" },
-              { fn: "e^{-x}", color: "blue", label: "e^{-x}" },
+              { fn: "e^{x}", color: "accent", label: "eˣ" },
+              { fn: "-e^{x}", color: "red", label: "−eˣ" },
+              { fn: "e^{-x}", color: "blue", label: "e⁻ˣ" },
             ],
           },
           caption: "$-e^x$ refleja sobre el eje $x$ y $e^{-x}$ refleja sobre el eje $y$.",
@@ -833,8 +833,12 @@ const topic: Topic = {
           spec: {
             x: [-4, 4], y: [-5, 6],
             curves: [
-              { fn: "x^{2}-4", color: "muted", dashed: true, label: "x² - 4" },
-              { fn: "|x^{2}-4|", color: "accent", label: "|x² - 4|" },
+              { fn: "x^{2}-4", color: "muted", dashed: true },
+              { fn: "|x^{2}-4|", color: "accent" },
+            ],
+            labels: [
+              { x: 0.9, y: 4.4, text: "|x² − 4|", color: "accent" },
+              { x: 0.9, y: -4.8, text: "x² − 4", color: "muted" },
             ],
           },
           caption: "Entre $-2$ y $2$ la parábola estaba por debajo del eje. El valor absoluto la sube y forma una joroba.",
@@ -848,7 +852,7 @@ const topic: Topic = {
             "Si $x < 0$, $|x| = -x$ y queda $f(x) = -x - x = -2x$.",
             "Para $x < 0$, $-2x$ es positivo y crece sin límite hacia la izquierda. A la derecha la función vale 0.",
           ],
-          answer: "$f(x) = \\begin{cases} -2x & \\text{si } x < 0 \\\\ 0 & \\text{si } x \\ge 0 \\end{cases}$ y su rango es $[0, +\\infty)$.",
+          answer: "$$f(x) = \\begin{cases} -2x & \\text{si } x < 0 \\\\ 0 & \\text{si } x \\ge 0 \\end{cases}$$\n\nSu rango es $[0, +\\infty)$.",
         },
         {
           type: "note",
@@ -877,14 +881,14 @@ const topic: Topic = {
         {
           type: "example",
           title: "Graficar y hallar el rango",
-          problem: "Grafica $f(x) = \\begin{cases} x + 4 & \\text{si } x < -2 \\\\ x^2 - 2 & \\text{si } -2 \\le x \\le 1 \\\\ 3 & \\text{si } x > 1 \\end{cases}$ y halla su rango.",
+          problem: "Grafica la función\n\n$$f(x) = \\begin{cases} x + 4 & \\text{si } x < -2 \\\\ x^2 - 2 & \\text{si } -2 \\le x \\le 1 \\\\ 3 & \\text{si } x > 1 \\end{cases}$$\n\ny halla su rango.",
           steps: [
             "Rama 1, la recta $x + 4$ para $x < -2$. En $x = -2$ llegaría a $2$, pero ese punto no es suyo: hueco en $(-2, 2)$. Hacia la izquierda baja sin límite. Aporta $(-\\infty, 2)$.",
             "Rama 2, la parábola $x^2 - 2$ en $[-2, 1]$. Vale $2$ en $x = -2$ (relleno), tiene su vértice en $(0, -2)$ y vale $-1$ en $x = 1$ (relleno). Aporta $[-2, 2]$.",
             "Rama 3, la constante 3 para $x > 1$. Empieza con un hueco en $(1, 3)$. Aporta solo el valor $3$.",
             "Unimos: $(-\\infty, 2) \\cup [-2, 2] \\cup \\{3\\} = (-\\infty, 2] \\cup \\{3\\}$. El hueco de la rama 1 en altura 2 queda tapado por la rama 2.",
           ],
-          answer: "$\\text{Rgo} f = (-\\infty, 2] \\cup \\{3\\}$",
+          answer: "$\\text{Ran } f = (-\\infty, 2] \\cup \\{3\\}$",
         },
         {
           type: "graph",
@@ -893,13 +897,13 @@ const topic: Topic = {
             curves: [
               { fn: "x+4", domain: [-6, -2], color: "accent" },
               { fn: "x^{2}-2", domain: [-2, 1], color: "blue" },
-              { fn: "3", domain: [1, 5], color: "green" },
+              { fn: "3", domain: [1, 5], color: "orange" },
             ],
             points: [
               { x: -2, y: 2, color: "blue" },
               { x: 1, y: -1, color: "blue" },
-              { x: 1, y: 3, open: true, color: "green" },
-              { x: 0, y: -2, label: "vértice", color: "blue" },
+              { x: 1, y: 3, open: true, color: "orange" },
+              { x: 0, y: -2, color: "blue" },
             ],
           },
           caption: "Cada color es una rama. En $x = 1$ hay un salto: el punto relleno es de la parábola y el hueco es de la constante.",
@@ -907,7 +911,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "La función del parcial de 2015",
-          problem: "Grafica $f(x) = \\begin{cases} x^2 + 1 & \\text{si } -5 \\le x < -3 \\\\ -|x + 3| & \\text{si } -3 \\le x < 0 \\\\ \\log x & \\text{si } 0 < x \\le 1 \\\\ \\sqrt{x - 1} + 2 & \\text{si } 1 < x \\le 5 \\end{cases}$ y determina su rango.",
+          problem: "Grafica la función\n\n$$f(x) = \\begin{cases} x^2 + 1 & \\text{si } -5 \\le x < -3 \\\\ -|x + 3| & \\text{si } -3 \\le x < 0 \\\\ \\log x & \\text{si } 0 < x \\le 1 \\\\ \\sqrt{x - 1} + 2 & \\text{si } 1 < x \\le 5 \\end{cases}$$\n\ny determina su rango.",
           steps: [
             "$x^2 + 1$ en $[-5, -3)$: para negativos la parábola baja al acercarse a 0. Vale $26$ en $-5$ (relleno) y $10$ en $-3$ (hueco). Aporta $(10, 26]$.",
             "$-|x + 3|$ en $[-3, 0)$: es una V invertida con punta en $(-3, 0)$, que es relleno. Baja hasta $-3$ en $x = 0$, que es hueco. Aporta $(-3, 0]$.",
@@ -915,7 +919,7 @@ const topic: Topic = {
             "$\\sqrt{x - 1} + 2$ en $(1, 5]$: arranca en $(1, 2)$ con hueco y llega a $(5, 4)$ relleno. Aporta $(2, 4]$.",
             "Unimos. $(-3, 0]$ ya está dentro de $(-\\infty, 0]$, así que el rango queda en tres pedazos.",
           ],
-          answer: "$\\text{Rgo} f = (-\\infty, 0] \\cup (2, 4] \\cup (10, 26]$. El dominio es $[-5, 5] - \\{0\\}$.",
+          answer: "$\\text{Ran } f = (-\\infty, 0] \\cup (2, 4] \\cup (10, 26]$. El dominio es $[-5, 5] - \\{0\\}$.",
         },
         {
           type: "graph",
@@ -924,7 +928,7 @@ const topic: Topic = {
             curves: [
               { fn: "x^{2}+1", domain: [-5, -3], color: "accent" },
               { fn: "-|x+3|", domain: [-3, 0], color: "blue" },
-              { fn: "\\log(x)", domain: [0.001, 1], color: "green" },
+              { fn: "\\log(x)", domain: [0.001, 1], color: "red" },
               { fn: "\\sqrt{x-1}+2", domain: [1, 5], color: "orange" },
             ],
             points: [
@@ -932,7 +936,7 @@ const topic: Topic = {
               { x: -3, y: 10, open: true, color: "accent" },
               { x: -3, y: 0, color: "blue" },
               { x: 0, y: -3, open: true, color: "blue" },
-              { x: 1, y: 0, color: "green" },
+              { x: 1, y: 0, color: "red" },
               { x: 1, y: 2, open: true, color: "orange" },
               { x: 5, y: 4, color: "orange" },
             ],
@@ -947,8 +951,8 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Halla el rango de $f(x) = \\begin{cases} 2x & \\text{si } x < 1 \\\\ 5 & \\text{si } x \\ge 1 \\end{cases}$.",
-            parts: [{ kind: "interval", before: "\\text{Rgo} f =", answer: [iv(-Infinity, 2), pt(5)] }],
+            statement: "Halla el rango de\n\n$$f(x) = \\begin{cases} 2x & \\text{si } x < 1 \\\\ 5 & \\text{si } x \\ge 1 \\end{cases}$$",
+            parts: [{ kind: "interval", before: "\\text{Ran } f =", answer: [iv(-Infinity, 2), pt(5)] }],
             solution: ["La recta $2x$ para $x < 1$ toma todos los valores menores que 2, sin el 2: $(-\\infty, 2)$.", "La constante aporta el 5. Rango: $(-\\infty, 2) \\cup \\{5\\}$."],
           },
         },
@@ -965,7 +969,7 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-2, 6], y: [-1, 5],
+            x: [-2, 6], y: [-1, 5], step: 1,
             curves: [
               { fn: "-(x-1)^{2}+4", domain: [-1, 3], color: "accent" },
               { fn: "1", domain: [3, 5], color: "accent" },
@@ -989,7 +993,7 @@ const topic: Topic = {
             "El punto $(3, 0)$ es hueco, pero la altura 0 sí se alcanza en $x = -1$. Por eso el 0 entra.",
             "El tramo horizontal aporta la altura 1, que ya estaba cubierta por la parábola.",
           ],
-          answer: "$\\text{Dom} f = [-1, 5]$ y $\\text{Rgo} f = [0, 4]$.",
+          answer: "$\\text{Dom } f = [-1, 5]$ y $\\text{Ran } f = [0, 4]$.",
         },
         { type: "quick", exercise: quickRangoGrafica },
       ],

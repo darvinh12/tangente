@@ -21,13 +21,13 @@ const FAMILIAS: { tex: string; name: string; graph: GraphSpec; look: string }[] 
     tex: "x^{3}",
     name: "cúbica",
     look: "una curva que viene de abajo, se aplana en el origen y sigue subiendo",
-    graph: { x: [-3, 3], y: [-5, 5], curves: [{ fn: "x^{3}", color: "accent" }] },
+    graph: { x: [-3, 3], y: [-5, 5], step: 1, curves: [{ fn: "x^{3}", color: "accent" }] },
   },
   {
     tex: "|x|",
     name: "valor absoluto",
     look: "una V con la punta en el origen",
-    graph: { x: [-4, 4], y: [-2, 5], curves: [{ fn: "|x|", color: "accent" }] },
+    graph: { x: [-4, 4], y: [-2, 5], step: 1, curves: [{ fn: "|x|", color: "accent" }] },
   },
   {
     tex: "\\frac{1}{x}",
@@ -39,7 +39,7 @@ const FAMILIAS: { tex: string; name: string; graph: GraphSpec; look: string }[] 
     tex: "\\sqrt{x}",
     name: "raíz cuadrada",
     look: "media rama que sale del origen hacia la derecha y crece cada vez más despacio",
-    graph: { x: [-2, 6], y: [-2, 4], curves: [{ fn: "\\sqrt{x}", color: "accent", domain: [0, 6] }] },
+    graph: { x: [-2, 6], y: [-2, 4], step: 1, curves: [{ fn: "\\sqrt{x}", color: "accent", domain: [0, 6] }] },
   },
   {
     tex: "\\sqrt[3]{x}",
@@ -63,7 +63,7 @@ const FAMILIAS: { tex: string; name: string; graph: GraphSpec; look: string }[] 
     tex: "\\ln x",
     name: "logarítmica",
     look: "una curva que solo existe para $x > 0$, baja sin límite cerca del eje $y$ y pasa por $(1, 0)$",
-    graph: { x: [-1, 7], y: [-3, 3], curves: [{ fn: "\\ln(x)", color: "accent", domain: [0.02, 7] }], points: [{ x: 1, y: 0 }] },
+    graph: { x: [-1, 7], y: [-3, 3], step: 1, curves: [{ fn: "\\ln(x)", color: "accent", domain: [0.02, 7] }], points: [{ x: 1, y: 0 }] },
   },
 ];
 
@@ -173,9 +173,9 @@ const dominioElemental: ExerciseGen = {
     const c = r.pick(all);
     return {
       statement: `Halla el dominio de $f(x) = ${c.f}$.`,
-      parts: [{ kind: "interval", before: "\\text{Dom} f =", answer: c.D, mistakes: [{ answer: c.bad, feedback: c.badFb }] }],
+      parts: [{ kind: "interval", before: "\\text{Dom } f =", answer: c.D, mistakes: [{ answer: c.bad, feedback: c.badFb }] }],
       hints: ["Pregúntate qué números no se pueden meter: raíz cuadrada de negativos, logaritmo de cero o negativos, división entre cero."],
-      solution: [c.why, `$\\text{Dom} f = ${ivTex(c.D)}$.`],
+      solution: [c.why, `$\\text{Dom } f = ${ivTex(c.D)}$.`],
     };
   },
 };
@@ -237,7 +237,7 @@ const rangoCuadratica: ExerciseGen = {
       statement: `Halla el rango de $f(x) = ${fTex}$, con dominio $\\mathbb{R}$.`,
       parts: [{
         kind: "interval",
-        before: "\\text{Rgo} f =",
+        before: "\\text{Ran } f =",
         answer: ans,
         mistakes: [
           { answer: other, feedback: `Miraste mal hacia dónde abre. Con $a = ${a}$ la parábola abre hacia ${up ? "arriba" : "abajo"}.` },
@@ -251,7 +251,7 @@ const rangoCuadratica: ExerciseGen = {
       solution: [
         `$x_v = -\\frac{${-2 * a * h}}{2 \\cdot ${a < 0 ? `(${a})` : a}} = ${h}$ y $y_v = f(${h}) = ${k}$.`,
         `Como $a = ${a}$ ${up ? "es positivo, la parábola abre hacia arriba y $" + k + "$ es el valor más bajo" : "es negativo, la parábola abre hacia abajo y $" + k + "$ es el valor más alto"}.`,
-        `$\\text{Rgo} f = ${ivTex(ans)}$.`,
+        `$\\text{Ran } f = ${ivTex(ans)}$.`,
       ],
     };
   },
@@ -343,7 +343,7 @@ const parabolaCompleta: ExerciseGen = {
         { kind: "expr", prompt: "Ordenada del vértice", before: "y_v =", answer: String(k) },
         { kind: "set", prompt: "Cortes con el eje $x$", before: "x \\in", answer: [r1, r2] },
         { kind: "expr", prompt: "Corte con el eje $y$", before: "y =", answer: String(c) },
-        { kind: "interval", prompt: "Rango", before: "\\text{Rgo} f =", answer: rango },
+        { kind: "interval", prompt: "Rango", before: "\\text{Ran } f =", answer: rango },
       ],
       hints: [
         "Vértice: $x_v = -\\frac{b}{2a}$ y $y_v = f(x_v)$.",
@@ -355,7 +355,7 @@ const parabolaCompleta: ExerciseGen = {
         `$x_v = -\\frac{${b}}{2 \\cdot ${a < 0 ? `(${a})` : a}} = ${h}$ y $y_v = f(${h}) = ${k}$. Vértice $(${h}, ${k})$.`,
         `Factorizando, $f(x) = ${a === 1 ? "" : a === -1 ? "-" : a}(${minus("x", r1)})(${minus("x", r2)})$, así que corta al eje $x$ en $x = ${r1}$ y $x = ${r2}$.`,
         `$f(0) = ${c}$, el corte con el eje $y$ es $(0, ${c})$.`,
-        `Como el vértice es el punto más ${a > 0 ? "bajo" : "alto"}, $\\text{Rgo} f = ${ivTex(rango)}$.`,
+        `Como el vértice es el punto más ${a > 0 ? "bajo" : "alto"}, $\\text{Ran } f = ${ivTex(rango)}$.`,
       ],
     };
   },
@@ -431,8 +431,8 @@ const expLogTrasladada: ExerciseGen = {
         statement: `Para $f(x) = ${fTex}$ determina dominio, rango, asíntota horizontal y corte con el eje $y$.`,
         sequential: true,
         parts: [
-          { kind: "interval", prompt: "Dominio", before: "\\text{Dom} f =", answer: R },
-          { kind: "interval", prompt: "Rango", before: "\\text{Rgo} f =", answer: [iv(k, Infinity)], mistakes: [{ answer: [iv(0, Infinity)], feedback: `Ese es el rango de $${b}^x$. El $${k < 0 ? "-" : "+"} ${Math.abs(k)}$ mueve toda la gráfica, también su piso.` }, { answer: [iv(k, Infinity, true)], feedback: `La curva se acerca a $y = ${k}$ pero nunca llega, porque $${b}^{${minus("x", h)}}$ nunca vale 0. El extremo va abierto.` }] },
+          { kind: "interval", prompt: "Dominio", before: "\\text{Dom } f =", answer: R },
+          { kind: "interval", prompt: "Rango", before: "\\text{Ran } f =", answer: [iv(k, Infinity)], mistakes: [{ answer: [iv(0, Infinity)], feedback: `Ese es el rango de $${b}^x$. El $${k < 0 ? "-" : "+"} ${Math.abs(k)}$ mueve toda la gráfica, también su piso.` }, { answer: [iv(k, Infinity, true)], feedback: `La curva se acerca a $y = ${k}$ pero nunca llega, porque $${b}^{${minus("x", h)}}$ nunca vale 0. El extremo va abierto.` }] },
           { kind: "expr", prompt: "Asíntota horizontal", before: "y =", answer: String(k) },
           { kind: "expr", prompt: "Corte con el eje $y$", before: "y =", answer: String(y0) },
         ],
@@ -441,8 +441,8 @@ const expLogTrasladada: ExerciseGen = {
           `Sumar $${k}$ sube o baja la gráfica, así que también mueve la asíntota.`,
         ],
         solution: [
-          "Una exponencial acepta cualquier exponente: $\\text{Dom} f = \\mathbb{R}$.",
-          `$${b}^{${minus("x", h)}}$ toma todos los valores positivos. Al sumar $${k}$, $f$ toma todos los valores mayores que $${k}$: $\\text{Rgo} f = (${k}, +\\infty)$.`,
+          "Una exponencial acepta cualquier exponente: $\\text{Dom } f = \\mathbb{R}$.",
+          `$${b}^{${minus("x", h)}}$ toma todos los valores positivos. Al sumar $${k}$, $f$ toma todos los valores mayores que $${k}$: $\\text{Ran } f = (${k}, +\\infty)$.`,
           `La asíntota horizontal es $y = ${k}$.`,
           `$f(0) = ${b}^{${-h}} ${k < 0 ? "-" : "+"} ${Math.abs(k)} = ${y0}$.`,
         ],
@@ -455,8 +455,8 @@ const expLogTrasladada: ExerciseGen = {
       statement: `Para $f(x) = ${fTex}$ determina dominio, rango, asíntota vertical y corte con el eje $x$.`,
       sequential: true,
       parts: [
-        { kind: "interval", prompt: "Dominio", before: "\\text{Dom} f =", answer: [iv(h, Infinity)], mistakes: [{ answer: [iv(h, Infinity, true)], feedback: "El logaritmo de 0 no existe. El extremo va abierto." }] },
-        { kind: "interval", prompt: "Rango", before: "\\text{Rgo} f =", answer: R, mistakes: [{ answer: [iv(0, Infinity)], feedback: "Ese es el dominio de $\\log x$, no su rango. El logaritmo toma todos los reales." }] },
+        { kind: "interval", prompt: "Dominio", before: "\\text{Dom } f =", answer: [iv(h, Infinity)], mistakes: [{ answer: [iv(h, Infinity, true)], feedback: "El logaritmo de 0 no existe. El extremo va abierto." }] },
+        { kind: "interval", prompt: "Rango", before: "\\text{Ran } f =", answer: R, mistakes: [{ answer: [iv(0, Infinity)], feedback: "Ese es el dominio de $\\log x$, no su rango. El logaritmo toma todos los reales." }] },
         { kind: "expr", prompt: "Asíntota vertical", before: "x =", answer: String(h) },
         { kind: "expr", prompt: "Corte con el eje $x$", before: "x =", answer: String(x0) },
       ],
@@ -465,8 +465,8 @@ const expLogTrasladada: ExerciseGen = {
         `Para el corte con el eje $x$ plantea $f(x) = 0$ y usa que $\\log_{${b}} u = m$ equivale a $u = ${b}^m$.`,
       ],
       solution: [
-        `Pedimos $${minus("x", h)} > 0$, o sea $x > ${h}$. $\\text{Dom} f = (${h}, +\\infty)$ y la asíntota vertical es $x = ${h}$.`,
-        "Un logaritmo toma todos los reales, y sumarle una constante no cambia eso: $\\text{Rgo} f = \\mathbb{R}$.",
+        `Pedimos $${minus("x", h)} > 0$, o sea $x > ${h}$. $\\text{Dom } f = (${h}, +\\infty)$ y la asíntota vertical es $x = ${h}$.`,
+        "Un logaritmo toma todos los reales, y sumarle una constante no cambia eso: $\\text{Ran } f = \\mathbb{R}$.",
         `$f(x) = 0$ da $\\log_{${b}}(${minus("x", h)}) = ${-k}$, así que $${minus("x", h)} = ${b}^{${-k}} = ${b ** -k}$ y $x = ${x0}$.`,
       ],
     };
@@ -527,7 +527,8 @@ const topic: Topic = {
           type: "graph",
           spec: {
             x: [-2, 6], y: [-3, 8],
-            curves: [{ fn: "-2x+6", color: "accent", label: "f(x) = -2x + 6" }],
+            curves: [{ fn: "-2x+6", color: "accent" }],
+            labels: [{ x: 2.5, y: 4, text: "f(x) = −2x + 6", color: "accent" }],
             points: [{ x: 0, y: 6, label: "(0, 6)" }, { x: 3, y: 0, label: "(3, 0)" }],
           },
         },
@@ -636,11 +637,11 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-3, 3], y: [-6, 6],
+            x: [-3, 3], y: [-6, 6], step: 1,
             curves: [
-              { fn: "x^{3}", color: "accent", label: "x^3" },
-              { fn: "\\frac{1}{4}x^{3}", color: "blue", label: "x^3/4" },
-              { fn: "-x^{3}", color: "red", label: "-x^3" },
+              { fn: "x^{3}", color: "accent", label: "x³" },
+              { fn: "\\frac{1}{4}x^{3}", color: "blue", label: "x³/4" },
+              { fn: "-x^{3}", color: "red", label: "−x³" },
             ],
           },
           caption: "Un coeficiente mayor que 1 acerca la curva al eje $y$, uno entre 0 y 1 la abre, y el signo menos la refleja.",
@@ -664,7 +665,7 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-3, 3], y: [-5, 5],
+            x: [-3, 3], y: [-5, 5], step: 1,
             curves: [{ fn: "x^{3}-4x", color: "accent" }],
             points: [{ x: -2, y: 0 }, { x: 0, y: 0 }, { x: 2, y: 0 }],
           },
@@ -685,7 +686,7 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "El **valor absoluto** mide la distancia de un número al cero, sin importar el lado. Por eso $|-5| = 5$ y $|5| = 5$. Como función se escribe a trozos:\n\n$$|x| = \\begin{cases} x & \\text{si } x \\ge 0 \\\\ -x & \\text{si } x < 0 \\end{cases}$$\n\nA la derecha del cero copia la recta $y = x$. A la izquierda le cambia el signo a los negativos y los vuelve positivos. El resultado es una V con la punta en el origen.",
+          md: "El **valor absoluto** mide la distancia de un número al cero, sin importar el lado. Por eso $|{-5}| = 5$ y $|5| = 5$. Como función se escribe a trozos:\n\n$$|x| = \\begin{cases} x & \\text{si } x \\ge 0 \\\\ -x & \\text{si } x < 0 \\end{cases}$$\n\nA la derecha del cero copia la recta $y = x$. A la izquierda le cambia el signo a los negativos y los vuelve positivos. El resultado es una V con la punta en el origen.",
         },
         {
           type: "graph",
@@ -726,7 +727,7 @@ const topic: Topic = {
             "Para que $\\frac{1}{x} = 0$ el numerador tendría que ser cero, y es 1. Así que el 0 nunca sale.",
             "Cualquier otro número $y \\ne 0$ sí sale: basta tomar $x = \\frac{1}{y}$, porque $f\\left(\\frac{1}{y}\\right) = y$.",
           ],
-          answer: "$\\text{Rgo} f = \\mathbb{R} - \\{0\\} = (-\\infty, 0) \\cup (0, +\\infty)$.",
+          answer: "$\\text{Ran } f = \\mathbb{R} - \\{0\\} = (-\\infty, 0) \\cup (0, +\\infty)$.",
         },
         {
           type: "note",
@@ -738,7 +739,7 @@ const topic: Topic = {
           type: "quick",
           exercise: {
             statement: "¿Cuál es el rango de $f(x) = |x|$?",
-            parts: [{ kind: "interval", before: "\\text{Rgo} f =", answer: [iv(0, Infinity, true)], mistakes: [{ answer: [iv(0, Infinity)], feedback: "$|0| = 0$, así que el cero sí está en el rango." }] }],
+            parts: [{ kind: "interval", before: "\\text{Ran } f =", answer: [iv(0, Infinity, true)], mistakes: [{ answer: [iv(0, Infinity)], feedback: "$|0| = 0$, así que el cero sí está en el rango." }] }],
             solution: ["Un valor absoluto nunca es negativo y vale 0 en $x = 0$. Toma todos los valores desde 0 hacia arriba: $[0, +\\infty)$."],
           },
         },
@@ -755,7 +756,7 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-8, 8], y: [-3, 4],
+            x: [-8, 8], y: [-3, 5],
             curves: [
               { fn: "\\sqrt{x}", color: "accent", domain: [0, 8], label: "√x" },
               { fn: "\\sqrt[3]{x}", color: "blue", label: "∛x" },
@@ -780,7 +781,7 @@ const topic: Topic = {
             "Despejamos: $-2x \\ge -6$. Al dividir entre $-2$ la desigualdad se voltea: $x \\le 3$.",
             "El radicando recorre todos los valores de $[0, +\\infty)$, así que la raíz también.",
           ],
-          answer: "$\\text{Dom} f = (-\\infty, 3]$ y $\\text{Rgo} f = [0, +\\infty)$.",
+          answer: "$\\text{Dom } f = (-\\infty, 3]$ y $\\text{Ran } f = [0, +\\infty)$.",
         },
         {
           type: "note",
@@ -836,10 +837,12 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Función", "Dominio", "Rango", "Punto fijo", "Asíntota"],
+          headers: ["", "$a^x$", "$\\log_a x$"],
           rows: [
-            ["$a^x$", "$\\mathbb{R}$", "$(0, +\\infty)$", "$(0, 1)$", "$y = 0$"],
-            ["$\\log_a x$", "$(0, +\\infty)$", "$\\mathbb{R}$", "$(1, 0)$", "$x = 0$"],
+            ["Dominio", "$\\mathbb{R}$", "$(0, +\\infty)$"],
+            ["Rango", "$(0, +\\infty)$", "$\\mathbb{R}$"],
+            ["Punto fijo", "$(0, 1)$", "$(1, 0)$"],
+            ["Asíntota", "$y = 0$", "$x = 0$"],
           ],
           caption: "El dominio de una es el rango de la otra. Son funciones inversas.",
         },
@@ -848,8 +851,8 @@ const topic: Topic = {
           title: "Exponencial trasladada",
           problem: "Halla dominio, rango, asíntota y corte con el eje $y$ de $f(x) = 2^{x} - 3$.",
           steps: [
-            "La exponencial acepta cualquier exponente, así que $\\text{Dom} f = \\mathbb{R}$.",
-            "$2^x$ toma todos los valores de $(0, +\\infty)$. Al restar 3, todo baja tres unidades: $\\text{Rgo} f = (-3, +\\infty)$.",
+            "La exponencial acepta cualquier exponente, así que $\\text{Dom } f = \\mathbb{R}$.",
+            "$2^x$ toma todos los valores de $(0, +\\infty)$. Al restar 3, todo baja tres unidades: $\\text{Ran } f = (-3, +\\infty)$.",
             "La asíntota $y = 0$ también baja: ahora es $y = -3$.",
             "$f(0) = 2^0 - 3 = -2$, así que corta al eje $y$ en $(0, -2)$.",
           ],

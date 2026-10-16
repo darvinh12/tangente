@@ -642,7 +642,7 @@ const topic: Topic = {
           type: "text",
           md: "Arma tus propios ejemplos en el diagrama de abajo y mira cómo cambia la clasificación.",
         },
-        { type: "widget", widget: { kind: "mapping", domain: ["1", "2", "3"], codomain: ["a", "b", "c"], arrows: [], editable: true } },
+        { type: "widget", widget: { kind: "mapping", domain: ["1", "2", "3"], codomain: ["a", "b", "c"], arrows: [[0, 0], [1, 0], [2, 2]], editable: true } },
         {
           type: "quick",
           exercise: {
@@ -753,7 +753,7 @@ const topic: Topic = {
         {
           type: "note",
           tone: "econ",
-          title: "Precios que nunca se ven",
+          title: "Costos que nunca aparecen",
           md: "Si una función de costo es $C: [0, +\\infty) \\to \\mathbb{R} \\;/\\; C(q) = 500 + 20q$, ningún nivel de producción da un costo menor que $500$, el costo fijo. Como función de $[0, +\\infty)$ en $\\mathbb{R}$ no es sobreyectiva. Con llegada $[500, +\\infty)$ sí lo es.",
         },
         {
@@ -858,6 +858,7 @@ const topic: Topic = {
           spec: {
             x: [-3, 3],
             y: [-1, 5],
+            step: 1,
             curves: [{ fn: "|x| - x", domain: [-2, 2], color: "accent" }],
             points: [{ x: -2, y: 4, color: "accent" }, { x: 2, y: 0, color: "accent" }],
           },

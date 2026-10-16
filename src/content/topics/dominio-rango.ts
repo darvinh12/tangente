@@ -312,7 +312,7 @@ const rangoGrafica: ExerciseGen = {
       hints: ["Proyecta la gráfica sobre el eje $y$.", "Si el punto del extremo está hueco, ese valor de $y$ no entra en el rango."],
       solution: [
         `La gráfica va de $(${a}, ${fa})$ a $(${b}, ${fb})$.`,
-        `Sobre el eje $y$ cubre desde $${lo}$ hasta $${hi}$. El $${lo}$ ${loClosed ? "entra" : "no entra"} y el $${hi}$ ${hiClosed ? "entra" : "no entra"}, según si el punto correspondiente está relleno o hueco.`,
+        `Sobre el eje $y$ cubre desde $${lo}$ hasta $${hi}$. El $${lo}$ ${loClosed ? "entra porque su punto está relleno" : "no entra porque su punto está hueco"} y el $${hi}$ ${hiClosed ? "entra porque su punto está relleno" : "no entra porque su punto está hueco"}.`,
         `Rango: $${unionTex(answer)}$.`,
       ],
     };
@@ -816,11 +816,12 @@ const topic: Topic = {
           spec: {
             x: [-3, 7],
             y: [-2, 5],
+            step: 1,
             curves: [{ fn: "\\sqrt{x + 2}", domain: [-2, 7], color: "accent" }],
             points: [{ x: -2, y: 0, color: "accent" }],
             segments: [
-              { from: [-2, -0.15], to: [7, -0.15], color: "blue" },
-              { from: [-2.85, 0], to: [-2.85, 5], color: "green" },
+              { from: [-2, -0.12], to: [7, -0.12], color: "blue" },
+              { from: [-0.12, 0], to: [-0.12, 5], color: "green" },
             ],
           },
           caption: "$f(x) = \\sqrt{x + 2}$. Su sombra sobre el eje $x$ (azul) es el dominio, $[-2, +\\infty)$. Su sombra sobre el eje $y$ (verde) es el rango, $[0, +\\infty)$.",
@@ -862,7 +863,7 @@ const topic: Topic = {
         },
         {
           type: "example",
-          title: "Un cociente con dos raíces en el denominador",
+          title: "Un cociente cuyo denominador se anula dos veces",
           problem: "Halla el dominio de $f(x) = \\dfrac{x + 1}{x^2 - 4}$.",
           steps: [
             "La única restricción es el denominador: $x^2 - 4 \\ne 0$.",
@@ -1078,7 +1079,7 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "En los parciales aparece una y otra vez el mismo enunciado: \"Sea $f: \\mathbb{R} \\to \\mathbb{R} \\;/\\; y = \\dots$. Argumenta todas las razones por las cuales $f$ no es función, haz las restricciones y defínela\".\n\nLa clave es que el enunciado declara $\\mathbb{R}$ como conjunto de partida. Si algún real no tiene imagen, o tiene más de una, la relación no es función de $\\mathbb{R}$ en $\\mathbb{R}$. Las razones posibles son solo dos:\n\n- Hay elementos del conjunto de partida **sin imagen**.\n- Hay elementos del conjunto de partida **con más de una imagen**.\n\nLa restricción consiste en cambiar el conjunto de partida por el dominio natural (y, si hace falta, quedarse con una sola rama).",
+          md: "En los parciales aparece una y otra vez el mismo enunciado: \"Sea $f: \\mathbb{R} \\to \\mathbb{R} \\;/\\; y = \\dots$. Argumenta todas las razones por las cuales $f$ no es función, haz las restricciones y defínela\".\n\nFíjate en que el enunciado declara $\\mathbb{R}$ como conjunto de partida. Si algún real no tiene imagen, o tiene más de una, la relación no es función de $\\mathbb{R}$ en $\\mathbb{R}$. Las razones posibles son solo dos:\n\n- Hay elementos del conjunto de partida **sin imagen**.\n- Hay elementos del conjunto de partida **con más de una imagen**.\n\nLa restricción consiste en cambiar el conjunto de partida por el dominio natural (y, si hace falta, quedarse con una sola rama).",
         },
         {
           type: "example",

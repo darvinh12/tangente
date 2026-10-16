@@ -435,7 +435,14 @@ const distancia: ExerciseGen = {
     const d = abs(a - b);
     return {
       statement: `¿Cuál es la distancia entre $${a}$ y $${b}$ en la recta real?`,
-      graph: { x: [-11, 11], y: [-1, 1], height: 110, step: 1, points: [{ x: a, y: 0, label: `${a}` }, { x: b, y: 0, label: `${b}` }] },
+      graph: {
+        x: [-12, 12],
+        y: [-1, 1],
+        height: 110,
+        step: 1,
+        points: [{ x: a, y: 0 }, { x: b, y: 0 }],
+        labels: [a, b].map((v) => ({ x: v - String(v).length * 0.31 - 0.45, y: 0.25, text: String(v).replace("-", "−") })),
+      },
       parts: [numPart(d, [[abs(abs(a) - abs(b)), "Restaste los tamaños sin mirar los signos. Cuando los puntos están a lados distintos del cero, las distancias al cero se suman."], [a - b, "Una distancia no puede ser negativa. Usa el valor absoluto."]], "d =")],
       hints: ["La distancia entre $a$ y $b$ es $|a - b|$.", "También puedes contar los pasos de uno a otro sobre la recta."],
       solution: [`$d = |${a} - ${paren(b)}| = |${a - b}| = ${d}$.`, "El orden de la resta no importa: $|b - a|$ da lo mismo."],
@@ -498,7 +505,7 @@ const agrupacion: ExerciseGen = {
     const wrong = f - a + p2 + e;
     const tex = `${f} - \\left\\{ ${a} - \\left[ ${b} - (${c} - ${paren(d)}) \\right] + ${paren(e)} \\right\\}`;
     return {
-      statement: `Calcula $${tex}$.`,
+      statement: `Calcula:\n\n$$${tex}$$`,
       parts: [numPart(value, [[wrong, "El menos delante de la llave cambia el signo de todo lo que está adentro, también del último término."], [f + p3, "Te faltó el signo menos que está delante de la llave."]])],
       hints: ["Trabaja de adentro hacia afuera: primero el paréntesis, luego el corchete y al final la llave.", "Un signo menos delante de un signo de agrupación cambia el signo de su resultado."],
       solution: [
@@ -522,7 +529,7 @@ const vfPropiedades: ExerciseGen = {
     const big = a + b;
     const claims: { tex: Rich; ok: boolean; why: Rich }[] = [
       { tex: `$-${a}^{2} = ${a * a}$`, ok: false, why: `El exponente solo afecta al ${a}: $-${a}^{2} = -${a * a}$. El que vale $${a * a}$ es $(-${a})^{2}$.` },
-      { tex: `$|${-a} + ${b}| = |${-a}| + |${b}|$`, ok: false, why: `$|${-a} + ${b}| = ${abs(b - a)}$ pero $|${-a}| + |${b}| = ${a + b}$. El valor absoluto no se reparte en una suma cuando los signos son distintos.` },
+      { tex: `$\\lvert ${-a} + ${b} \\rvert = \\lvert ${-a} \\rvert + \\lvert ${b} \\rvert$`, ok: false, why: `$\\lvert ${-a} + ${b} \\rvert = ${abs(b - a)}$ pero $\\lvert ${-a} \\rvert + \\lvert ${b} \\rvert = ${a + b}$. El valor absoluto no se reparte en una suma cuando los signos son distintos.` },
       { tex: `Si $a < b$, entonces $-a > -b$.`, ok: true, why: "Cambiar de signo refleja los números al otro lado del cero, y el orden se invierte. Por ejemplo $2 < 5$ y $-2 > -5$." },
       { tex: `$\\dfrac{${a}}{0} = 0$`, ok: false, why: "La división entre cero no está definida. No existe un número que multiplicado por 0 dé un número distinto de 0." },
       { tex: `$0 \\div ${a} = 0$`, ok: true, why: `Repartir nada entre ${a} da nada: $0 \\div ${a} = 0$ porque $0 \\cdot ${a} = 0$.` },
@@ -630,15 +637,24 @@ const topic: Topic = {
           type: "graph",
           spec: {
             x: [-6, 6],
-            y: [-1, 1],
+            y: [-0.8, 0.8],
             height: 120,
+            step: 1,
             points: [
-              { x: -3.5, y: 0, label: "$-\\frac{7}{2}$", color: "red" },
-              { x: -1, y: 0, label: "$-1$", color: "red" },
-              { x: 0, y: 0, label: "$0$" },
-              { x: Math.SQRT2, y: 0, label: "$\\sqrt{2}$", color: "blue" },
-              { x: Math.PI, y: 0, label: "$\\pi$", color: "blue" },
-              { x: 5, y: 0, label: "$5$" },
+              { x: -3.5, y: 0, color: "red" },
+              { x: -1, y: 0, color: "red" },
+              { x: 0, y: 0 },
+              { x: Math.SQRT2, y: 0, color: "blue" },
+              { x: Math.PI, y: 0, color: "blue" },
+              { x: 5, y: 0 },
+            ],
+            labels: [
+              { x: -4.25, y: 0.15, text: "−7/2", color: "red" },
+              { x: -1.55, y: 0.15, text: "−1", color: "red" },
+              { x: -0.45, y: 0.15, text: "0" },
+              { x: 0.95, y: 0.15, text: "√2", color: "blue" },
+              { x: 2.8, y: 0.15, text: "π", color: "blue" },
+              { x: 4.6, y: 0.15, text: "5" },
             ],
           },
           caption: "Cada número ocupa un lugar. $\\sqrt{2} \\approx 1{,}41$ y $\\pi \\approx 3{,}14$ también tienen su punto.",
@@ -695,7 +711,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Restar es sumar el opuesto",
-          md: "$$a - b = a + (-b) \\qquad\\qquad a - (-b) = a + b$$\n\nQuitar una deuda es lo mismo que ganar dinero. Por eso $5 - (-3) = 5 + 3 = 8$.",
+          md: "$$a - b = a + (-b)$$\n\n$$a - (-b) = a + b$$\n\nQuitar una deuda es lo mismo que ganar dinero. Por eso $5 - (-3) = 5 + 3 = 8$.",
         },
         {
           type: "example",
@@ -879,14 +895,15 @@ const topic: Topic = {
           type: "graph",
           spec: {
             x: [-6, 6],
-            y: [-1, 1.5],
+            y: [-0.8, 0.9],
             height: 140,
+            step: 1,
             segments: [{ from: [-3, 0.3], to: [4, 0.3], color: "accent" }],
             points: [
-              { x: -3, y: 0, label: "$-3$", color: "red" },
-              { x: 4, y: 0, label: "$4$", color: "blue" },
+              { x: -3, y: 0, label: "−3", color: "red" },
+              { x: 4, y: 0, label: "4", color: "blue" },
             ],
-            labels: [{ x: 0.5, y: 0.8, text: "distancia $= 7$", color: "accent" }],
+            labels: [{ x: -1.3, y: 0.45, text: "distancia = 7", color: "accent" }],
           },
           caption: "La distancia entre $-3$ y $4$ es $|-3 - 4| = |-7| = 7$.",
         },

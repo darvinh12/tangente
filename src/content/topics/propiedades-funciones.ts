@@ -34,8 +34,12 @@ function polyline(r: Rng, nSeg: number): [number, number][] {
 }
 
 function polylineGraph(pts: [number, number][], openLast = false): GraphSpec {
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
   return {
-    x: [-7, 8], y: [-7, 7],
+    x: [Math.min(-1, ...xs) - 1, Math.max(1, ...xs) + 1],
+    y: [Math.min(-1, ...ys) - 1, Math.max(1, ...ys) + 1],
+    step: 1,
     segments: pts.slice(1).map((p, i) => ({ from: pts[i], to: p, color: "accent" as const })),
     points: pts.map(([x, y], i) => ({ x, y, color: "accent" as const, open: openLast && i === pts.length - 1 })),
   };
@@ -278,7 +282,7 @@ const cotasRango: ExerciseGen = {
       statement: `¿Cómo es $f(x) = ${t.f}$ en su dominio?`,
       parts: [choice(t.ans, opts.filter((o) => o !== t.ans).map((o) => [o, `Mira el rango: $${t.rango}$. ${t.why}`] as [Rich, Rich]))],
       hints: ["Halla el rango. Si tiene un extremo derecho finito, hay techo. Si tiene un extremo izquierdo finito, hay piso."],
-      solution: [`$\\text{Rgo} f = ${t.rango}$. ${t.why}`, `Respuesta: ${t.ans.toLowerCase()}.`],
+      solution: [`$\\text{Ran } f = ${t.rango}$. ${t.why}`, `Respuesta: ${t.ans.toLowerCase()}.`],
     };
   },
 };
@@ -313,7 +317,7 @@ const extremosIntervalo: ExerciseGen = {
         { kind: "expr", prompt: "Valor máximo", before: "\\max f =", answer: String(max) },
         { kind: "expr", prompt: "¿En qué $x$ se alcanza el máximo?", before: "x =", answer: String(xMax) },
         { kind: "expr", prompt: "Valor mínimo", before: "\\min f =", answer: String(min), mistakes: inside || min === k ? [] : [{ answer: String(k), feedback: `El vértice está en $x = ${h}$, fuera de $[${p}, ${q}]$. No cuenta.` }] },
-        { kind: "interval", prompt: "Rango", before: "\\text{Rgo} f =", answer: [iv(min, max, true, true)] },
+        { kind: "interval", prompt: "Rango", before: "\\text{Ran } f =", answer: [iv(min, max, true, true)] },
       ],
       hints: [
         "En un intervalo cerrado los extremos solo pueden estar en los bordes del intervalo o en el vértice, si cae adentro.",
@@ -323,7 +327,7 @@ const extremosIntervalo: ExerciseGen = {
         `El vértice está en $x = ${h}$, ${inside ? "dentro del intervalo" : h === p || h === q ? "justo en un borde del intervalo" : "fuera del intervalo, así que no cuenta"}.`,
         `Candidatos: ${cands.map((x) => `$f(${x}) = ${f(x)}$`).join(", ")}.`,
         `El mayor es $${max}$, en $x = ${xMax}$. El menor es $${min}$, en $x = ${xMin}$.`,
-        `Como $f$ es continua en $[${p}, ${q}]$, toma todos los valores intermedios: $\\text{Rgo} f = [${min}, ${max}]$.`,
+        `Como $f$ es continua en $[${p}, ${q}]$, toma todos los valores intermedios: $\\text{Ran } f = [${min}, ${max}]$.`,
       ],
     };
   },
@@ -413,7 +417,7 @@ const lecturaGrafica: ExerciseGen = {
         { kind: "expr", prompt: "Valor máximo absoluto", before: "\\max f =", answer: String(max), mistakes: max === xMax ? [] : [{ answer: String(xMax), feedback: "Ese es el $x$ donde se alcanza. El valor máximo es la altura." }] },
         { kind: "expr", prompt: "¿En qué $x$ se alcanza el máximo?", before: "x =", answer: String(xMax) },
         { kind: "expr", prompt: "Valor mínimo absoluto", before: "\\min f =", answer: String(min) },
-        { kind: "interval", prompt: "Rango", before: "\\text{Rgo} f =", answer: [iv(min, max, true, true)] },
+        { kind: "interval", prompt: "Rango", before: "\\text{Ran } f =", answer: [iv(min, max, true, true)] },
       ],
       hints: [
         "El máximo absoluto es la altura del punto más alto de toda la gráfica, y el mínimo la del más bajo.",
@@ -423,7 +427,7 @@ const lecturaGrafica: ExerciseGen = {
       solution: [
         `El punto más alto es $(${xMax}, ${max})$: el valor máximo es $${max}$ y se alcanza en $x = ${xMax}$.`,
         `El punto más bajo es $(${xMin}, ${min})$: el valor mínimo es $${min}$.`,
-        `La gráfica es continua, así que toma todas las alturas entre $${min}$ y $${max}$: $\\text{Rgo} f = [${min}, ${max}]$.`,
+        `La gráfica es continua, así que toma todas las alturas entre $${min}$ y $${max}$: $\\text{Ran } f = [${min}, ${max}]$.`,
         `De paso, $f$ decrece en ${dec.length > 1 ? "los intervalos" : "el intervalo"} $${decTex}$ y crece en el resto.`,
       ],
     };
@@ -459,14 +463,18 @@ const topic: Topic = {
           spec: {
             x: [-4, 4], y: [-5, 5],
             curves: [
-              { fn: "x^{2}-2", color: "accent", label: "par" },
-              { fn: "\\frac{x^{3}}{4}", color: "blue", label: "impar" },
+              { fn: "x^{2}-2", color: "accent" },
+              { fn: "\\frac{x^{3}}{4}", color: "blue" },
             ],
             points: [
               { x: -2, y: 2, color: "accent" }, { x: 2, y: 2, color: "accent" },
               { x: -2, y: -2, color: "blue" }, { x: 2, y: 2, color: "blue" },
             ],
             segments: [{ from: [-2, 2], to: [2, 2], dashed: true, color: "accent" }, { from: [-2, -2], to: [2, 2], dashed: true, color: "blue" }],
+            labels: [
+              { x: -2.3, y: 4.2, text: "par", color: "accent" },
+              { x: 1.2, y: -3.6, text: "impar", color: "blue" },
+            ],
           },
           caption: "En la par, $x = 2$ y $x = -2$ tienen la misma altura. En la impar tienen alturas opuestas y el segmento que los une pasa por el origen.",
         },
@@ -519,7 +527,7 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-3, 3], y: [-4, 4],
+            x: [-3, 3], y: [-4, 4], step: 1,
             curves: [{ fn: "x^{3}-3x", color: "accent" }],
             points: [{ x: -1, y: 2, label: "(-1, 2)" }, { x: 1, y: -2, label: "(1, -2)" }],
             vlines: [{ x: -1, dashed: true, color: "muted" }, { x: 1, dashed: true, color: "muted" }],
@@ -576,7 +584,11 @@ const topic: Topic = {
           spec: {
             x: [-6, 6], y: [-1, 3],
             curves: [{ fn: "\\frac{2}{x^{2}+1}", color: "accent" }],
-            hlines: [{ y: 2, dashed: true, color: "red", label: "techo y = 2" }, { y: 0, dashed: true, color: "blue", label: "piso y = 0" }],
+            hlines: [{ y: 2, dashed: true, color: "red" }, { y: 0, dashed: true, color: "blue" }],
+            labels: [
+              { x: -5.8, y: 2.1, text: "techo y = 2", color: "red" },
+              { x: -5.8, y: -0.5, text: "piso y = 0", color: "blue" },
+            ],
           },
           caption: "$f(x) = \\frac{2}{x^2 + 1}$ es acotada: su rango es $(0, 2]$. Alcanza el techo en $x = 0$ pero nunca toca el piso.",
         },
@@ -585,9 +597,9 @@ const topic: Topic = {
           title: "Leer las cotas en el rango",
           problem: "Clasifica $f(x) = e^x$, $g(x) = 4 - x^2$ y $h(x) = x^3$ según la acotación.",
           steps: [
-            "$\\text{Rgo} f = (0, +\\infty)$. Tiene piso en 0 pero no techo: solo es acotada inferiormente.",
-            "$\\text{Rgo} g = (-\\infty, 4]$. Tiene techo en 4 pero no piso: solo es acotada superiormente.",
-            "$\\text{Rgo} h = \\mathbb{R}$. No tiene ni techo ni piso: no es acotada.",
+            "$\\text{Ran } f = (0, +\\infty)$. Tiene piso en 0 pero no techo: solo es acotada inferiormente.",
+            "$\\text{Ran } g = (-\\infty, 4]$. Tiene techo en 4 pero no piso: solo es acotada superiormente.",
+            "$\\text{Ran } h = \\mathbb{R}$. No tiene ni techo ni piso: no es acotada.",
           ],
         },
         {
@@ -617,7 +629,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Máximo y mínimo absolutos",
-          md: "- $f$ tiene un **máximo** en $a$ si $f(x) \\le f(a)$ para todo $x$ del dominio. El número $f(a)$ es el valor máximo, el mayor elemento de $\\text{Rgo} f$.\n- $f$ tiene un **mínimo** en $b$ si $f(x) \\ge f(b)$ para todo $x$ del dominio. El número $f(b)$ es el valor mínimo.\n\nUna función puede alcanzar su máximo en varios puntos, pero el valor máximo es uno solo.",
+          md: "- $f$ tiene un **máximo** en $a$ si $f(x) \\le f(a)$ para todo $x$ del dominio. El número $f(a)$ es el valor máximo, el mayor elemento de $\\text{Ran } f$.\n- $f$ tiene un **mínimo** en $b$ si $f(x) \\ge f(b)$ para todo $x$ del dominio. El número $f(b)$ es el valor mínimo.\n\nUna función puede alcanzar su máximo en varios puntos, pero el valor máximo es uno solo.",
         },
         {
           type: "example",
@@ -633,9 +645,13 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [-2, 3], y: [-2, 4],
-            curves: [{ fn: "x^{2}-2x", domain: [-1, 2], color: "accent" }, { fn: "x^{2}-2x", color: "muted", dashed: true }],
-            points: [{ x: -1, y: 3, label: "máx (-1, 3)" }, { x: 2, y: 0 }, { x: 1, y: -1, label: "mín (1, -1)" }],
+            x: [-2, 3], y: [-2, 4], step: 1,
+            curves: [{ fn: "x^{2}-2x", color: "muted", dashed: true }, { fn: "x^{2}-2x", domain: [-1, 2], color: "accent" }],
+            points: [{ x: -1, y: 3 }, { x: 2, y: 0 }, { x: 1, y: -1 }],
+            labels: [
+              { x: -1.9, y: 3.3, text: "máx (−1, 3)" },
+              { x: 1.1, y: -1.7, text: "mín (1, −1)" },
+            ],
           },
         },
         {
@@ -666,7 +682,7 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "Con estas cuatro propiedades se puede describir cada función básica del tema anterior. La tabla resume la clasificación que hace la guía de la cátedra. Vale la pena saber justificar cada casilla con la gráfica.",
+          md: "Con estas cuatro propiedades se puede describir cada función básica del tema anterior. La tabla resume la clasificación que hace la guía de la cátedra. Practica justificar cada casilla con la gráfica.",
         },
         {
           type: "table",

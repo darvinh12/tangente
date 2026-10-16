@@ -776,11 +776,12 @@ const topic: Topic = {
           type: "table",
           headers: ["Pendiente", "La recta", "Ejemplo"],
           rows: [
-            ["$m > 0$", "Sube de izquierda a derecha", "$y = 2x + 1$"],
-            ["$m < 0$", "Baja de izquierda a derecha", "$y = -x + 4$"],
-            ["$m = 0$", "Es horizontal", "$y = 3$"],
-            ["No existe", "Es vertical ($\\Delta x = 0$, no se puede dividir)", "$x = -2$"],
+            ["$m > 0$", "Sube", "$y = 2x + 1$"],
+            ["$m < 0$", "Baja", "$y = -x + 4$"],
+            ["$m = 0$", "Horizontal", "$y = 3$"],
+            ["No existe", "Vertical", "$x = -2$"],
           ],
+          caption: "Sube o baja leyendo de izquierda a derecha. En una recta vertical $\\Delta x = 0$ y no se puede dividir.",
         },
         {
           type: "note",
@@ -813,15 +814,9 @@ const topic: Topic = {
           md: "Una recta queda determinada por un punto y su pendiente. Si $(x, y)$ es cualquier otro punto de la recta, la pendiente entre $(x_1, y_1)$ y $(x, y)$ tiene que dar $m$:\n\n$$\\frac{y - y_1}{x - x_1} = m$$\n\nMultiplicando por $x - x_1$ sale la primera forma de la ecuación. Las demás son reacomodos de la misma igualdad.",
         },
         {
-          type: "table",
-          headers: ["Forma", "Ecuación", "Cuándo conviene"],
-          rows: [
-            ["Punto-pendiente", "$y - y_1 = m(x - x_1)$", "Conoces un punto y la pendiente"],
-            ["Pendiente-ordenada", "$y = mx + b$", "Para leer la pendiente $m$ y el corte $b$ con el eje $y$"],
-            ["General", "$Ax + By + C = 0$", "Así viene en muchos ejercicios"],
-            ["Horizontal", "$y = k$", "Pendiente cero"],
-            ["Vertical", "$x = k$", "Sin pendiente"],
-          ],
+          type: "definition",
+          title: "Formas de la ecuación de la recta",
+          md: "**Punto-pendiente.** Conviene cuando conoces un punto y la pendiente.\n\n$$y - y_1 = m(x - x_1)$$\n\n**Pendiente-ordenada.** Se leen directo la pendiente $m$ y el corte $b$ con el eje $y$.\n\n$$y = mx + b$$\n\n**General.** Así viene en muchos ejercicios.\n\n$$Ax + By + C = 0$$\n\n**Horizontal y vertical.** La primera tiene pendiente cero y la segunda no tiene pendiente.\n\n$$y = k \\qquad x = k$$",
         },
         {
           type: "widget",
@@ -907,9 +902,14 @@ const topic: Topic = {
             y: [-5, 5],
             height: 300,
             curves: [
-              { fn: "2x+1", color: "blue", label: "y = 2x + 1" },
-              { fn: "2x-3", color: "blue", dashed: true, label: "y = 2x - 3" },
-              { fn: "-\\frac{1}{2}x+2", color: "red", label: "y = -x/2 + 2" },
+              { fn: "2x+1", color: "blue" },
+              { fn: "2x-3", color: "blue", dashed: true },
+              { fn: "-\\frac{1}{2}x+2", color: "red" },
+            ],
+            labels: [
+              { x: -3.9, y: -1.6, text: "y = 2x + 1", color: "blue" },
+              { x: 2.6, y: -2, text: "y = 2x − 3", color: "blue" },
+              { x: -4.9, y: 2.3, text: "y = −x/2 + 2", color: "red" },
             ],
           },
           caption: "Las dos azules tienen pendiente $2$ y son paralelas. La roja tiene pendiente $-\\frac{1}{2}$ y es perpendicular a ambas, porque $2 \\cdot \\left(-\\frac{1}{2}\\right) = -1$.",
@@ -977,8 +977,9 @@ const topic: Topic = {
             x: [-2, 6],
             y: [-3, 7],
             height: 280,
-            curves: [{ fn: "2x-1", color: "blue", label: "y = 2x - 1" }, { fn: "-x+5", color: "red", label: "y = -x + 5" }],
+            curves: [{ fn: "2x-1", color: "blue" }, { fn: "-x+5", color: "red", label: "y = −x + 5" }],
             points: [{ x: 2, y: 3, label: "(2, 3)", color: "accent" }],
+            labels: [{ x: 3.4, y: 4.2, text: "y = 2x − 1", color: "blue" }],
           },
         },
         {
@@ -1066,8 +1067,8 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [0, 45],
-            y: [0, 110],
+            x: [-5, 45],
+            y: [-12, 110],
             height: 300,
             step: 10,
             curves: [

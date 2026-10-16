@@ -487,7 +487,7 @@ const combinada: ExerciseGen = {
     const den2 = add(ef, gh);
     const tex = `\\left(\\dfrac{${a}}{${b}} - \\dfrac{${c}}{${d}}\\right) \\div \\dfrac{${e}}{${f}} ${g < 0 ? "-" : "+"} \\dfrac{${Math.abs(g)}}{${h}}`;
     return {
-      statement: `Calcula y simplifica $${tex}$.`,
+      statement: `Calcula y simplifica:\n\n$$${tex}$$`,
       parts: [fracPart(res, [[den2[0] !== 0 ? div(inner, den2) : null, "Sumaste antes de dividir. La división va antes que la suma."]])],
       hints: [
         "Primero el paréntesis, con denominador común.",

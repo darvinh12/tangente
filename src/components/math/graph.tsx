@@ -9,7 +9,7 @@ export const TONES: Record<Tone, string> = {
   accent: "#1d6b66",
   blue: "#2c5689",
   red: "#b23f37",
-  green: "#2c7a4b",
+  green: "#5b8f1f",
   orange: "#c26a1b",
   ink: "#1e1c19",
   muted: "#9a9387",
@@ -149,7 +149,7 @@ export function GraphCanvas({
   };
   // Sin número en el cero ni pegado a los bordes, donde queda cortado.
   const labelX = (n: number) =>
-    Math.abs(n) < 1e-9 || n - spec.x[0] < spanX * 0.04 || spec.x[1] - n < spanX * 0.04 ? "" : fmtTick(n);
+    Math.abs(n) < 1e-9 || n - spec.x[0] < spanX * 0.06 || spec.x[1] - n < spanX * 0.05 ? "" : fmtTick(n);
   const labelY = (n: number) =>
     Math.abs(n) < 1e-9 || n - spec.y[0] < spanY * 0.04 || spec.y[1] - n < spanY * 0.05 ? "" : fmtTick(n);
   return (
@@ -230,7 +230,15 @@ export function GraphCanvas({
           );
         })}
         {spec.points?.map((p, i) =>
-          p.label ? <Label key={`pl${i}`} x={p.x} y={p.y} text={p.label} color={TONES[p.color ?? "ink"]} /> : null,
+          p.label ? (
+            <Label
+              key={`pl${i}`}
+              x={p.label.includes("$") ? p.x + (spec.x[1] - spec.x[0]) * 0.05 : p.x}
+              y={p.label.includes("$") ? p.y + (spec.y[1] - spec.y[0]) * 0.07 : p.y}
+              text={p.label}
+              color={TONES[p.color ?? "ink"]}
+            />
+          ) : null,
         )}
         {spec.labels?.map((l, i) => <Label key={`l${i}`} x={l.x} y={l.y} text={l.text} color={TONES[l.color ?? "ink"]} />)}
         {children}

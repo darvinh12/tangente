@@ -25,10 +25,10 @@ export function NumberLine({
   const S = normalizeUnion(set);
   const ends = S.flatMap((I) => [I.lo, I.hi]).filter(Number.isFinite);
   const [a, b] = range ?? (ends.length ? [Math.floor(Math.min(...ends)) - 2, Math.ceil(Math.max(...ends)) + 2] : [-5, 5]);
-  const W = 640;
-  const H = compact ? 64 : 84;
+  const W = 480;
+  const H = compact ? 70 : 88;
   const pad = 26;
-  const y = compact ? 30 : 40;
+  const y = compact ? 30 : 38;
   const X = (v: number) => pad + ((Math.max(a, Math.min(b, v)) - a) / (b - a)) * (W - 2 * pad);
   const span = b - a;
   const tickStep = span <= 14 ? 1 : span <= 30 ? 2 : span <= 70 ? 5 : 10;
@@ -49,7 +49,7 @@ export function NumberLine({
           <g key={t}>
             <line x1={X(t)} x2={X(t)} y1={y - 5} y2={y + 5} stroke="#b9b2a4" strokeWidth={1} />
             {!keyPoints.has(t) ? (
-              <text x={X(t)} y={y + 22} textAnchor="middle" fontSize={13} fill="#847e73">
+              <text x={X(t)} y={y + 26} textAnchor="middle" fontSize={17} fill="#847e73">
                 {fmt(t)}
               </text>
             ) : null}
@@ -71,7 +71,7 @@ export function NumberLine({
                 .map((e, k) => (
                   <g key={k}>
                     <circle cx={X(e.v)} cy={y} r={7} fill={e.closed ? "#1d6b66" : "#fffdf8"} stroke="#1d6b66" strokeWidth={2.5} />
-                    <text x={X(e.v)} y={y + 24} textAnchor="middle" fontSize={14} fontWeight={600} fill="#1e1c19">
+                    <text x={X(e.v)} y={y + 28} textAnchor="middle" fontSize={18} fontWeight={600} fill="#1e1c19">
                       {fmt(e.v)}
                     </text>
                   </g>

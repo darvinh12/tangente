@@ -769,9 +769,9 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Lo que haces en ambos lados", "¿Cambia el sentido?", "Ejemplo partiendo de $x < 3$"],
+          headers: ["En ambos lados", "¿Se voltea?", "Desde $x < 3$"],
           rows: [
-            ["Sumar o restar cualquier número", "No", "$x + 2 < 5$"],
+            ["Sumar o restar", "No", "$x + 2 < 5$"],
             ["Multiplicar o dividir por un positivo", "No", "$4x < 12$"],
             ["Multiplicar o dividir por un negativo", "Sí", "$-2x > -6$"],
           ],
@@ -937,7 +937,7 @@ const topic: Topic = {
             y: [-8, 8],
             height: 280,
             curves: [{ fn: "x^2-x-6", color: "accent" }],
-            points: [{ x: -2, y: 0, open: true, label: "-2" }, { x: 3, y: 0, open: true, label: "3" }],
+            points: [{ x: -2, y: 0, open: true }, { x: 3, y: 0, open: true, label: "3" }],
           },
           caption: "La parábola $y = x^2 - x - 6$ está por encima del eje $x$ a la izquierda de $-2$ y a la derecha de $3$. La tabla de signos dice lo mismo sin dibujar.",
         },
@@ -1042,7 +1042,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Las dos reglas",
-          md: "Si $r > 0$:\n\n$$|x - a| < r \\iff a - r < x < a + r$$\n\n$$|x - a| > r \\iff x < a - r \\ \\text{ o } \\ x > a + r$$\n\nLa primera dice \"a menos de $r$ de $a$\" y da un intervalo centrado en $a$. La segunda dice \"a más de $r$ de $a$\" y da los dos lados de afuera. Con $\\le$ y $\\ge$ los extremos entran.",
+          md: "Si $r > 0$:\n\n$$|x - a| < r \\Leftrightarrow a - r < x < a + r$$\n\n$$|x - a| > r \\Leftrightarrow x < a - r \\text{ o } x > a + r$$\n\nLa primera dice \"a menos de $r$ de $a$\" y da un intervalo centrado en $a$. La segunda dice \"a más de $r$ de $a$\" y da los dos lados de afuera. Con $\\le$ y $\\ge$ los extremos entran.",
         },
         {
           type: "example",

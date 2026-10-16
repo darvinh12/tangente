@@ -4,7 +4,21 @@ import { type Inline, parseInline, parseRich } from "@/lib/rich";
 
 const cache = new Map<string, string>();
 
-function renderTex(tex: string, display: boolean): string {
+/** Convierte pares de barras sueltas en \\lvert ... \\rvert para que KaTeX espacie bien |-5|. */
+function absBars(tex: string): string {
+  if (/\\(left|right|big|Big|mid|vert|begin)|\\\||\\lvert|\\rvert/.test(tex)) return tex;
+  const n = (tex.match(/\|/g) ?? []).length;
+  if (n === 0 || n % 2 !== 0) return tex;
+  let open = true;
+  return tex.replace(/\|/g, () => {
+    const r = open ? "\\lvert " : "\\rvert ";
+    open = !open;
+    return r;
+  });
+}
+
+function renderTex(raw: string, display: boolean): string {
+  const tex = absBars(raw);
   const key = (display ? "D" : "I") + tex;
   const hit = cache.get(key);
   if (hit) return hit;
@@ -23,7 +37,8 @@ export function Tex({ tex, display = false, className }: { tex: string; display?
   if (display) {
     return <div className={className} dangerouslySetInnerHTML={{ __html: renderTex(tex, true) }} />;
   }
-  return <span className={className} dangerouslySetInnerHTML={{ __html: renderTex(tex, false) }} />;
+  const short = tex.length <= 30 ? "whitespace-nowrap" : "";
+  return <span className={`${short} ${className ?? ""}`} dangerouslySetInnerHTML={{ __html: renderTex(tex, false) }} />;
 }
 
 function Inlines({ items }: { items: Inline[] }) {

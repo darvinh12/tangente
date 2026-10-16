@@ -1001,7 +1001,7 @@ const topic: Topic = {
           type: "note",
           tone: "tip",
           title: "Raíces cúbicas",
-          md: "Para $\\sqrt[3]{A} - B$ el factor que elimina la raíz sale de la diferencia de cubos: $$(\\sqrt[3]{A} - B)\\left(\\sqrt[3]{A^2} + B\\sqrt[3]{A} + B^2\\right) = A - B^3$$ Lo vas a necesitar en algunos límites de los parciales.",
+          md: "Para $\\sqrt[3]{A} - B$ el factor que elimina la raíz sale de la diferencia de cubos: $$\\begin{aligned} &(\\sqrt[3]{A} - B)\\left(\\sqrt[3]{A^2} + B\\sqrt[3]{A} + B^2\\right) \\\\ &= A - B^3 \\end{aligned}$$ Lo vas a necesitar en algunos límites de los parciales.",
         },
         {
           type: "quick",

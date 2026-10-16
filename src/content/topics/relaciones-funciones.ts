@@ -259,7 +259,7 @@ const rectaVertical: ExerciseGen = {
         `Es una parábola acostada. La recta vertical $x = ${4 - a}$ la corta en $(${4 - a}, 2)$ y en $(${4 - a}, -2)$.`,
       ],
       [
-        small({ vlines: [{ x: a - 2, color: "accent" }] }),
+        small({ segments: [{ from: [a - 2, -6], to: [a - 2, 6], color: "accent" }] }),
         `Es la recta vertical $x = ${a - 2}$. Al $${a - 2}$ le corresponden infinitos valores de $y$, y los demás $x$ no tienen ninguno.`,
       ],
     ];
@@ -804,7 +804,7 @@ const topic: Topic = {
         },
         {
           type: "widget",
-          widget: { kind: "mapping", domain: ["a", "b", "c"], codomain: ["1", "2", "3", "4"], arrows: [], editable: true },
+          widget: { kind: "mapping", domain: ["a", "b", "c"], codomain: ["1", "2", "3", "4"], arrows: [[0, 1], [1, 0], [2, 1]], editable: true },
           caption: "Prueba dejar un elemento sin flecha, sacar dos flechas del mismo elemento o mandar dos elementos al mismo número.",
         },
         {
@@ -946,6 +946,7 @@ const topic: Topic = {
           spec: {
             x: [-4, 4],
             y: [-3, 3],
+            step: 1,
             curves: [
               { fn: "\\sqrt{4 - x^2}", domain: [-2, 2], color: "accent" },
               { fn: "-\\sqrt{4 - x^2}", domain: [-2, 2], color: "accent" },

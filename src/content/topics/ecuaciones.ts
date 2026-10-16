@@ -743,11 +743,11 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Discriminante", "Soluciones", "La parábola $y = ax^2 + bx + c$"],
+          headers: ["Discriminante", "Soluciones", "La parábola"],
           rows: [
-            ["$\\Delta > 0$", "Dos soluciones reales distintas", "Corta el eje $x$ en dos puntos"],
-            ["$\\Delta = 0$", "Una solución (doble)", "Toca el eje $x$ en un solo punto"],
-            ["$\\Delta < 0$", "Ninguna solución real", "No toca el eje $x$"],
+            ["$\\Delta > 0$", "Dos reales distintas", "Corta el eje $x$ dos veces"],
+            ["$\\Delta = 0$", "Una (doble)", "Toca el eje $x$ en un punto"],
+            ["$\\Delta < 0$", "Ninguna real", "No toca el eje $x$"],
           ],
         },
         {
@@ -927,10 +927,11 @@ const topic: Topic = {
             x: [-1, 6],
             y: [-2, 6],
             curves: [
-              { fn: "\\frac{8-x}{2}", color: "blue", label: "x + 2y = 8" },
+              { fn: "\\frac{8-x}{2}", color: "blue" },
               { fn: "3x-3", color: "red", label: "3x - y = 3" },
             ],
             points: [{ x: 2, y: 3, label: "(2, 3)" }],
+            labels: [{ x: 3.4, y: 0.8, text: "x + 2y = 8", color: "blue" }],
           },
           caption: "Las dos rectas se cortan en $(2, 3)$, la solución del sistema.",
         },

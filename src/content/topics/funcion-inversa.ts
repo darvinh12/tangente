@@ -230,8 +230,8 @@ const inversaRacional: ExerciseGen = {
         "Pasa todos los términos con $x$ a un lado y saca $x$ como factor común.",
       ],
       solution: [
-        `$y(${xMinus(c)}) = ${terms([[a, "x"], [b, ""]])}$, es decir $xy ${signed(-c)}y = ${terms([[a, "x"], [b, ""]])}$.`,
-        `$xy - ${a < 0 ? `(${a})` : a}x = ${terms([[c, "y"], [b, ""]])}$, así que $x(${xMinus(a, "y")}) = ${terms([[c, "y"], [b, ""]])}$.`,
+        `$y(${xMinus(c)}) = ${terms([[a, "x"], [b, ""]])}$, es decir $${terms([[1, "xy"], [-c, "y"]])} =${terms([[a, "x"], [b, ""]])}$.`,
+        `$${terms([[1, "xy"], [-a, "x"]])} =${terms([[c, "y"], [b, ""]])}$, así que $x(${xMinus(a, "y")}) = ${terms([[c, "y"], [b, ""]])}$.`,
         `$x = \\dfrac{${terms([[c, "y"], [b, ""]])}}{${xMinus(a, "y")}}$. Cambiando nombres: $f^{-1}(x) = ${ans}$.`,
         `Definición: $f^{-1}: \\mathbb{R} - \\{${a}\\} \\to \\mathbb{R} - \\{${c}\\} \\;/\\; y = ${ans}$.`,
       ],
@@ -569,7 +569,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Existencia de la inversa",
-          md: "Para que la relación inversa de $f: A \\to B$ sea función de $B$ en $A$ hacen falta dos cosas:\n\n- Todo elemento de $B$ tiene que tener a dónde ir: $f$ **sobreyectiva**.\n- Esa imagen tiene que ser única: $f$ **inyectiva**.\n\nEn resumen, $f$ admite inversa si y solo si $f$ es **biyectiva**. En ese caso\n\n$$f^{-1}: B \\to A, \\qquad x = f^{-1}(y) \\iff y = f(x)$$",
+          md: "Para que la relación inversa de $f: A \\to B$ sea función de $B$ en $A$ hacen falta dos cosas:\n\n- Todo elemento de $B$ tiene que tener a dónde ir: $f$ **sobreyectiva**.\n- Esa imagen tiene que ser única: $f$ **inyectiva**.\n\nAsí, $f$ admite inversa si y solo si $f$ es **biyectiva**. En ese caso\n\n$$\\begin{gathered} f^{-1}: B \\to A \\\\ x = f^{-1}(y) \\iff y = f(x) \\end{gathered}$$",
         },
         {
           type: "note",
@@ -652,6 +652,7 @@ const topic: Topic = {
           spec: {
             x: [-2, 4],
             y: [-2, 4],
+            step: 1,
             curves: [
               { fn: "\\sqrt{x + 1}", domain: [-1, 4], color: "accent", label: "f" },
               { fn: "x^2 - 1", domain: [0, 2.2], color: "blue", label: "f⁻¹" },
@@ -744,7 +745,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Propiedades de la inversa",
-          md: "Si $f: A \\to B$ es biyectiva:\n\n$$(f^{-1} \\circ f)(x) = x \\;\\; \\forall x \\in A \\qquad (f \\circ f^{-1})(y) = y \\;\\; \\forall y \\in B$$\n\nEs decir, $f^{-1} \\circ f = i_A$ y $f \\circ f^{-1} = i_B$, las funciones identidad de cada conjunto.",
+          md: "Si $f: A \\to B$ es biyectiva:\n\n$$\\begin{gathered} (f^{-1} \\circ f)(x) = x \\;\\; \\forall x \\in A \\\\ (f \\circ f^{-1})(y) = y \\;\\; \\forall y \\in B \\end{gathered}$$\n\nEs decir, $f^{-1} \\circ f = i_A$ y $f \\circ f^{-1} = i_B$, las funciones identidad de cada conjunto.",
         },
         {
           type: "example",
@@ -799,9 +800,13 @@ const topic: Topic = {
             y: [-4, 8],
             step: 2,
             curves: [
-              { fn: "x^2 - 4x + 1", domain: [2, 5.5], color: "accent", label: "f" },
-              { fn: "2 + \\sqrt{x + 3}", domain: [-3, 8], color: "blue", label: "f⁻¹" },
+              { fn: "x^2 - 4x + 1", domain: [2, 5.5], color: "accent" },
+              { fn: "2 + \\sqrt{x + 3}", domain: [-3, 8], color: "blue" },
               { fn: "x", color: "muted", dashed: true },
+            ],
+            labels: [
+              { x: 5.4, y: 6.5, text: "f", color: "accent" },
+              { x: 6.5, y: 3.8, text: "f⁻¹", color: "blue" },
             ],
             points: [{ x: 2, y: -3, color: "accent" }, { x: -3, y: 2, color: "blue" }],
           },

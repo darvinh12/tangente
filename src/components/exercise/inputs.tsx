@@ -138,7 +138,7 @@ function EndInput({
         onKeyDown={(e) => {
           if (e.key === "Enter") onSubmit?.();
         }}
-        placeholder={side === "lo" ? "-inf" : "inf"}
+        placeholder={side === "lo" ? "desde" : "hasta"}
         aria-label={side === "lo" ? "Extremo izquierdo" : "Extremo derecho"}
         className="h-12 w-full rounded-lg border-[1.5px] border-line-2 bg-surface px-3 pr-9 text-[1.1rem] outline-none transition-[border-color,box-shadow] placeholder:text-muted/60 focus:border-accent focus:shadow-[0_0_0_3px_rgb(29_107_102/0.14)]"
       />

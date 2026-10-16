@@ -47,8 +47,8 @@ export function Mapping({
       text: c.esFuncion
         ? "Es función: cada elemento de $A$ tiene exactamente una imagen."
         : c.sinImagen.length
-          ? `No es función: ${c.sinImagen.map((i) => `$${domain[i]}$`).join(", ")} no tiene imagen.`
-          : `No es función: ${c.variasImagenes.map((i) => `$${domain[i]}$`).join(", ")} tiene más de una imagen.`,
+          ? `No es función: ${c.sinImagen.map((i) => `$${domain[i]}$`).join(", ")} ${c.sinImagen.length > 1 ? "no tienen" : "no tiene"} imagen.`
+          : `No es función: ${c.variasImagenes.map((i) => `$${domain[i]}$`).join(", ")} ${c.variasImagenes.length > 1 ? "tienen" : "tiene"} más de una imagen.`,
     },
   ];
   if (c.esFuncion) {
@@ -120,7 +120,7 @@ export function Mapping({
           </li>
         ))}
       </ul>
-      {editable ? (
+      {editable && JSON.stringify(arrows) !== JSON.stringify(initial) ? (
         <button type="button" onClick={() => { setArrows(initial); setPick(null); }} className="mt-3 text-sm text-accent underline underline-offset-4">
           Volver al diagrama original
         </button>
