@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# índice generado en predev/prebuild
+/src/content/generated.ts

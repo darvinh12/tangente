@@ -1,26 +1,174 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+
+  --color-paper: #f6f3ec;
+  --color-surface: #fffdf8;
+  --color-sunk: #efebe2;
+  --color-ink: #1e1c19;
+  --color-ink-2: #48443d;
+  --color-muted: #847e73;
+  --color-line: #e3ddd1;
+  --color-line-2: #d3ccbd;
+
+  --color-accent: #1d6b66;
+  --color-accent-strong: #134f4b;
+  --color-accent-soft: #e1eeec;
+
+  --color-good: #2c7a4b;
+  --color-good-soft: #e3f1e8;
+  --color-bad: #b23f37;
+  --color-bad-soft: #f8e6e3;
+  --color-warn: #9a6514;
+  --color-warn-soft: #f6ecda;
+  --color-econ: #2c5689;
+  --color-econ-soft: #e5edf6;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --mafs-bg: transparent;
+  --mafs-fg: #1e1c19;
+  --mafs-origin-color: #847e73;
+  --mafs-line-color: #e3ddd1;
+  --mafs-blue: #2c5689;
+  --mafs-red: #b23f37;
+  --mafs-green: #2c7a4b;
+  --mafs-orange: #c26a1b;
+  --mafs-violet: #1d6b66;
+  --mafs-yellow: #9a6514;
+  --mafs-pink: #b23f37;
+  --mafs-indigo: #2c5689;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: #cfe3e0;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 50, "WONK" 0;
+}
+
+/* Fórmulas */
+.katex {
+  font-size: 1.08em;
+}
+.katex-display {
+  margin: 0.9em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2em 0;
+}
+
+/* Texto de lección */
+.prose-tg p + p {
+  margin-top: 0.85rem;
+}
+.prose-tg ul {
+  margin: 0.6rem 0;
+  padding-left: 1.2rem;
+  list-style: disc;
+}
+.prose-tg li + li {
+  margin-top: 0.35rem;
+}
+.prose-tg li::marker {
+  color: var(--color-muted);
+}
+.prose-tg strong {
+  font-weight: 650;
+  color: var(--color-ink);
+}
+
+/* Mafs */
+.MafsView {
+  border-radius: 14px;
+  touch-action: none;
+}
+.mafs-wrap .MafsView text {
+  font-family: var(--font-sans);
+}
+
+/* MathLive */
+math-field {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  font-size: 1.25rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-line-2);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  outline: none;
+  --caret-color: var(--color-accent);
+  --selection-background-color: #cfe3e0;
+  --contains-highlight-background-color: #eef5f4;
+  --primary: var(--color-accent);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+math-field:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(29 107 102 / 0.14);
+}
+math-field::part(menu-toggle) {
+  display: none;
+}
+math-field::part(virtual-keyboard-toggle) {
+  color: var(--color-muted);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.5s var(--ease-out-soft) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+.shake {
+  animation: shake 0.42s ease both;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.94); opacity: 0; }
+  60% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.pop {
+  animation: pop 0.35s var(--ease-out-soft) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .shake, .pop {
+    animation: none;
+  }
 }
