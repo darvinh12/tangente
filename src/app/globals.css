@@ -29,7 +29,8 @@
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-:root {
+:root,
+.mafs-wrap .MafsView {
   --mafs-bg: transparent;
   --mafs-fg: #1e1c19;
   --mafs-origin-color: #847e73;

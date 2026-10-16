@@ -98,10 +98,10 @@ export function MathInput({
       }
     };
     mf.addEventListener("input", onInput);
-    mf.addEventListener("keydown", onKey);
+    mf.addEventListener("keydown", onKey, { capture: true });
     return () => {
       mf.removeEventListener("input", onInput);
-      mf.removeEventListener("keydown", onKey);
+      mf.removeEventListener("keydown", onKey, { capture: true });
     };
   }, [ready]);
 

@@ -45,7 +45,7 @@ export default async function TopicPage({ params }: PageProps<"/temas/[slug]">) 
             {mod.title}
           </Link>
         </nav>
-        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <div>
             <p className="text-sm font-semibold tabular-nums text-accent">
               Módulo {modIndex} · Tema {pos} de {inModule.length}
