@@ -739,6 +739,259 @@ const vf: ExerciseGen = {
   },
 };
 
+/* ------------------------- tablas de signos interactivas ------------------------- */
+
+const toggleEq: Record<Op, Op> = { "<": "<=", "<=": "<", ">": ">=", ">=": ">" };
+
+/** Signo de f en cada tramo que dejan los puntos críticos (ordenados). */
+function rowSigns(pts: number[], f: (x: number) => number): (1 | -1)[] {
+  const cuts = [-Infinity, ...pts, Infinity];
+  const out: (1 | -1)[] = [];
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const a = cuts[i];
+    const b = cuts[i + 1];
+    const mid = !Number.isFinite(a) ? b - 1 : !Number.isFinite(b) ? a + 1 : (a + b) / 2;
+    out.push(f(mid) > 0 ? 1 : -1);
+  }
+  return out;
+}
+
+const tablaProducto: ExerciseGen = {
+  id: "tabla-signos-producto",
+  title: "Llena la tabla de signos de un producto",
+  level: 1,
+  generate: (r) => {
+    const op = r.pick(OPS);
+    const p = r.int(-5, 3);
+    const q = p + r.int(1, 5);
+    const pts = [p, q];
+    const factors: SignFactor[] = [{ root: p }, { root: q }];
+    const ans = signSolve(factors, 1, op);
+    const prod = prod2(p, q);
+    return {
+      statement: `Resuelve $${prod} ${opTex[op]} 0$ con una tabla de signos.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: "Las filas de los dos factores ya vienen llenas. Multiplica los signos de cada columna y llena la última fila.",
+          points: pts.map(String),
+          rows: [
+            { label: minus("x", p), signs: rowSigns(pts, (x) => x - p) },
+            { label: minus("x", q), signs: rowSigns(pts, (x) => x - q) },
+            { label: prod, signs: rowSigns(pts, (x) => (x - p) * (x - q)) },
+          ],
+          given: [0, 1],
+        },
+        {
+          kind: "interval",
+          prompt: `Ahora lee la última fila. ¿Dónde se cumple $${prod} ${opTex[op]} 0$?`,
+          answer: ans,
+          mistakes: keep(ans, [
+            { answer: signSolve(factors, 1, flipOp[op]), feedback: `Tomaste los tramos con el signo contrario. La desigualdad pide ${wantsPos(op) ? "positivo" : "negativo"}.` },
+            { answer: signSolve(factors, 1, toggleEq[op]), feedback: isStrict(op) ? "Con $<$ o $>$ las raíces no entran, porque ahí el producto vale cero." : "Con $\\le$ o $\\ge$ las raíces sí entran, porque ahí el producto vale cero." },
+          ]),
+        },
+      ],
+      hints: [
+        "En cada columna mira los dos signos de arriba: menos por menos da más, menos por más da menos.",
+        `La desigualdad pide ${wantsPos(op) ? "los tramos con $+$" : "los tramos con $-$"}.`,
+        isStrict(op) ? "Como es estricta, las raíces quedan afuera: paréntesis." : "Como lleva el signo igual, las raíces entran: corchete.",
+      ],
+      solution: [
+        `Los puntos críticos son $${p}$ y $${q}$, donde se anula cada factor.`,
+        `Multiplicando columna por columna: ${signSummary(factors, 1)}.`,
+        pickRule(op),
+        `Solución: $${unionTex(ans)}$.`,
+      ],
+    };
+  },
+};
+
+const tablaTrinomio: ExerciseGen = {
+  id: "tabla-signos-trinomio",
+  title: "Tabla de signos de una cuadrática",
+  level: 2,
+  generate: (r) => {
+    const op = r.pick(OPS);
+    const p = r.int(-5, 3);
+    const q = p + r.int(1, 5);
+    const L = r.pick([1, 1, -1]);
+    const pts = [p, q];
+    const coefs = [L, -L * (p + q), L * p * q];
+    const factors: SignFactor[] = [{ root: p }, { root: q }];
+    const ans = signSolve(factors, L, op);
+    const fact = `${L < 0 ? "-" : ""}${prod2(p, q)}`;
+    const rows: { label: string; signs: (1 | -1)[] }[] = [];
+    if (L < 0) rows.push({ label: "-1", signs: [-1, -1, -1] });
+    rows.push(
+      { label: minus("x", p), signs: rowSigns(pts, (x) => x - p) },
+      { label: minus("x", q), signs: rowSigns(pts, (x) => x - q) },
+      { label: fact, signs: rowSigns(pts, (x) => L * (x - p) * (x - q)) },
+    );
+    const ms = [{ answer: signSolve(factors, L, flipOp[op]), feedback: "Tomaste los tramos con el signo contrario." }];
+    if (L < 0) ms.unshift({ answer: signSolve(factors, 1, op), feedback: "Te olvidaste del signo menos de adelante. Ese $-1$ voltea todos los signos de la última fila." });
+    return {
+      statement: `Resuelve $${poly(coefs)} ${opTex[op]} 0$.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: `Factorizado queda $${poly(coefs)} = ${fact}$. Completa la tabla de signos.`,
+          points: pts.map(String),
+          rows,
+          given: [0],
+        },
+        { kind: "interval", prompt: "Escribe la solución como intervalo.", answer: ans, mistakes: keep(ans, ms) },
+      ],
+      hints: [
+        `Un factor $x - a$ es negativo a la izquierda de $a$ y positivo a la derecha. Si te ayuda, prueba $x = ${p - 1}$, un número entre $${p}$ y $${q}$ y $x = ${q + 1}$.`,
+        L < 0 ? "La fila del $-1$ es negativa siempre y voltea el signo del producto." : "La última fila es el producto de las filas de arriba.",
+        `Quédate con los tramos ${wantsPos(op) ? "positivos" : "negativos"}.`,
+      ],
+      solution: [
+        `Factorizamos: $${poly(coefs)} = ${fact}$. Los puntos críticos son $${p}$ y $${q}$.`,
+        `Tabla de signos: ${signSummary(factors, L)}.`,
+        pickRule(op),
+        `Solución: $${unionTex(ans)}$.`,
+      ],
+    };
+  },
+};
+
+const tablaRacional: ExerciseGen = {
+  id: "tabla-signos-racional",
+  title: "Tabla de signos de una fracción",
+  level: 2,
+  generate: (r) => {
+    const op = r.pick(OPS);
+    let p: number, q: number;
+    do {
+      p = r.int(-5, 5);
+      q = r.int(-5, 5);
+    } while (p === q);
+    const reversed = p !== 0 && r.bool(0.35);
+    const lead = reversed ? -1 : 1;
+    const pts = [Math.min(p, q), Math.max(p, q)];
+    const numTex = reversed ? `${p} - x` : minus("x", p);
+    const denTex = minus("x", q);
+    const fracTex = `\\dfrac{${numTex}}{${denTex}}`;
+    const numF = (x: number) => (reversed ? p - x : x - p);
+    const factors: SignFactor[] = [{ root: p }, { root: q, den: true }];
+    const ans = signSolve(factors, lead, op);
+    return {
+      statement: `Resuelve $${fracTex} ${opTex[op]} 0$.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: "La fila del numerador ya viene llena. Completa la del denominador y la de la fracción.",
+          points: pts.map(String),
+          rows: [
+            { label: numTex, signs: rowSigns(pts, numF) },
+            { label: denTex, signs: rowSigns(pts, (x) => x - q) },
+            { label: fracTex, signs: rowSigns(pts, (x) => numF(x) / (x - q)) },
+          ],
+          given: [0],
+        },
+        {
+          kind: "interval",
+          prompt: "Escribe la solución como intervalo.",
+          answer: ans,
+          mistakes: keep(ans, [
+            { answer: signSolve([{ root: p }, { root: q }], lead, op), feedback: `El $${q}$ anula el denominador. Ahí la fracción no existe y nunca entra en la solución.` },
+            { answer: signSolve(factors, lead, flipOp[op]), feedback: "Tomaste los tramos con el signo contrario." },
+          ]),
+        },
+      ],
+      hints: [
+        "Para dividir se usa la misma ley de signos que para multiplicar.",
+        reversed ? `Fíjate en el numerador $${numTex}$: es positivo a la izquierda de $${p}$ y negativo a la derecha.` : `El denominador $${denTex}$ es negativo a la izquierda de $${q}$ y positivo a la derecha.`,
+        `El $${q}$ anula el denominador y nunca entra, aunque haya signo igual.`,
+      ],
+      solution: [
+        `Puntos críticos: $x = ${p}$ anula el numerador y $x = ${q}$ anula el denominador.`,
+        `Tabla de signos de la fracción: ${signSummary(factors, lead)}.`,
+        pickRule(op, true),
+        `Solución: $${unionTex(ans)}$.`,
+      ],
+    };
+  },
+};
+
+const tablaRacionalParcial: ExerciseGen = {
+  id: "tabla-signos-racional-completa",
+  title: "Tabla de signos completa sin ayuda (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const op = r.pick(OPS);
+    const [a, b, s] = r.sample([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], 3);
+    const [p, q] = [Math.min(a, b), Math.max(a, b)];
+    const quadDen = r.bool(0.35);
+    const reversed = !quadDen && s !== 0 && r.bool(0.35);
+    const lead = reversed ? -1 : 1;
+    const pts = [p, q, s].sort((x, y) => x - y);
+    const quadTex = poly([1, -(p + q), p * q]);
+    const linTex = reversed ? `${s} - x` : minus("x", s);
+    const linF = (x: number) => (reversed ? s - x : x - s);
+    const statement = quadDen ? `\\dfrac{${linTex}}{${quadTex}}` : `\\dfrac{${quadTex}}{${linTex}}`;
+    const factored = quadDen ? `\\dfrac{${linTex}}{${prod2(p, q)}}` : `\\dfrac{${prod2(p, q)}}{${linTex}}`;
+    const factors: SignFactor[] = quadDen
+      ? [{ root: s }, { root: p, den: true }, { root: q, den: true }]
+      : [{ root: p }, { root: q }, { root: s, den: true }];
+    const ans = signSolve(factors, lead, op);
+    const denRoots = quadDen ? [p, q] : [s];
+    return {
+      statement: `Resuelve $${statement} ${opTex[op]} 0$.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "set",
+          prompt: "Factoriza y halla los puntos críticos: las raíces del numerador y las del denominador.",
+          before: "x \\in",
+          answer: pts,
+          mistakes: [{ answer: quadDen ? [s] : [p, q], feedback: "Faltan las raíces del denominador. También son puntos críticos, porque ahí la fracción puede cambiar de signo." }],
+        },
+        {
+          kind: "signs",
+          prompt: `Como la fracción es $${factored}$, completa la tabla.`,
+          points: pts.map(String),
+          rows: [
+            { label: minus("x", p), signs: rowSigns(pts, (x) => x - p) },
+            { label: minus("x", q), signs: rowSigns(pts, (x) => x - q) },
+            { label: linTex, signs: rowSigns(pts, linF) },
+            { label: factored, signs: rowSigns(pts, (x) => (quadDen ? linF(x) / ((x - p) * (x - q)) : ((x - p) * (x - q)) / linF(x))) },
+          ],
+        },
+        {
+          kind: "interval",
+          prompt: "Escribe la solución como intervalo.",
+          answer: ans,
+          mistakes: keep(ans, [
+            { answer: signSolve(factors.map((f) => ({ root: f.root })), lead, op), feedback: `Incluiste ${denRoots.length > 1 ? `$${denRoots[0]}$ y $${denRoots[1]}$` : `$${denRoots[0]}$`}, que anula${denRoots.length > 1 ? "n" : ""} el denominador. Esos puntos nunca entran.` },
+            { answer: signSolve(factors, -lead, op), feedback: reversed ? `Revisa la fila de $${linTex}$: es positiva a la izquierda de $${s}$ y negativa a la derecha.` : "Los signos de la última fila quedaron al revés. Revisa la multiplicación columna por columna." },
+            { answer: signSolve(factors, lead, flipOp[op]), feedback: "Tomaste los tramos con el signo contrario." },
+          ]),
+        },
+      ],
+      hints: [
+        `Factoriza el trinomio $${quadTex}$: busca dos números que multiplicados den $${p * q}$ y sumados den $${-(p + q)}$.`,
+        "Hay tres puntos críticos y cuatro tramos. En cada tramo prueba un número y cuenta cuántos factores salen negativos.",
+        `Las raíces del denominador (${denRoots.map((x) => `$${x}$`).join(" y ")}) nunca entran en la solución.`,
+      ],
+      solution: [
+        `Factorizamos: $${quadTex} = ${prod2(p, q)}$. La fracción queda $${factored}$.`,
+        `Puntos críticos: $${pts.join(", ")}$. ${denRoots.length > 1 ? `$${denRoots[0]}$ y $${denRoots[1]}$ anulan` : `$${denRoots[0]}$ anula`} el denominador.`,
+        reversed ? `Ojo: $${linTex}$ es positivo a la izquierda de $${s}$ y negativo a la derecha.` : "Cada factor lineal es negativo a la izquierda de su raíz y positivo a la derecha.",
+        `Tabla de signos: ${signSummary(factors, lead)}.`,
+        pickRule(op, true),
+        `Solución: $${unionTex(ans)}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -942,6 +1195,40 @@ const topic: Topic = {
           caption: "La parábola $y = x^2 - x - 6$ está por encima del eje $x$ a la izquierda de $-2$ y a la derecha de $3$. La tabla de signos dice lo mismo sin dibujar.",
         },
         {
+          type: "quick",
+          exercise: {
+            statement: "Resuelve $(x + 1)(x - 2) \\ge 0$ llenando tú la tabla.",
+            sequential: true,
+            parts: [
+              {
+                kind: "signs",
+                prompt: "La fila de $x + 1$ ya está llena. Toca las casillas que faltan.",
+                points: ["-1", "2"],
+                rows: [
+                  { label: "x + 1", signs: [-1, 1, 1] },
+                  { label: "x - 2", signs: [-1, -1, 1] },
+                  { label: "(x + 1)(x - 2)", signs: [1, -1, 1] },
+                ],
+                given: [0],
+              },
+              {
+                kind: "interval",
+                prompt: "¿Dónde es $(x + 1)(x - 2) \\ge 0$?",
+                answer: [iv(-Infinity, -1, false, true), iv(2, Infinity, true, false)],
+                mistakes: [
+                  { answer: [iv(-1, 2, true, true)], feedback: "Ese es el tramo negativo. Se pide positivo o cero." },
+                  { answer: [iv(-Infinity, -1), iv(2, Infinity)], feedback: "Con $\\ge$ las raíces entran, porque ahí el producto vale cero." },
+                ],
+              },
+            ],
+            hints: ["$x - 2$ es negativo a la izquierda de $2$ y positivo a la derecha."],
+            solution: [
+              "$x - 2$ es negativo en los dos primeros tramos y positivo en el último.",
+              "El producto es $+$, $-$, $+$. Tomamos los tramos positivos y las raíces: $(-\\infty, -1] \\cup [2, +\\infty)$.",
+            ],
+          },
+        },
+        {
           type: "note",
           tone: "warning",
           title: "$x^2 < 9$ no es $x < \\pm 3$",
@@ -1135,11 +1422,15 @@ const topic: Topic = {
     linealAmbos,
     absBasico,
     doble,
+    tablaProducto,
     cuadratica,
+    tablaTrinomio,
     polinomica,
     racionalSimple,
+    tablaRacional,
     absLineal,
     racionalK,
+    tablaRacionalParcial,
     dominio,
     dominioAbs,
     vf,

@@ -1,6 +1,6 @@
 import { meta } from "../catalog";
 import { choice, trueFalse } from "../helpers";
-import type { ExerciseGen, Mistake, Rich, Topic } from "../types";
+import type { Curve, ExerciseGen, Mistake, Rich, Topic } from "../types";
 import { iv, minusPoints, R, type Interval } from "@/lib/math/intervals";
 import { poly, signed, terms } from "@/lib/math/tex";
 
@@ -533,6 +533,174 @@ const inversaAbsParcial: ExerciseGen = {
   },
 };
 
+/* ------------------------ ubicar puntos de la inversa ------------------------ */
+
+/** Posición inicial de un punto arrastrable que no coincida con ninguna respuesta. */
+function libre(want: [number, number], taken: [number, number][]): [number, number] {
+  let x = want[0];
+  while (taken.some((t) => t[0] === x && t[1] === want[1])) x += 1;
+  return [x, want[1]];
+}
+
+/** Inversa de mx + n con el denominador positivo: (x - n)/m o (n - x)/|m|. */
+function invLin(m: number, n: number) {
+  return m > 0 ? `\\frac{${xMinus(n)}}{${m}}` : `\\frac{${terms([[n, ""], [-1, "x"]])}}{${-m}}`;
+}
+
+const RECTA_ID: Curve = { fn: "x", color: "muted", dashed: true };
+
+const ubicarInversaLineal: ExerciseGen = {
+  id: "ubicar-inversa-lineal",
+  title: "Un punto de f y su reflejo en f⁻¹",
+  level: 1,
+  generate: (r) => {
+    let m: number, n: number, a: number, b: number;
+    do {
+      m = r.pick([2, -2, 3, -3]);
+      n = r.int(-5, 5);
+      a = r.int(-3, 3);
+      b = m * a + n;
+    } while (Math.abs(b) > 7 || b === a);
+    const rule = terms([[m, "x"], [n, ""]]);
+    const inv = invLin(m, n);
+    const P: [number, number] = [a, b];
+    const Q: [number, number] = [b, a];
+    return {
+      statement: `Sea $f(x) = ${rule}$. Ubica el punto de la gráfica de $f$ que tiene abscisa $${a}$ y el punto que le corresponde en la gráfica de $f^{-1}$.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-8, 8], y: [-8, 8], height: 300 },
+          items: [
+            { type: "point", label: "\\text{punto de } f", answer: P, start: libre([-7, 7], [P, Q]) },
+            { type: "point", label: "\\text{punto de } f^{-1}", answer: Q, start: libre([4, -7], [P, Q]) },
+          ],
+          reveal: [{ fn: rule, color: "accent", label: "f" }, { fn: inv, color: "blue", label: "f⁻¹" }, RECTA_ID],
+        },
+      ],
+      hints: [`Calcula $f(${a})$ para tener el punto de $f$.`, "En la inversa las coordenadas se intercambian: si $(a, b)$ está en $f$, entonces $(b, a)$ está en $f^{-1}$."],
+      solution: [
+        `$f(${a}) = ${m}(${a})${n === 0 ? "" : ` ${n < 0 ? "-" : "+"} ${Math.abs(n)}`} = ${b}$, así que $(${a}, ${b})$ está en la gráfica de $f$.`,
+        `Como $f(${a}) = ${b}$, se cumple $f^{-1}(${b}) = ${a}$: el punto $(${b}, ${a})$ está en la gráfica de $f^{-1}$.`,
+        `Comprobación con la regla $f^{-1}(x) = ${inv}$: al evaluar en $${b}$ da $${a}$. Los dos puntos son reflejos respecto de la recta $y = x$.`,
+      ],
+    };
+  },
+};
+
+const ubicarInversaNoLineal: ExerciseGen = {
+  id: "ubicar-inversa-no-lineal",
+  title: "Puntos de la inversa sin calcular su regla",
+  level: 2,
+  generate: (r) => {
+    const isSqrt = r.bool();
+    const [s1, s2] = r.sample([0, 1, 2], 2);
+    let h: number, k: number, a1: number, b1: number, x2: number, c2: number;
+    const fOf = (x: number) => (isSqrt ? Math.sqrt(x - h) + k : 2 ** (x - h) + k);
+    // Primer punto: ordenada a1 en f^{-1}. Segundo: abscisa c2 en f^{-1}. Ninguno sobre y = x.
+    do {
+      h = isSqrt ? r.int(-4, 3) : r.int(-4, 4);
+      k = isSqrt ? r.int(-4, 4) : r.int(-4, 3);
+      a1 = isSqrt ? h + s1 * s1 : h + s1;
+      b1 = fOf(a1);
+      x2 = isSqrt ? h + s2 * s2 : h + s2;
+      c2 = fOf(x2);
+    } while (a1 === b1 || x2 === c2);
+    const P: [number, number] = [b1, a1];
+    const Q: [number, number] = [c2, x2];
+    const rule = isSqrt ? plus(`\\sqrt{${xMinus(h)}}`, k) : plus(`2^{${xMinus(h)}}`, k);
+    const def = isSqrt ? `f: [${h}, +\\infty) \\to [${k}, +\\infty)` : `f: \\mathbb{R} \\to (${k}, +\\infty)`;
+    const invRule = isSqrt ? plus(sq(k), h) : plus(`\\log_{2}(${xMinus(k)})`, h);
+    const core = isSqrt ? `\\sqrt{${xMinus(h)}}` : `2^{${xMinus(h)}}`;
+    const inner2 = isSqrt ? s2 * s2 : s2;
+    const solveStep = [
+      k !== 0 ? `despejando, $${core} = ${c2 - k}$` : "",
+      h !== 0 ? `así que $${xMinus(h)} = ${inner2}$ y $x = ${x2}$` : `así que $x = ${x2}$`,
+    ].filter(Boolean).join(", ");
+    return {
+      statement: `La función $${def} \\;/\\; y = ${rule}$ es biyectiva. Sin calcular la regla de $f^{-1}$, ubica dos puntos de su gráfica: el que tiene ordenada $${a1}$ y el que tiene abscisa $${c2}$.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-8, 8], y: [-8, 8], height: 300 },
+          items: [
+            { type: "point", label: `\\text{ordenada } ${a1}`, answer: P, start: libre([-7, 7], [P, Q]) },
+            { type: "point", label: `\\text{abscisa } ${c2}`, answer: Q, start: libre([-7, -7], [P, Q]) },
+          ],
+          reveal: [
+            { fn: rule, color: "accent", label: "f", domain: isSqrt ? [h, 8] : undefined },
+            { fn: invRule, color: "blue", label: "f⁻¹", domain: isSqrt ? [k, 8] : [k + 0.05, 8] },
+            RECTA_ID,
+          ],
+        },
+      ],
+      hints: [
+        "Un punto $(u, v)$ está en la gráfica de $f^{-1}$ exactamente cuando $(v, u)$ está en la de $f$.",
+        `Ordenada $${a1}$ en $f^{-1}$ es abscisa $${a1}$ en $f$: calcula $f(${a1})$.`,
+        `Abscisa $${c2}$ en $f^{-1}$ es ordenada $${c2}$ en $f$: resuelve $f(x) = ${c2}$.`,
+      ],
+      solution: [
+        `$f(${a1}) = ${b1}$, así que $(${a1}, ${b1})$ está en $f$ y $(${b1}, ${a1})$ está en $f^{-1}$.`,
+        `Para la abscisa $${c2}$ resolvemos $${rule} = ${c2}$: ${solveStep}. Entonces $(${x2}, ${c2})$ está en $f$ y $(${c2}, ${x2})$ está en $f^{-1}$.`,
+        `Se puede comprobar con la regla de la inversa, $f^{-1}(x) = ${invRule}$.`,
+      ],
+    };
+  },
+};
+
+const inversaGraficaParcial: ExerciseGen = {
+  id: "inversa-grafica-parcial",
+  title: "Regla de la inversa y puntos notables de su gráfica (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const m = r.pick([2, 3]);
+    const p = r.nz(-3, 3);
+    const n = p * (1 - m);
+    const rule = terms([[m, "x"], [n, ""]]);
+    const inv = invLin(m, n);
+    const F: [number, number] = [p, p];
+    const C: [number, number] = [n, 0];
+    return {
+      statement: `Sea $f: \\mathbb{R} \\to \\mathbb{R} \\;/\\; y = ${rule}$, que es biyectiva.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "expr",
+          prompt: "Halla la regla de la inversa.",
+          before: "f^{-1}(x) =",
+          answer: inv,
+          vars: ["x"],
+          mistakes: [
+            { answer: `\\frac{1}{${rule}}`, feedback: "Eso es $\\frac{1}{f(x)}$, el recíproco. La inversa se obtiene despejando $x$." },
+            { answer: `\\frac{${xMinus(-n)}}{${m}}`, feedback: `Revisa el signo al pasar el $${n}$ al otro lado.` },
+          ],
+        },
+        {
+          kind: "place",
+          prompt: "Ubica el punto donde se cortan las gráficas de $f$ y $f^{-1}$, y el corte de $f^{-1}$ con el eje $x$.",
+          graph: { x: [-8, 8], y: [-8, 8], height: 300 },
+          items: [
+            { type: "point", label: "\\text{corte de } f \\text{ y } f^{-1}", answer: F, start: libre([-7, 7], [F, C]) },
+            { type: "point", label: "\\text{corte de } f^{-1} \\text{ con el eje } x", answer: C, start: libre([4, -7], [F, C]) },
+          ],
+          reveal: [{ fn: rule, color: "accent", label: "f" }, { fn: inv, color: "blue", label: "f⁻¹" }, RECTA_ID],
+        },
+      ],
+      hints: [
+        `Despeja $x$ de $y = ${rule}$ y cambia los nombres.`,
+        "Como $f$ es creciente, $f$ y $f^{-1}$ se cortan sobre la recta $y = x$. Resuelve $f(x) = x$.",
+        "El corte de $f^{-1}$ con el eje $x$ es el reflejo del corte de $f$ con el eje $y$.",
+      ],
+      solution: [
+        `$y = ${rule}$ da $${m}x = ${xMinus(n, "y")}$, así que $x = \\frac{${xMinus(n, "y")}}{${m}}$. Cambiando nombres: $f^{-1}(x) = ${inv}$.`,
+        `$f(x) = x$ da $${rule} = x$, es decir ${m === 2 ? `$x = ${p}$` : `$${m - 1}x = ${-n}$ y $x = ${p}$`}. Las gráficas se cortan en $(${p}, ${p})$.`,
+        `$f(0) = ${n}$, así que $(0, ${n})$ está en $f$. Su reflejo $(${n}, 0)$ está en $f^{-1}$. Comprobación: $f^{-1}(${n}) = \\frac{${n} ${n < 0 ? "+" : "-"} ${Math.abs(n)}}{${m}} = 0$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -732,6 +900,32 @@ const topic: Topic = {
             solution: ["Se intercambian las coordenadas: $(7, 2)$."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Los puntos $(0, 1)$ y $(2, 4)$ están en la gráfica de $f(x) = 2^x$. Ubica los puntos que les corresponden en la gráfica de $f^{-1}$.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-3, 6], y: [-3, 6], height: 280, points: [{ x: 0, y: 1, color: "muted", label: "(0, 1)" }, { x: 2, y: 4, color: "muted", label: "(2, 4)" }] },
+                items: [
+                  { type: "point", label: "\\text{reflejo de } (0, 1)", answer: [1, 0], start: [-2, 5] },
+                  { type: "point", label: "\\text{reflejo de } (2, 4)", answer: [4, 2], start: [-2, -2] },
+                ],
+                reveal: [
+                  { fn: "2^{x}", color: "accent", label: "f" },
+                  { fn: "\\log_{2}(x)", color: "blue", label: "f⁻¹", domain: [0.05, 6] },
+                  { fn: "x", color: "muted", dashed: true },
+                ],
+              },
+            ],
+            hints: ["Intercambia las coordenadas de cada punto."],
+            solution: [
+              "$(0, 1)$ pasa a $(1, 0)$ y $(2, 4)$ pasa a $(4, 2)$.",
+              "La curva azul que aparece es $\\log_2 x$, la inversa de $2^x$. Es el reflejo de la exponencial en la recta $y = x$.",
+            ],
+          },
+        },
       ],
     },
     {
@@ -851,6 +1045,9 @@ const topic: Topic = {
     inversaCuadraticaParcial,
     inversaRacionalParcial,
     inversaAbsParcial,
+    ubicarInversaLineal,
+    ubicarInversaNoLineal,
+    inversaGraficaParcial,
   ],
 };
 

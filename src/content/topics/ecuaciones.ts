@@ -585,6 +585,212 @@ const ingresoPrecio: ExerciseGen = {
   },
 };
 
+/* ------------------------------ ubicar en el plano ------------------------------ */
+
+/** Recta ax + by = c despejada como y = ..., para dibujarla. */
+const lineY = (a: number, b: number, c: number) => terms([[-a / b, "x"], [c / b, ""]]);
+
+/** Resolución por sustitución cuando b1 = ±1. */
+function sustitucion(a1: number, b1: number, c1: number, a2: number, b2: number, c2: number, x0: number, y0: number): string[] {
+  const yExpr = terms([[-a1 * b1, "x"], [c1 * b1, ""]]);
+  const K = a2 - b2 * a1 * b1;
+  const R = c2 - b2 * c1 * b1;
+  const b2Tex = b2 === 1 ? "+ " : b2 === -1 ? "- " : b2 > 0 ? `+ ${b2}` : `- ${-b2}`;
+  return [
+    `De la ecuación $${terms([[a1, "x"], [b1, "y"]])} = ${c1}$ despejamos $y = ${yExpr}$.`,
+    `Sustituimos en la otra: $${terms([[a2, "x"]])} ${b2Tex}(${yExpr}) = ${c2}$.`,
+    `Agrupamos: $${terms([[K, "x"]])} = ${R}$, así que $x = ${x0}$.`,
+    `Volvemos a $y = ${yExpr}$ con $x = ${x0}$: $y = ${y0}$. La solución es el punto $(${x0}, ${y0})$, donde se cortan las dos rectas.`,
+  ];
+}
+
+const sistemaSencilloPlano: ExerciseGen = {
+  id: "sistema-sencillo-plano",
+  title: "La solución de un sistema es un punto",
+  level: 1,
+  generate: (r) => {
+    let a1: number, b1: number, a2: number, b2: number;
+    do {
+      a1 = r.pick([1, -1, 2]);
+      b1 = r.pick([1, -1]);
+      a2 = r.pick([1, -1, 2, -2]);
+      b2 = r.pick([1, -1, 2, -2]);
+    } while (a1 * b2 - a2 * b1 === 0);
+    const x0 = r.int(-4, 4);
+    const y0 = r.int(-4, 4);
+    const c1 = a1 * x0 + b1 * y0;
+    const c2 = a2 * x0 + b2 * y0;
+    return {
+      statement: `Resuelve el sistema $${sysTex(a1, b1, c1, a2, b2, c2)}$ y ubica la solución en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Arrastra el punto hasta la solución $(x, y)$. Al acertar verás las dos rectas cortándose ahí.",
+          graph: { x: [-6, 6], y: [-6, 6], height: 320 },
+          items: [{ type: "point", label: "\\text{solución}", answer: [x0, y0], start: [6, -6] }],
+          reveal: [
+            { fn: lineY(a1, b1, c1), color: "blue" },
+            { fn: lineY(a2, b2, c2), color: "red" },
+          ],
+        },
+      ],
+      hints: [
+        "Despeja $y$ de la primera ecuación: ahí $y$ tiene coeficiente $1$ o $-1$.",
+        "Sustituye esa expresión en la segunda ecuación y despeja $x$.",
+        "La solución es un par $(x, y)$: un punto del plano.",
+      ],
+      solution: sustitucion(a1, b1, c1, a2, b2, c2, x0, y0),
+    };
+  },
+};
+
+const sistemaPlano: ExerciseGen = {
+  id: "sistema-en-el-plano",
+  title: "Resolver un sistema y ubicar la solución",
+  level: 2,
+  generate: (r) => {
+    let a1: number, b1: number, a2: number, b2: number;
+    do {
+      a1 = r.nz(-5, 5);
+      b1 = r.pick([1, -1]);
+      a2 = r.nz(-5, 5);
+      b2 = r.nz(-5, 5);
+    } while (a1 * b2 - a2 * b1 === 0 || Math.abs(b2) === 1);
+    const x0 = r.int(-5, 5);
+    const y0 = r.int(-5, 5);
+    const c1 = a1 * x0 + b1 * y0;
+    const c2 = a2 * x0 + b2 * y0;
+    const swap = r.bool();
+    const sys = swap ? sysTex(a2, b2, c2, a1, b1, c1) : sysTex(a1, b1, c1, a2, b2, c2);
+    return {
+      statement: `Resuelve el sistema $${sys}$ y ubica la solución en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Arrastra el punto hasta la solución. Al acertar verás las dos rectas.",
+          graph: { x: [-7, 7], y: [-7, 7], height: 320 },
+          items: [{ type: "point", label: "\\text{solución}", answer: [x0, y0], start: [7, -7] }],
+          reveal: [
+            { fn: lineY(a1, b1, c1), color: "blue" },
+            { fn: lineY(a2, b2, c2), color: "red" },
+          ],
+        },
+      ],
+      hints: [
+        `Busca la ecuación donde la $y$ tiene coeficiente ${b1 === 1 ? "$1$" : "$-1$"} y despéjala.`,
+        "Sustituye en la otra ecuación. Te queda una ecuación lineal solo con $x$.",
+        "Comprueba el punto en las dos ecuaciones antes de moverlo.",
+      ],
+      solution: [
+        ...sustitucion(a1, b1, c1, a2, b2, c2, x0, y0),
+        `Comprobación en la otra ecuación: $${paren(a2)} \\cdot ${paren(x0)} + ${paren(b2)} \\cdot ${paren(y0)} = ${c2}$.`,
+      ],
+    };
+  },
+};
+
+const raicesPlano: ExerciseGen = {
+  id: "raices-en-el-plano",
+  title: "Las raíces son los cortes con el eje x",
+  level: 1,
+  generate: (r) => {
+    let r1: number, r2: number;
+    do {
+      r1 = r.int(-5, 4);
+      r2 = r.int(r1 + 1, 5);
+    } while (r2 - r1 > 6);
+    const co = [1, -(r1 + r2), r1 * r2];
+    const tex = poly(co);
+    return {
+      statement: `Resuelve $${tex} = 0$ y ubica sus soluciones como puntos sobre el eje $x$.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: `Cada solución $r$ es el punto $(r, 0)$. Lleva el punto de la izquierda a la raíz menor y el de la derecha a la mayor. Al acertar verás la parábola $y = ${tex}$.`,
+          graph: { x: [-6, 6], y: [-10, 6], height: 340 },
+          items: [
+            { type: "point", label: "\\text{raíz menor}", answer: [r1, 0], start: [-6, 5] },
+            { type: "point", label: "\\text{raíz mayor}", answer: [r2, 0], start: [6, 5] },
+          ],
+          reveal: [{ fn: tex, color: "accent" }],
+        },
+      ],
+      hints: [
+        r1 * r2 === 0
+          ? "Saca $x$ como factor común."
+          : `Factoriza: busca dos números que multiplicados den $${r1 * r2}$ y sumados den $${-(r1 + r2)}$.`,
+        "Cada factor igualado a cero da una solución.",
+        "Las soluciones son los puntos donde la parábola corta el eje $x$, así que su altura es $0$.",
+      ],
+      solution: [
+        `Factorizamos: $${r1 === 0 ? `x(${minus("x", r2)})` : r2 === 0 ? `x(${minus("x", r1)})` : `(${minus("x", r1)})(${minus("x", r2)})`} = 0$.`,
+        `Las soluciones son $x = ${r1}$ y $x = ${r2}$.`,
+        `En el plano son los puntos $(${r1}, 0)$ y $(${r2}, 0)$: ahí la parábola $y = ${tex}$ corta el eje $x$.`,
+      ],
+    };
+  },
+};
+
+const raicesNoMonica: ExerciseGen = {
+  id: "raices-cuadratica-plano",
+  title: "Ordenar, resolver y ubicar las raíces (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const a = r.pick([2, 3, -1, -2]);
+    let r1: number, r2: number;
+    do {
+      r1 = r.int(-4, 3);
+      r2 = r.int(r1 + 1, 4);
+    } while (r2 - r1 > (Math.abs(a) === 1 ? 6 : 4));
+    const B = -a * (r1 + r2);
+    const C = a * r1 * r2;
+    const monic = poly([1, -(r1 + r2), r1 * r2]);
+    const full = poly([a, B, C]);
+    const shown = B === 0 ? `${poly([a, 0, 0])} = ${-C}` : `${poly([a, 0, C])} = ${poly([-B, 0])}`;
+    const vmag = Math.ceil(Math.abs(a) * ((r2 - r1) / 2) ** 2);
+    const graph = a > 0 ? { x: [-6, 6] as [number, number], y: [-(vmag + 2), 6] as [number, number], height: 340 } : { x: [-6, 6] as [number, number], y: [-6, vmag + 2] as [number, number], height: 340 };
+    const sy = a > 0 ? 5 : -5;
+    const mistakes = [{ answer: full, feedback: `Pasaste todo al mismo lado, pero falta dividir entre $${a}$.` }];
+    if (r1 + r2 !== 0) mistakes.push({ answer: poly([1, r1 + r2, r1 * r2]), feedback: "Revisa el signo del término con $x$: al pasar al otro lado del igual cambia de signo." });
+    return {
+      statement: `Resuelve $${shown}$ y ubica sus soluciones en el plano.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "expr",
+          prompt: `Pasa todo al lado izquierdo y divide entre $${a}$ para que $x^2$ quede con coeficiente $1$.`,
+          answer: monic,
+          after: "= 0",
+          vars: ["x"],
+          mistakes,
+        },
+        {
+          kind: "place",
+          prompt: `Lleva el punto de la izquierda a la raíz menor y el de la derecha a la mayor. Al acertar verás la parábola $y = ${full}$.`,
+          graph,
+          items: [
+            { type: "point", label: "\\text{raíz menor}", answer: [r1, 0], start: [-6, sy] },
+            { type: "point", label: "\\text{raíz mayor}", answer: [r2, 0], start: [6, sy] },
+          ],
+          reveal: [{ fn: full, color: "accent" }],
+        },
+      ],
+      hints: [
+        "Primero todo de un lado, igualado a cero. Lo que pasa al otro lado cambia de signo.",
+        `Dividir entre $${a}$ deja una ecuación más fácil de factorizar y con las mismas soluciones.`,
+        "Cada raíz $r$ se ubica como el punto $(r, 0)$ sobre el eje $x$.",
+      ],
+      solution: [
+        `Pasamos todo a la izquierda: $${full} = 0$.`,
+        `Dividimos entre $${a}$: $${monic} = 0$.`,
+        `Factorizamos: $${r1 === 0 ? `x(${minus("x", r2)})` : r2 === 0 ? `x(${minus("x", r1)})` : `(${minus("x", r1)})(${minus("x", r2)})`} = 0$, así que $x = ${r1}$ o $x = ${r2}$.`,
+        `En el plano son los puntos $(${r1}, 0)$ y $(${r2}, 0)$, donde la parábola $y = ${full}$ corta el eje $x$. ${a < 0 ? "Como $a$ es negativo, la parábola abre hacia abajo." : ""}`.trim(),
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -787,6 +993,26 @@ const topic: Topic = {
             solution: ["$(x + 4)(x - 3) = 0$, así que $S = \\{-4, 3\\}$."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Resuelve $x^2 - 2x - 3 = 0$ y ubica cada solución $r$ como el punto $(r, 0)$.",
+            parts: [
+              {
+                kind: "place",
+                prompt: "Lleva el punto de la izquierda a la raíz menor y el de la derecha a la mayor. Al acertar verás la parábola.",
+                graph: { x: [-4, 6], y: [-5, 6], height: 300 },
+                items: [
+                  { type: "point", label: "\\text{raíz menor}", answer: [-1, 0], start: [-4, 5] },
+                  { type: "point", label: "\\text{raíz mayor}", answer: [3, 0], start: [6, 5] },
+                ],
+                reveal: [{ fn: "x^2-2x-3", color: "accent" }],
+              },
+            ],
+            hints: ["Dos números que multiplicados den $-3$ y sumados $-2$."],
+            solution: ["$(x - 3)(x + 1) = 0$, así que $x = -1$ o $x = 3$.", "Son los puntos $(-1, 0)$ y $(3, 0)$, donde la parábola $y = x^2 - 2x - 3$ corta el eje $x$."],
+          },
+        },
       ],
     },
     {
@@ -958,6 +1184,26 @@ const topic: Topic = {
             solution: ["Sumando las dos ecuaciones: $2x = 8$, así que $x = 4$.", "En la primera: $4 + y = 7$, así que $y = 3$."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Resuelve $\\begin{cases} x + y = 1 \\\\ 2x - y = 5 \\end{cases}$ y arrastra el punto hasta la solución.",
+            parts: [
+              {
+                kind: "place",
+                prompt: "Al acertar verás las dos rectas cortándose en tu punto.",
+                graph: { x: [-5, 5], y: [-5, 5], height: 300 },
+                items: [{ type: "point", label: "\\text{solución}", answer: [2, -1], start: [-4, 4] }],
+                reveal: [
+                  { fn: "1-x", color: "blue" },
+                  { fn: "2x-5", color: "red" },
+                ],
+              },
+            ],
+            hints: ["Suma las dos ecuaciones: la $y$ se va."],
+            solution: ["Sumando: $3x = 6$, así que $x = 2$.", "En la primera: $2 + y = 1$, así que $y = -1$. La solución es el punto $(2, -1)$."],
+          },
+        },
       ],
     },
     {
@@ -1035,14 +1281,18 @@ const topic: Topic = {
     lineal,
     linealParentesis,
     cuadraticaFactorizable,
+    raicesPlano,
     discriminante,
     valorAbsoluto,
+    sistemaSencilloPlano,
     fraccionLineal,
     formulaGeneral,
     racional,
     bicuadratica,
     sistema,
+    sistemaPlano,
     radical,
+    raicesNoMonica,
     equilibrioMercado,
     puntoEquilibrio,
     ingresoPrecio,

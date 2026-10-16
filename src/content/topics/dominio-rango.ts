@@ -787,6 +787,215 @@ const conjuntoParaRango: ExerciseGen = {
   },
 };
 
+/* ---------------------------- tablas de signos ---------------------------- */
+
+type Sign = 1 | -1;
+
+/** Signos del factor (x - root) en cada intervalo; con flip, los de (root - x). */
+function filaFactor(points: number[], root: number, flip = false): Sign[] {
+  const idx = points.indexOf(root);
+  return Array.from({ length: points.length + 1 }, (_, j) => ((j > idx) !== flip ? 1 : -1));
+}
+
+/** Producto de varias filas de signos, columna por columna. */
+function producto(rows: Sign[][]): Sign[] {
+  return rows[0].map((_, j): Sign => (rows.reduce((s: number, row) => s * row[j], 1) > 0 ? 1 : -1));
+}
+
+/** "+ en (-∞, 1), − en (1, 3), ..." para la solución. */
+function signosTex(points: number[], signs: Sign[]): string {
+  return signs
+    .map((s, j) => {
+      const lo = j === 0 ? "-\\infty" : String(points[j - 1]);
+      const hi = j === points.length ? "+\\infty" : String(points[j]);
+      return `$${s > 0 ? "+" : "-"}$ en $(${lo}, ${hi})$`;
+    })
+    .join(", ");
+}
+
+const tablaRaizCociente: ExerciseGen = {
+  id: "tabla-raiz-cociente",
+  title: "Tabla de signos para el dominio de una raíz de un cociente",
+  level: 1,
+  generate: (r) => {
+    const a = r.int(-6, 6);
+    let bb: number;
+    do bb = r.int(-6, 6);
+    while (bb === a);
+    const pts = [a, bb].sort((p, q) => p - q);
+    const num = xMinus(a);
+    const den = xMinus(bb);
+    const rowN = filaFactor(pts, a);
+    const rowD = filaFactor(pts, bb);
+    const res = producto([rowN, rowD]);
+    const D = signSolve([{ root: a }, { root: bb, den: true }], 1, ">=");
+    return {
+      statement: `Para hallar el dominio de $f(x) = \\sqrt{\\dfrac{${num}}{${den}}}$ hay que resolver $\\dfrac{${num}}{${den}} \\ge 0$. Completa la tabla de signos y escribe el dominio.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: "Tabla de signos. La fila del numerador ya viene llena.",
+          points: pts.map(String),
+          rows: [
+            { label: num, signs: rowN },
+            { label: den, signs: rowD },
+            { label: `\\dfrac{${num}}{${den}}`, signs: res },
+          ],
+          given: [0],
+        },
+        {
+          kind: "interval",
+          prompt: "Dominio",
+          before: "\\text{Dom } f =",
+          answer: D,
+          mistakes: cleanMistakes(D, [
+            { answer: signSolve([{ root: a }, { root: bb }], 1, ">="), feedback: `$x = ${bb}$ anula el denominador. Aunque la tabla lo marque como frontera, nunca entra.` },
+            { answer: signSolve([{ root: a }, { root: bb, den: true }], 1, ">"), feedback: `En $x = ${a}$ el radicando vale $0$, y $\\sqrt{0} = 0$ existe. Ese punto entra.` },
+          ]),
+        },
+      ],
+      hints: [
+        "Cada factor $x - r$ es negativo a la izquierda de $r$ y positivo a la derecha.",
+        "El cociente es positivo donde numerador y denominador tienen el mismo signo.",
+        `Revisa los extremos: $x = ${a}$ anula el numerador y $x = ${bb}$ anula el denominador.`,
+      ],
+      solution: [
+        `Los puntos críticos son $${a}$, que anula el numerador, y $${bb}$, que anula el denominador.`,
+        `Multiplicando los signos de cada columna, el cociente queda ${signosTex(pts, res)}.`,
+        `Nos quedamos con los intervalos $+$. El $${a}$ entra porque el radicando vale $0$, y el $${bb}$ no porque divide entre cero.`,
+        `$\\text{Dom } f = ${unionTex(D)}$.`,
+      ],
+    };
+  },
+};
+
+const tablaRaizCuadratica: ExerciseGen = {
+  id: "tabla-raiz-cuadratica",
+  title: "Tabla de signos para el dominio de una raíz cuadrada",
+  level: 2,
+  generate: (r) => {
+    const r1 = r.int(-5, 3);
+    const r2 = r1 + r.int(1, 5);
+    const lead = r.pick([1, 1, -1]);
+    const inner = poly([lead, -lead * (r1 + r2), lead * r1 * r2]);
+    const pts = [r1, r2];
+    const f1 = xMinus(r1);
+    const f2 = lead > 0 ? xMinus(r2) : terms([[r2, ""], [-1, "x"]]);
+    const row1 = filaFactor(pts, r1);
+    const row2 = filaFactor(pts, r2, lead < 0);
+    const res = producto([row1, row2]);
+    const wrap = (s: string) => (s === "x" ? "x" : `(${s})`);
+    const fact = f2 === "-x" ? `-x${wrap(f1)}` : f2 === "x" ? `x${wrap(f1)}` : `${wrap(f1)}${wrap(f2)}`;
+    const D = signSolve([{ root: r1 }, { root: r2 }], lead, ">=");
+    return {
+      statement: `Halla el dominio de $f(x) = \\sqrt{${inner}}$. Factoriza el radicando, completa su tabla de signos y escribe el dominio.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: `Tabla de signos de $${inner} = ${fact}$.`,
+          points: pts.map(String),
+          rows: [
+            { label: f1, signs: row1 },
+            { label: f2, signs: row2 },
+            { label: inner, signs: res },
+          ],
+        },
+        {
+          kind: "interval",
+          prompt: "Dominio",
+          before: "\\text{Dom } f =",
+          answer: D,
+          mistakes: cleanMistakes(D, [
+            { answer: signSolve([{ root: r1 }, { root: r2 }], lead, "<="), feedback: "Esa es la zona donde el radicando es negativo. La raíz necesita la zona $+$." },
+            { answer: signSolve([{ root: r1 }, { root: r2 }], lead, ">"), feedback: "En las raíces el radicando vale $0$ y $\\sqrt{0} = 0$ existe. Los extremos van cerrados." },
+          ]),
+        },
+      ],
+      hints: [
+        lead > 0 ? `Las raíces de $${inner}$ son $${r1}$ y $${r2}$.` : `Factoriza con un factor al revés: $${inner} = ${fact}$.`,
+        lead > 0 ? "Cada factor $x - r$ es negativo a la izquierda de $r$ y positivo a la derecha." : `El factor $${f2}$ va al revés: es positivo a la izquierda de $${r2}$ y negativo a la derecha.`,
+        "La raíz pide radicando mayor o igual que cero, así que las raíces entran.",
+      ],
+      solution: [
+        `Condición: $${inner} \\ge 0$. Factorizando, $${fact} \\ge 0$, con puntos críticos $${r1}$ y $${r2}$.`,
+        `Multiplicando por columnas, el radicando queda ${signosTex(pts, res)}.`,
+        `Tomamos los intervalos $+$ y les agregamos las raíces, donde el radicando vale $0$.`,
+        `$\\text{Dom } f = ${unionTex(D)}$.`,
+      ],
+    };
+  },
+};
+
+const tablaRaizTresFactores: ExerciseGen = {
+  id: "tabla-raiz-tres-factores",
+  title: "Restricciones con tabla de signos de tres factores (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const [u, v, w] = r.sample([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], 3);
+    const numQuad = r.bool();
+    const numRoots = numQuad ? [u, v].sort((p, q) => p - q) : [u];
+    const denRoots = numQuad ? [w] : [v, w].sort((p, q) => p - q);
+    const quadTex = (a: number, b: number) => poly([1, -(a + b), a * b]);
+    const num = numQuad ? quadTex(numRoots[0], numRoots[1]) : xMinus(numRoots[0]);
+    const den = numQuad ? xMinus(denRoots[0]) : quadTex(denRoots[0], denRoots[1]);
+    const factored = numQuad
+      ? `\\dfrac{${prod(numRoots[0], numRoots[1])}}{${xMinus(denRoots[0])}}`
+      : `\\dfrac{${xMinus(numRoots[0])}}{${prod(denRoots[0], denRoots[1])}}`;
+    const pts = [...numRoots, ...denRoots].sort((p, q) => p - q);
+    const factorRows = [...numRoots, ...denRoots].map((x) => ({ label: xMinus(x), signs: filaFactor(pts, x) }));
+    const res = producto(factorRows.map((f) => f.signs));
+    const factors = [...numRoots.map((x) => ({ root: x })), ...denRoots.map((x) => ({ root: x, den: true }))];
+    const D = signSolve(factors, 1, ">=");
+    const askNum = r.bool();
+    const probe = askNum ? r.pick(numRoots) : r.pick(denRoots);
+    const rule = `\\sqrt{\\dfrac{${num}}{${den}}}`;
+    return {
+      statement: `Sea $f: \\mathbb{R} \\to \\mathbb{R} \\;/\\; y = ${rule}$. Haz las restricciones necesarias para que sea función.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: `Factoriza, $${factored}$, y completa la tabla de signos del radicando.`,
+          points: pts.map(String),
+          rows: [...factorRows, { label: `\\dfrac{${num}}{${den}}`, signs: res }],
+        },
+        trueFalse(
+          askNum,
+          askNum
+            ? `En $x = ${probe}$ el radicando vale $0$ y $\\sqrt{0} = 0$ existe, así que sí pertenece.`
+            : `$x = ${probe}$ anula el denominador. Ningún valor que divida entre cero entra al dominio.`,
+          `¿Verdadero o falso? $x = ${probe}$ pertenece al dominio de $f$.`,
+        ),
+        {
+          kind: "interval",
+          prompt: "Halla el conjunto $A$ para que $f: A \\to \\mathbb{R}$ sea función.",
+          before: "A =",
+          answer: D,
+          mistakes: cleanMistakes(D, [
+            { answer: signSolve(factors.map((f) => ({ root: f.root })), 1, ">="), feedback: "Incluiste raíces del denominador. Esos puntos dividen entre cero y nunca entran." },
+            { answer: signSolve(factors, 1, ">"), feedback: "Las raíces del numerador sí entran: ahí el radicando vale $0$." },
+            { answer: signSolve(factors, 1, "<="), feedback: "Tomaste la zona negativa. La raíz cuadrada necesita radicando mayor o igual que cero." },
+          ]),
+        },
+      ],
+      hints: [
+        numQuad ? `Factoriza el numerador: $${num} = ${prod(numRoots[0], numRoots[1])}$.` : `Factoriza el denominador: $${den} = ${prod(denRoots[0], denRoots[1])}$.`,
+        `Los puntos críticos son $${pts.join(", ")}$. Cada factor $x - r$ cambia de $-$ a $+$ al pasar por su raíz.`,
+        "Las raíces del numerador entran al dominio y las del denominador nunca.",
+      ],
+      solution: [
+        `Condición de la raíz: $${factored} \\ge 0$. Condición del cociente: $x \\ne ${denRoots.join("$ y $x \\ne ")}$.`,
+        `Con los puntos críticos $${pts.join(", ")}$, el radicando queda ${signosTex(pts, res)}.`,
+        `Entran los intervalos $+$, las raíces del numerador ($${numRoots.join(", ")}$) y ninguna raíz del denominador ($${denRoots.join(", ")}$).`,
+        `$A = ${unionTex(D)}$, y la función queda $f: A \\to \\mathbb{R} \\;/\\; y = ${rule}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -954,6 +1163,38 @@ const topic: Topic = {
             statement: "Halla el dominio de $f(x) = \\sqrt{4 - x} + \\ln(x + 1)$.",
             parts: [{ kind: "interval", before: "\\text{Dom } f =", answer: [iv(-1, 4, false, true)] }],
             solution: ["Raíz: $4 - x \\ge 0$, así que $x \\le 4$. Logaritmo: $x + 1 > 0$, así que $x > -1$.", "Intersección: $(-1, 4]$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Para el dominio de $f(x) = \\sqrt{\\dfrac{x + 2}{x - 3}}$ hay que resolver $\\dfrac{x + 2}{x - 3} \\ge 0$. Completa la tabla de signos y después escribe el dominio.",
+            sequential: true,
+            parts: [
+              {
+                kind: "signs",
+                points: ["-2", "3"],
+                rows: [
+                  { label: "x + 2", signs: [-1, 1, 1] },
+                  { label: "x - 3", signs: [-1, -1, 1] },
+                  { label: "\\dfrac{x + 2}{x - 3}", signs: [1, -1, 1] },
+                ],
+              },
+              {
+                kind: "interval",
+                before: "\\text{Dom } f =",
+                answer: [iv(-Infinity, -2, false, true), iv(3, Infinity)],
+                mistakes: [
+                  { answer: [iv(-Infinity, -2, false, true), iv(3, Infinity, true, false)], feedback: "$x = 3$ anula el denominador, así que no entra." },
+                  { answer: [iv(-Infinity, -2), iv(3, Infinity)], feedback: "En $x = -2$ el radicando vale $0$ y $\\sqrt{0} = 0$ existe. Ese punto entra." },
+                ],
+              },
+            ],
+            hints: ["Prueba un número en cada intervalo, por ejemplo $-3$, $0$ y $4$."],
+            solution: [
+              "El cociente es $+$ en $(-\\infty, -2)$, $-$ en $(-2, 3)$ y $+$ en $(3, +\\infty)$.",
+              "El $-2$ entra porque anula el numerador. El $3$ no, porque anula el denominador. $\\text{Dom } f = (-\\infty, -2] \\cup (3, +\\infty)$.",
+            ],
           },
         },
       ],
@@ -1125,6 +1366,9 @@ const topic: Topic = {
     noFuncionLog,
     pruebaCorta,
     conjuntoParaRango,
+    tablaRaizCociente,
+    tablaRaizCuadratica,
+    tablaRaizTresFactores,
   ],
 };
 

@@ -404,6 +404,171 @@ const impuestoEquilibrio: ExerciseGen = {
   },
 };
 
+/* ------------------------------ equilibrios en el plano ------------------------------ */
+
+/** Posición inicial de un punto arrastrable que no coincida con ninguna respuesta. */
+function libre(want: [number, number], taken: [number, number][]): [number, number] {
+  let x = want[0];
+  while (taken.some((t) => t[0] === x && t[1] === want[1])) x -= 1;
+  return [x, want[1]];
+}
+
+/** Paso de la cuadrícula según el tamaño del rango. */
+const paso = (max: number) => (max > 24 ? 4 : 2);
+
+const co = (n: number) => (n === 1 ? "" : String(n));
+
+const ubicarEquilibrioMercado: ExerciseGen = {
+  id: "ubicar-equilibrio-mercado",
+  title: "Ubicar el equilibrio de mercado en el plano",
+  level: 2,
+  generate: (r) => {
+    const d = r.pick([1, 2]);
+    const qe = r.int(3, d === 2 ? 6 : 8);
+    const c = r.int(1, 4);
+    const pe = c + d * qe;
+    const b = r.pick([1, 2]);
+    const a = pe + b * qe;
+    const X = Math.ceil(a / b) + 2;
+    const Y = a + 2;
+    const E: [number, number] = [qe, pe];
+    const prod = r.pick(PRODUCTOS);
+    return {
+      statement: `En el mercado de ${prod}, la demanda es $p = ${a} - ${co(b)}q$ y la oferta es $p = ${c} + ${co(d)}q$, con $q$ en cientos de unidades y $p$ en miles de bolívares. Halla el equilibrio y ubícalo en el plano, con la cantidad en el eje horizontal y el precio en el vertical.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [0, X], y: [0, Y], height: 340, step: paso(Math.max(X, Y)) },
+          items: [{ type: "point", label: "\\text{equilibrio}", answer: E, start: libre([X - 1, 1], [E]) }],
+          reveal: [
+            { fn: poly([-b, a]), domain: [0, a / b], color: "accent", label: "demanda" },
+            { fn: poly([d, c]), domain: [0, X], color: "blue", label: "oferta" },
+          ],
+        },
+      ],
+      hints: [
+        "En el equilibrio el precio que piden los consumidores coincide con el que piden los productores. Iguala las dos fórmulas.",
+        "Con la cantidad de equilibrio, sustituye en cualquiera de las dos para hallar el precio.",
+      ],
+      solution: [
+        `Igualamos: $${a} - ${co(b)}q = ${c} + ${co(d)}q$.`,
+        `Agrupamos: $${a - c} = ${b + d}q$, así que $q_e = ${qe}$.`,
+        `Demanda: $p = ${a} - ${mul(b)}${qe} = ${pe}$. Oferta: $p = ${c} + ${mul(d)}${qe} = ${pe}$. Coinciden.`,
+        `El equilibrio es el punto $(${qe}, ${pe})$: ${qe * 100} unidades a un precio de ${pe} mil bolívares. Ahí se cruzan las dos rectas.`,
+      ],
+    };
+  },
+};
+
+const ubicarPuntoEquilibrio: ExerciseGen = {
+  id: "ubicar-punto-equilibrio",
+  title: "Ubicar el punto de equilibrio entre ingreso y costo",
+  level: 2,
+  generate: (r) => {
+    const m = r.int(1, 3);
+    const p = r.int(m + 1, 5);
+    const cv = p - m;
+    const qe = r.int(2, 6);
+    const CF = m * qe;
+    const Ie = p * qe;
+    const X = qe + 4;
+    const Y = Ie + 8;
+    const F: [number, number] = [0, CF];
+    const E: [number, number] = [qe, Ie];
+    return {
+      statement: `Un pequeño negocio vende cada unidad a $${p}$, tiene costos fijos de $${CF}$ y cada unidad le cuesta $${cv}$ producirla (cantidades en decenas, dinero en miles de bolívares). Ubica en el plano el punto donde arranca el costo total y el punto de equilibrio.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [0, X], y: [0, Y], height: 340, step: paso(Y) },
+          items: [
+            { type: "point", label: "\\text{costo de producir cero}", answer: F, start: libre([X - 1, Y - 2], [F, E]) },
+            { type: "point", label: "\\text{punto de equilibrio}", answer: E, start: libre([X - 1, 2], [F, E]) },
+          ],
+          reveal: [
+            { fn: poly([p, 0]), domain: [0, X], color: "blue", label: "I(q)" },
+            { fn: poly([cv, CF]), domain: [0, X], color: "red", label: "C(q)" },
+          ],
+        },
+      ],
+      hints: [
+        "El costo total es $C(q) = CF + c_v\\,q$. Con $q = 0$ solo queda el costo fijo.",
+        "En el punto de equilibrio $I(q) = C(q)$. La altura de ese punto es el ingreso, que es igual al costo.",
+      ],
+      solution: [
+        `$I(q) = ${p}q$ y $C(q) = ${P([cv, CF])}$. Como $C(0) = ${CF}$, el costo arranca en $(0, ${CF})$.`,
+        `$${p}q = ${P([cv, CF])}$ da ${m === 1 ? `$q = ${qe}$` : `$${m}q = ${CF}$, así que $q = ${qe}$`}.`,
+        `$I(${qe}) = ${Ie}$ y $C(${qe}) = ${CF} + ${mul(cv)}${qe} = ${Ie}$. El punto de equilibrio es $(${qe}, ${Ie})$.`,
+        "A la izquierda de ese punto el costo va por encima del ingreso y hay pérdida. A la derecha hay ganancia.",
+      ],
+    };
+  },
+};
+
+const equilibrioGraficoParcial: ExerciseGen = {
+  id: "equilibrio-grafico-parcial",
+  title: "Graficar demanda y oferta, equilibrio y excedente (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const B = r.pick([1, 2]);
+    const D = r.pick([1, 2, 3]);
+    const pe = r.int(3, 8);
+    const qe = B === 2 ? 2 * r.int(2, 6) : r.int(4, 12);
+    const A = qe + B * pe;
+    const C = D * pe - qe;
+    const pMax = A / B;
+    const t = r.int(1, 2);
+    const p1 = pe + t;
+    const exc = (B + D) * t;
+    const X = A + 2;
+    const Y = pMax + 2;
+    const Pd: [number, number] = [0, pMax];
+    const Qd: [number, number] = [A, 0];
+    const E: [number, number] = [qe, pe];
+    const all = [Pd, Qd, E];
+    const supplyTex = `${co(D)}p${plusK(-C)}`;
+    return {
+      statement: `La demanda de un bien es $q_d = ${A} - ${co(B)}p$ y la oferta es $q_s = ${supplyTex}$, con $q$ en miles de unidades y $p$ en miles de bolívares. Grafica las dos con la cantidad en el eje horizontal y el precio en el vertical.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Ubica los cortes de la demanda con los ejes y el punto de equilibrio.",
+          graph: { x: [0, X], y: [0, Y], height: 340, step: paso(Math.max(X, Y)) },
+          items: [
+            { type: "point", label: "\\text{corte de la demanda con el eje } p", answer: Pd, start: libre([X - 1, Y - 1], all) },
+            { type: "point", label: "\\text{corte de la demanda con el eje } q", answer: Qd, start: libre([X - 3, Y - 1], all) },
+            { type: "point", label: "\\text{equilibrio}", answer: E, start: libre([X - 5, Y - 1], all) },
+          ],
+          reveal: [
+            { fn: `\\frac{${A}-x}{${B}}`, domain: [0, A], color: "accent", label: "demanda" },
+            { fn: `\\frac{x${plusK(C).replace(/ /g, "")}}{${D}}`, domain: [Math.max(0, -C), X], color: "blue", label: "oferta" },
+          ],
+        },
+        {
+          kind: "expr",
+          prompt: `Si el precio se fija en $${p1}$, ¿cuántos miles de unidades sobran?`,
+          before: "q_s - q_d =",
+          answer: String(exc),
+          mistakes: [{ answer: String(-exc), feedback: "Por encima del equilibrio se ofrece más de lo que se pide. El excedente es positivo." }],
+        },
+      ],
+      hints: [
+        `La demanda corta el eje $p$ cuando $q = 0$ y el eje $q$ cuando $p = 0$.`,
+        "Para el equilibrio iguala $q_d = q_s$ y despeja $p$. Después calcula $q$.",
+        `Para el excedente evalúa las dos funciones en $p = ${p1}$ y resta.`,
+      ],
+      solution: [
+        `Cortes de la demanda: con $p = 0$ queda $q = ${A}$, y con $q = 0$ queda ${B === 1 ? `$p = ${pMax}$` : `$${B}p = ${A}$, es decir $p = ${pMax}$`}. Puntos $(${A}, 0)$ y $(0, ${pMax})$.`,
+        `Equilibrio: $${A} - ${co(B)}p = ${supplyTex}$ da $${A + C} = ${B + D}p$, así que $p_e = ${pe}$ y $q_e = ${A} - ${mul(B)}${pe} = ${qe}$. En el plano es el punto $(${qe}, ${pe})$.`,
+        `Con $p = ${p1}$: $q_d = ${A} - ${mul(B)}${p1} = ${A - B * p1}$ y $q_s = ${mul(D)}${p1}${plusK(-C)} = ${D * p1 - C}$.`,
+        `Sobran $${D * p1 - C} - ${A - B * p1} = ${exc}$ miles de unidades. Ese excedente empuja el precio de vuelta hacia $${pe}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -527,6 +692,25 @@ const topic: Topic = {
             statement: "Demanda $q_d = 60 - p$ y oferta $q_s = 2p$. ¿Cuál es el precio de equilibrio?",
             parts: [{ kind: "expr", before: "p_e =", answer: "20", mistakes: [{ answer: "40", feedback: "Esa es la cantidad de equilibrio." }] }],
             solution: ["$60 - p = 2p$ da $60 = 3p$, así que $p_e = 20$ y $q_e = 40$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "La demanda es $p = 14 - q$ y la oferta es $p = 2 + 2q$. Ubica el equilibrio en el plano, con la cantidad en el eje horizontal y el precio en el vertical.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [0, 16], y: [0, 16], height: 300, step: 2 },
+                items: [{ type: "point", label: "\\text{equilibrio}", answer: [4, 10], start: [14, 1] }],
+                reveal: [
+                  { fn: "14-x", domain: [0, 14], color: "accent", label: "demanda" },
+                  { fn: "2+2x", domain: [0, 7], color: "blue", label: "oferta" },
+                ],
+              },
+            ],
+            hints: ["Iguala los dos precios y despeja $q$."],
+            solution: ["$14 - q = 2 + 2q$ da $12 = 3q$, así que $q_e = 4$.", "$p_e = 14 - 4 = 10$. El equilibrio es el punto $(4, 10)$, donde se cruzan las dos rectas."],
           },
         },
       ],
@@ -680,6 +864,25 @@ const topic: Topic = {
             solution: ["$q = \\frac{400}{12 - 8} = 100$ unidades."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Con $I(q) = 6q$ y $C(q) = 12 + 2q$, ubica el punto de equilibrio en el plano.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [0, 8], y: [0, 40], height: 300, step: 4 },
+                items: [{ type: "point", label: "\\text{punto de equilibrio}", answer: [3, 18], start: [7, 2] }],
+                reveal: [
+                  { fn: "6x", domain: [0, 8], color: "blue", label: "I(q)" },
+                  { fn: "12+2x", domain: [0, 8], color: "red", label: "C(q)" },
+                ],
+              },
+            ],
+            hints: ["Iguala ingreso y costo. La altura del punto es el ingreso en esa cantidad."],
+            solution: ["$6q = 12 + 2q$ da $4q = 12$, así que $q = 3$.", "$I(3) = 18 = C(3)$. El punto es $(3, 18)$."],
+          },
+        },
       ],
     },
     {
@@ -743,6 +946,9 @@ const topic: Topic = {
     ingresoMaximo,
     utilidadMaxima,
     impuestoEquilibrio,
+    ubicarEquilibrioMercado,
+    ubicarPuntoEquilibrio,
+    equilibrioGraficoParcial,
   ],
 };
 

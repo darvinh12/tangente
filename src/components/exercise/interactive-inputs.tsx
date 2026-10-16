@@ -31,12 +31,12 @@ export function SignsInput({
   return (
     <div className="flex flex-col gap-2">
       <div className="overflow-x-auto rounded-xl border border-line bg-surface">
-        <table className="w-full min-w-[320px] border-collapse text-center">
+        <table className="w-full border-collapse text-center">
           <thead>
             <tr className="bg-sunk/60">
-              <th className="w-[30%] px-2 py-2 text-left text-sm font-medium text-muted" />
+              <th className="px-2 py-2 text-left text-sm font-medium text-muted" />
               {Array.from({ length: nCols }, (_, j) => (
-                <th key={j} className="relative px-1 py-2 text-[0.95rem] font-normal">
+                <th key={j} className="relative px-0.5 py-2 text-[0.82rem] font-normal sm:px-1 sm:text-[0.95rem]">
                   <span className="text-muted">
                     <Tex tex={`(${j === 0 ? "-\\infty" : part.points[j - 1]},\\,${j === nCols - 1 ? "\\infty" : part.points[j]})`} />
                   </span>
@@ -50,7 +50,7 @@ export function SignsInput({
               const isResult = i === part.rows.length - 1 && part.rows.length > 1;
               return (
                 <tr key={i} className={`border-t border-line ${isResult ? "bg-accent-soft/40" : ""}`}>
-                  <td className="px-2 py-2 text-left">
+                  <td className="whitespace-nowrap px-2 py-2 text-left text-[0.9rem] sm:text-base">
                     <Tex tex={r.label} />
                   </td>
                   {Array.from({ length: nCols }, (_, j) => {
@@ -59,13 +59,13 @@ export function SignsInput({
                     const bad = reveal && !given && c !== truth;
                     const shown = reveal && bad ? truth : c;
                     return (
-                      <td key={j} className="px-1 py-1.5">
+                      <td key={j} className="px-0.5 py-1.5 sm:px-1">
                         <button
                           type="button"
                           onClick={() => set(i, j)}
                           disabled={disabled || given}
                           aria-label={`Fila ${i + 1}, intervalo ${j + 1}: ${c === 0 ? "vacía" : c > 0 ? "positivo" : "negativo"}`}
-                          className={`mx-auto flex h-11 w-11 items-center justify-center rounded-xl border-[1.5px] font-display text-2xl font-semibold transition-all active:scale-90 ${
+                          className={`mx-auto flex h-10 w-10 items-center sm:h-11 sm:w-11 justify-center rounded-xl border-[1.5px] font-display text-2xl font-semibold transition-all active:scale-90 ${
                             bad
                               ? "border-bad bg-bad-soft text-bad"
                               : given

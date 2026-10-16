@@ -8,6 +8,15 @@ import { coef, frac, minus, poly } from "@/lib/math/tex";
 
 const ivTex = (I: Interval[]) => unionTex(I);
 const setTex = (xs: number[]) => (xs.length ? `\\{${xs.join(", ")}\\}` : "\\varnothing");
+/** "+ 3", "- 2" o "" para sumar una constante al final de una fórmula. */
+const plusK = (k: number) => (k === 0 ? "" : k > 0 ? ` + ${k}` : ` - ${-k}`);
+
+/** Posición inicial de un punto arrastrable que no coincida con ninguna respuesta. */
+function libre(want: [number, number], taken: [number, number][]): [number, number] {
+  let x = want[0];
+  while (taken.some((t) => t[0] === x && t[1] === want[1])) x += 1;
+  return [x, want[1]];
+}
 
 /** Familias básicas con su gráfica, para reconocerlas. */
 const FAMILIAS: { tex: string; name: string; graph: GraphSpec; look: string }[] = [
@@ -473,6 +482,149 @@ const expLogTrasladada: ExerciseGen = {
   },
 };
 
+const ubicarVerticeCorteY: ExerciseGen = {
+  id: "ubicar-vertice-corte-y",
+  title: "Ubicar el vértice y el corte con el eje y",
+  level: 1,
+  generate: (r) => {
+    let a: number, h: number, k: number, c: number;
+    do {
+      a = r.pick([1, -1]);
+      h = r.nz(-4, 4);
+      k = r.int(-5, 5);
+      c = a * h * h + k;
+    } while (Math.abs(c) > 7);
+    const b = -2 * a * h;
+    const fTex = poly([a, b, c]);
+    const V: [number, number] = [h, k];
+    const Y: [number, number] = [0, c];
+    const evalTex = `${a === 1 ? "" : "-"}(${h})^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)}(${h})${plusK(c)}`;
+    return {
+      statement: `Halla el vértice y el corte con el eje $y$ de $f(x) = ${fTex}$. Después arrastra cada punto hasta su lugar.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-8, 8], y: [-8, 8], height: 300 },
+          items: [
+            { type: "point", label: "\\text{vértice}", answer: V, start: libre([-7, 7], [V, Y]) },
+            { type: "point", label: "\\text{corte con } y", answer: Y, start: libre([4, -7], [V, Y]) },
+          ],
+          reveal: [{ fn: fTex, color: "accent" }],
+        },
+      ],
+      hints: [
+        "La abscisa del vértice es $x_v = -\\dfrac{b}{2a}$ y su ordenada es $f(x_v)$.",
+        "El corte con el eje $y$ sale de calcular $f(0)$, que es el término independiente.",
+      ],
+      solution: [
+        `Aquí $a = ${a}$ y $b = ${b}$, así que $x_v = -\\dfrac{${b}}{2 \\cdot ${a < 0 ? `(${a})` : a}} = ${h}$.`,
+        `$y_v = f(${h}) = ${evalTex} = ${k}$. El vértice es $(${h}, ${k})$.`,
+        `$f(0) = ${c}$, así que la parábola corta al eje $y$ en $(0, ${c})$.`,
+        `Como $a = ${a}$ es ${a > 0 ? "positivo, la parábola abre hacia arriba" : "negativo, la parábola abre hacia abajo"}.`,
+      ],
+    };
+  },
+};
+
+const ubicarParabolaCortes: ExerciseGen = {
+  id: "ubicar-parabola-cortes",
+  title: "Ubicar el vértice y los cortes con el eje x",
+  level: 2,
+  generate: (r) => {
+    const a = r.pick([1, -1, 2, -2]);
+    const d = Math.abs(a) === 1 ? r.int(1, 3) : r.int(1, 2);
+    const h = r.int(-4, 4);
+    const r1 = h - d;
+    const r2 = h + d;
+    const k = -a * d * d;
+    const b = -a * (r1 + r2);
+    const c = a * r1 * r2;
+    const fTex = poly([a, b, c]);
+    const pre = a === 1 ? "" : a === -1 ? "-" : String(a);
+    const V: [number, number] = [h, k];
+    const A: [number, number] = [r1, 0];
+    const B: [number, number] = [r2, 0];
+    const all = [V, A, B];
+    return {
+      statement: `Halla el vértice y los cortes con el eje $x$ de $f(x) = ${fTex}$. Ubica los tres puntos en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-8, 8], y: [-10, 10], height: 320 },
+          items: [
+            { type: "point", label: "\\text{vértice}", answer: V, start: libre([-7, 9], all) },
+            { type: "point", label: "\\text{corte izquierdo}", answer: A, start: libre([-7, -9], all) },
+            { type: "point", label: "\\text{corte derecho}", answer: B, start: libre([5, -9], all) },
+          ],
+          reveal: [{ fn: fTex, color: "accent" }],
+        },
+      ],
+      hints: [
+        Math.abs(a) === 1 ? "Plantea $f(x) = 0$ y factoriza." : `Plantea $f(x) = 0$ y saca factor común $${a}$ antes de factorizar.`,
+        "El vértice queda justo en medio de los dos cortes. Su ordenada es $f(x_v)$.",
+      ],
+      solution: [
+        `Factorizando, $f(x) = ${pre}${r1 === 0 ? `x(${minus("x", r2)})` : r2 === 0 ? `x(${minus("x", r1)})` : `(${minus("x", r1)})(${minus("x", r2)})`}$. Se anula en $x = ${r1}$ y en $x = ${r2}$: cortes $(${r1}, 0)$ y $(${r2}, 0)$.`,
+        `La parábola es simétrica, así que el vértice está en el punto medio: $x_v = \\dfrac{${r1} + ${r2 < 0 ? `(${r2})` : r2}}{2} = ${h}$.`,
+        `$y_v = f(${h}) = ${pre}(${h - r1})(${h - r2}) = ${k}$. El vértice es $(${h}, ${k})$.`,
+        `Abre hacia ${a > 0 ? "arriba" : "abajo"}, así que el vértice es el punto más ${a > 0 ? "bajo" : "alto"}.`,
+      ],
+    };
+  },
+};
+
+const ubicarExponencial: ExerciseGen = {
+  id: "ubicar-exponencial",
+  title: "Asíntota y corte de una exponencial trasladada (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const inc = r.bool(0.6);
+    const b = inc ? r.pick([2, 3]) : 2;
+    const h = inc ? (b === 2 ? r.int(-2, 0) : r.int(-1, 0)) : r.int(0, 2);
+    const val = inc ? b ** -h : 2 ** h;
+    const k = r.nz(-5, 3);
+    const y0 = val + k;
+    const base = inc ? String(b) : "\\left(\\frac{1}{2}\\right)";
+    const fTex = `${base}^{${minus("x", h)}}${plusK(k)}`;
+    const Y: [number, number] = [0, y0];
+    return {
+      statement: `Sea $f(x) = ${fTex}$. Ubica su asíntota horizontal y su corte con el eje $y$, y luego escribe su rango.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-7, 7], y: [-7, 9], height: 320 },
+          items: [
+            { type: "hline", label: "\\text{asíntota}", answer: k, start: k > 0 ? -6 : 7 },
+            { type: "point", label: "\\text{corte con } y", answer: Y, start: libre([5, -5], [Y]) },
+          ],
+          reveal: [{ fn: fTex, color: "accent" }],
+        },
+        {
+          kind: "interval",
+          prompt: "Rango",
+          before: "\\text{Ran } f =",
+          answer: [iv(k, Infinity)],
+          mistakes: [
+            { answer: [iv(k, Infinity, true)], feedback: `La curva se acerca a $y = ${k}$ pero nunca la toca. El extremo va abierto.` },
+            { answer: [iv(0, Infinity)], feedback: `Ese es el rango de la exponencial sin trasladar. El $${plusK(k).trim()}$ mueve también el piso de la gráfica.` },
+          ],
+        },
+      ],
+      hints: [
+        `Parte de $y = ${inc ? `${b}^{x}` : "\\left(\\frac{1}{2}\\right)^{x}"}$: tiene asíntota $y = 0$ y pasa por $(0, 1)$.`,
+        "Lo que se suma afuera sube o baja la asíntota. El corte con el eje $y$ sale de calcular $f(0)$.",
+      ],
+      solution: [
+        `$${base}^{${minus("x", h)}}$ siempre es positivo y se acerca a $0$ hacia ${inc ? "la izquierda" : "la derecha"}. Al ${k > 0 ? "sumar" : "restar"} $${Math.abs(k)}$, $f$ se acerca a $${k}$: la asíntota horizontal es $y = ${k}$.`,
+        `$f(0) = ${base}^{${-h}}${plusK(k)} = ${val}${plusK(k)} = ${y0}$. Corta al eje $y$ en $(0, ${y0})$.`,
+        `Como $${base}^{${minus("x", h)}}$ toma todos los valores positivos, $f$ toma todos los mayores que $${k}$: $\\text{Ran } f = (${k}, +\\infty)$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -622,6 +774,29 @@ const topic: Topic = {
             statement: "¿Cuál es la abscisa del vértice de $f(x) = x^2 + 6x + 5$?",
             parts: [{ kind: "expr", before: "x_v =", answer: "-3", mistakes: [{ answer: "3", feedback: "Falta el signo menos de $-\\frac{b}{2a}$." }] }],
             solution: ["$x_v = -\\frac{6}{2 \\cdot 1} = -3$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Halla el vértice y los cortes con el eje $x$ de $f(x) = x^2 + 2x - 3$. Arrastra cada punto hasta su lugar y aparecerá la parábola.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-6, 6], y: [-6, 6], height: 280 },
+                items: [
+                  { type: "point", label: "\\text{vértice}", answer: [-1, -4], start: [-5, 5] },
+                  { type: "point", label: "\\text{corte izquierdo}", answer: [-3, 0], start: [3, 5] },
+                  { type: "point", label: "\\text{corte derecho}", answer: [1, 0], start: [5, 5] },
+                ],
+                reveal: [{ fn: "x^{2}+2x-3", color: "accent" }],
+              },
+            ],
+            hints: ["Factoriza para los cortes. El vértice queda en medio de ellos."],
+            solution: [
+              "$x^2 + 2x - 3 = (x + 3)(x - 1)$, así que corta al eje $x$ en $-3$ y en $1$.",
+              "$x_v = -\\frac{2}{2} = -1$, justo en medio de los cortes, y $f(-1) = 1 - 2 - 3 = -4$. Vértice $(-1, -4)$.",
+            ],
           },
         },
       ],
@@ -877,6 +1052,28 @@ const topic: Topic = {
             solution: ["$3^4 = 81$, así que $\\log_3 81 = 4$."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Ubica la asíntota horizontal y el corte con el eje $y$ de $f(x) = 2^{x + 1} - 4$.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-6, 6], y: [-6, 6], height: 280 },
+                items: [
+                  { type: "hline", label: "\\text{asíntota}", answer: -4, start: 4 },
+                  { type: "point", label: "\\text{corte con } y", answer: [0, -2], start: [4, -5] },
+                ],
+                reveal: [{ fn: "2^{x+1}-4", color: "accent" }],
+              },
+            ],
+            hints: ["El $-4$ de afuera baja la asíntota $y = 0$. Para el corte calcula $f(0)$."],
+            solution: [
+              "$2^{x + 1}$ nunca vale $0$ pero se le acerca por la izquierda. Al restar 4, la asíntota pasa a ser $y = -4$.",
+              "$f(0) = 2^{1} - 4 = -2$. Corta al eje $y$ en $(0, -2)$.",
+            ],
+          },
+        },
       ],
     },
   ],
@@ -892,6 +1089,9 @@ const topic: Topic = {
     parabolaCompleta,
     rangoDado,
     expLogTrasladada,
+    ubicarVerticeCorteY,
+    ubicarParabolaCortes,
+    ubicarExponencial,
   ],
 };
 

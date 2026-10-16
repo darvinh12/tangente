@@ -615,6 +615,144 @@ const equilibrio: ExerciseGen = {
   },
 };
 
+/* ------------------------------ ubicar en el plano ------------------------------ */
+
+/** Describe cómo llegar a (x, y) desde el origen. */
+function moves(x: number, y: number): string {
+  const mx = x === 0 ? "no te mueves en horizontal" : `te mueves $${Math.abs(x)}$ a la ${x > 0 ? "derecha" : "izquierda"}`;
+  const my = y === 0 ? "no subes ni bajas" : `${y > 0 ? "subes" : "bajas"} $${Math.abs(y)}$`;
+  return `${mx} y ${my}`;
+}
+
+const ubicarDosPuntos: ExerciseGen = {
+  id: "ubicar-dos-puntos",
+  title: "Ubica dos puntos y mira la recta que los une",
+  level: 1,
+  generate: (r) => {
+    let x1: number, y1: number, x2: number, y2: number;
+    do {
+      x1 = r.int(-5, 5);
+      y1 = r.int(-5, 5);
+      x2 = r.int(-5, 5);
+      y2 = r.int(-5, 5);
+    } while (x1 === x2 || (x1 === 0 && y1 === 0) || (x2 === 0 && y2 === 0));
+    const m = (y2 - y1) / (x2 - x1);
+    const b = y1 - m * x1;
+    return {
+      statement: `Ubica en el plano los puntos $A = ${pt(x1, y1)}$ y $B = ${pt(x2, y2)}$. Cuando los dos estén bien, aparece la recta que pasa por ellos.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "El punto que empieza abajo a la izquierda es $A$ y el de abajo a la derecha es $B$.",
+          graph: plane(),
+          items: [
+            { type: "point", label: "A", answer: [x1, y1], start: [-6, -6] },
+            { type: "point", label: "B", answer: [x2, y2], start: [6, -6] },
+          ],
+          reveal: [{ fn: yForm(m, b), color: "accent" }],
+        },
+      ],
+      hints: [
+        "El primer número es la $x$: positivo a la derecha, negativo a la izquierda.",
+        "El segundo número es la $y$: positivo hacia arriba, negativo hacia abajo.",
+        "Al lado del punto que arrastras aparecen sus coordenadas. Muévelo hasta que coincidan.",
+      ],
+      solution: [
+        `Para $A$: desde el origen ${moves(x1, y1)}.`,
+        `Para $B$: desde el origen ${moves(x2, y2)}.`,
+        `La recta que los une tiene pendiente $m = \\dfrac{${y2} - ${par(y1)}}{${x2} - ${par(x1)}} = ${frac(y2 - y1, x2 - x1)}$ y su ecuación es $y = ${yForm(m, b)}$.`,
+      ],
+    };
+  },
+};
+
+const ubicarCortes: ExerciseGen = {
+  id: "ubicar-cortes-ejes",
+  title: "Ubicar los cortes de una recta con los ejes",
+  level: 2,
+  generate: (r) => {
+    const p = r.nz(-5, 5);
+    const q = r.nz(-5, 5);
+    // x/p + y/q = 1  ->  q x + p y - p q = 0
+    const g = gcd(gcd(q, p), p * q);
+    const s = r.sign();
+    const [A, B, C] = [(s * q) / g, (s * p) / g, (-s * p * q) / g];
+    return {
+      statement: `Halla dónde corta la recta $${general(A, B, C)}$ a cada eje y ubica los dos puntos en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "El punto que empieza abajo a la izquierda es el corte con el eje $x$. El de abajo a la derecha es el corte con el eje $y$. Al acertar verás la recta.",
+          graph: plane(),
+          items: [
+            { type: "point", label: "\\text{corte con el eje } x", answer: [p, 0], start: [-6, -6] },
+            { type: "point", label: "\\text{corte con el eje } y", answer: [0, q], start: [6, -6] },
+          ],
+          reveal: [{ fn: yForm(-q / p, q), color: "accent" }],
+        },
+      ],
+      hints: [
+        "Sobre el eje $x$ la altura es cero. Haz $y = 0$ y despeja $x$.",
+        "Sobre el eje $y$ se cumple $x = 0$. Haz $x = 0$ y despeja $y$.",
+        "El corte con el eje $x$ tiene la forma $(a, 0)$ y el corte con el eje $y$ la forma $(0, b)$.",
+      ],
+      solution: [
+        `Con $y = 0$: $${coef(A, "x")} ${signed(C)} = 0$, así que $x = ${p}$. El corte con el eje $x$ es $(${p}, 0)$.`,
+        `Con $x = 0$: $${coef(B, "y")} ${signed(C)} = 0$, así que $y = ${q}$. El corte con el eje $y$ es $(0, ${q})$.`,
+        "Con esos dos puntos ya se puede dibujar la recta: es la que aparece al acertar.",
+      ],
+    };
+  },
+};
+
+const interseccionPlano: ExerciseGen = {
+  id: "interseccion-en-el-plano",
+  title: "Ubicar el corte de dos rectas (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const x0 = r.int(-4, 4);
+    const y0 = r.int(-5, 5);
+    let m1: number, b1: number, a2: number, b2: number;
+    do {
+      m1 = r.nz(-3, 3);
+      b1 = y0 - m1 * x0;
+      a2 = r.nz(-4, 4);
+      b2 = r.nz(-4, 4);
+    } while (Math.abs(b1) > 9 || near(-a2 / b2, m1));
+    const c2 = a2 * x0 + b2 * y0;
+    const K = a2 + b2 * m1;
+    const R = c2 - b2 * b1;
+    const e2 = `${terms([[a2, "x"], [b2, "y"]])} = ${c2}`;
+    return {
+      statement: `Halla el punto donde se cortan las rectas $y = ${yForm(m1, b1)}$ y $${e2}$, y ubícalo en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Arrastra el punto hasta el corte. Al acertar verás las dos rectas.",
+          graph: plane(),
+          items: [{ type: "point", label: "\\text{corte}", answer: [x0, y0], start: [6, -6] }],
+          reveal: [
+            { fn: yForm(m1, b1), color: "blue" },
+            { fn: yForm(-a2 / b2, c2 / b2), color: "red" },
+          ],
+        },
+      ],
+      hints: [
+        "El punto de corte cumple las dos ecuaciones a la vez.",
+        `La primera ya trae la $y$ despejada. Sustituye $y = ${yForm(m1, b1)}$ en la segunda.`,
+        "Con la $x$ calculada, vuelve a la primera ecuación para hallar la $y$.",
+      ],
+      solution: [
+        `Sustituimos $y = ${yForm(m1, b1)}$ en la segunda: $${coef(a2, "x")} ${b2 > 0 ? "+" : "-"} ${Math.abs(b2) === 1 ? "" : Math.abs(b2)}(${yForm(m1, b1)}) = ${c2}$.`,
+        `Agrupamos: $${coef(K, "x")} = ${R}$, así que $x = ${x0}$.`,
+        `En la primera: $y = ${m1 === 1 ? "" : m1 === -1 ? "-" : `${m1} \\cdot `}${par(x0)} ${b1 !== 0 ? signed(b1) : ""} = ${y0}$.`,
+        `Las rectas se cortan en $${pt(x0, y0)}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -867,6 +1005,26 @@ const topic: Topic = {
           ],
         },
         {
+          type: "quick",
+          exercise: {
+            statement: "Halla los cortes de la recta $x - 2y + 4 = 0$ con los ejes y arrastra cada punto a su lugar.",
+            parts: [
+              {
+                kind: "place",
+                prompt: "El punto de la izquierda es el corte con el eje $x$ y el de la derecha el corte con el eje $y$.",
+                graph: { x: [-6, 6], y: [-5, 5], height: 300 },
+                items: [
+                  { type: "point", label: "\\text{corte con el eje } x", answer: [-4, 0], start: [-6, -5] },
+                  { type: "point", label: "\\text{corte con el eje } y", answer: [0, 2], start: [6, -5] },
+                ],
+                reveal: [{ fn: "\\frac{1}{2}x+2", color: "accent" }],
+              },
+            ],
+            hints: ["Para el eje $x$ haz $y = 0$. Para el eje $y$ haz $x = 0$."],
+            solution: ["Con $y = 0$: $x + 4 = 0$, así que $x = -4$. Corte en $(-4, 0)$.", "Con $x = 0$: $-2y + 4 = 0$, así que $y = 2$. Corte en $(0, 2)$."],
+          },
+        },
+        {
           type: "note",
           tone: "idea",
           title: "Rectas horizontales y verticales",
@@ -1007,6 +1165,26 @@ const topic: Topic = {
             solution: ["$3x - 4 = x + 2$ da $2x = 6$, o sea $x = 3$. Entonces $y = 3 + 2 = 5$. El punto es $(3, 5)$."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Arrastra el punto hasta donde se cortan $y = x + 1$ y $y = -2x + 4$.",
+            parts: [
+              {
+                kind: "place",
+                prompt: "Al acertar aparecen las dos rectas.",
+                graph: { x: [-5, 5], y: [-5, 5], height: 300 },
+                items: [{ type: "point", label: "\\text{corte}", answer: [1, 2], start: [4, -4] }],
+                reveal: [
+                  { fn: "x+1", color: "blue" },
+                  { fn: "-2x+4", color: "red" },
+                ],
+              },
+            ],
+            hints: ["Iguala las dos expresiones de $y$."],
+            solution: ["$x + 1 = -2x + 4$ da $3x = 3$, o sea $x = 1$.", "Entonces $y = 1 + 1 = 2$. Se cortan en $(1, 2)$."],
+          },
+        },
       ],
     },
     {
@@ -1098,6 +1276,7 @@ const topic: Topic = {
   ],
   exercises: [
     ubicarPunto,
+    ubicarDosPuntos,
     cuadrante,
     distancia,
     puntoMedio,
@@ -1105,9 +1284,11 @@ const topic: Topic = {
     ecuacionDosPuntos,
     generalPendiente,
     cortesEjes,
+    ubicarCortes,
     interseccion,
     depreciacion,
     paralelaPerpendicular,
+    interseccionPlano,
     vfPendiente,
     costoLineal,
     equilibrio,

@@ -793,6 +793,157 @@ const vfLog: ExerciseGen = {
   },
 };
 
+/* --------------------------- asíntota y corte en el plano --------------------------- */
+
+const EXP_BASES = [
+  { tex: "2", v: 2 },
+  { tex: "3", v: 3 },
+  { tex: "e", v: Math.E },
+  { tex: "\\left(\\frac{1}{2}\\right)", v: 0.5 },
+  { tex: "\\left(\\frac{1}{3}\\right)", v: 1 / 3 },
+] as const;
+
+const expPlano = () => ({ x: [-6, 6] as [number, number], y: [-7, 7] as [number, number], height: 320 });
+
+/** Hacia dónde se pega la curva a la asíntota. */
+const ladoAsintota = (v: number) => (v > 1 ? "hacia la izquierda, cuando $x \\to -\\infty$" : "hacia la derecha, cuando $x \\to +\\infty$");
+
+const asintotaExp: ExerciseGen = {
+  id: "ubicar-asintota-exponencial",
+  title: "Asíntota y corte de una exponencial trasladada",
+  level: 1,
+  generate: (r) => {
+    const base = r.pick(EXP_BASES);
+    const k = r.nz(-4, 4);
+    const fTex = sumTex([[1, `${base.tex}^{x}`], [k, ""]]);
+    return {
+      statement: `Para $f(x) = ${fTex}$, ubica en el plano la asíntota horizontal y el punto donde la gráfica corta el eje $y$.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Al acertar aparece la curva.",
+          graph: expPlano(),
+          items: [
+            { type: "hline", label: "\\text{asíntota}", answer: k, start: 6 },
+            { type: "point", label: "\\text{corte con el eje } y", answer: [0, 1 + k], start: [5, -6] },
+          ],
+          reveal: [{ fn: fTex, color: "accent" }],
+        },
+      ],
+      hints: [
+        `$${base.tex}^{x}$ tiene como asíntota el eje $x$, la recta $y = 0$. Sumar $${k}$ mueve toda la curva ${k > 0 ? "hacia arriba" : "hacia abajo"}, asíntota incluida.`,
+        `El corte con el eje $y$ se obtiene con $x = 0$, y cualquier base elevada a la cero da $1$.`,
+      ],
+      solution: [
+        `$${base.tex}^{x}$ nunca vale $0$ pero se le acerca ${ladoAsintota(base.v)}. Entonces $f(x)$ se acerca a $0 ${k > 0 ? "+" : "-"} ${Math.abs(k)} = ${k}$: la asíntota es $y = ${k}$.`,
+        `$f(0) = ${base.tex}^{0} ${k > 0 ? "+" : "-"} ${Math.abs(k)} = 1 ${k > 0 ? "+" : "-"} ${Math.abs(k)} = ${1 + k}$. El corte con el eje $y$ es $(0, ${1 + k})$.`,
+        `Es la curva de $${base.tex}^{x}$ ${k > 0 ? "subida" : "bajada"} $${Math.abs(k)}$ ${Math.abs(k) === 1 ? "unidad" : "unidades"}.`,
+      ],
+    };
+  },
+};
+
+const expEstirada: ExerciseGen = {
+  id: "exponencial-estirada",
+  title: "Exponencial multiplicada y trasladada",
+  level: 2,
+  generate: (r) => {
+    const base = r.pick(EXP_BASES);
+    let a: number, k: number;
+    do {
+      a = r.pick([2, 3, -1, -2, -3]);
+      k = r.int(-4, 4);
+    } while (Math.abs(a + k) > 6);
+    const fTex = sumTex([[a, `${base.tex}^{x}`], [k, ""]]);
+    const axTex = sumTex([[a, `${base.tex}^{x}`]]);
+    return {
+      statement: `Para $f(x) = ${fTex}$, ubica la asíntota horizontal y el corte con el eje $y$.`,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Al acertar aparece la curva.",
+          graph: expPlano(),
+          items: [
+            { type: "hline", label: "\\text{asíntota}", answer: k, start: 6 },
+            { type: "point", label: "\\text{corte con el eje } y", answer: [0, a + k], start: [5, -6] },
+          ],
+          reveal: [{ fn: fTex, color: "accent" }],
+        },
+      ],
+      hints: [
+        `Cuando $${base.tex}^{x}$ se acerca a $0$, también $${axTex}$ se acerca a $0$. ¿A qué se acerca entonces $f$?`,
+        "Para el corte con el eje $y$ calcula $f(0)$. Recuerda que la potencia se calcula antes de multiplicar.",
+        a < 0 ? "Como el número de adelante es negativo, la curva queda por debajo de la asíntota." : "Como el número de adelante es positivo, la curva queda por encima de la asíntota.",
+      ],
+      solution: [
+        `$${base.tex}^{x}$ se acerca a $0$ ${ladoAsintota(base.v)}, y $${a}$ por algo que tiende a $0$ también tiende a $0$.`,
+        `Por eso $f(x)$ se acerca a $${k}$: la asíntota horizontal es $y = ${k}$. Multiplicar por $${a}$ no la mueve, solo sumar la mueve.`,
+        `$f(0) = ${a} \\cdot 1 ${k >= 0 ? "+" : "-"} ${Math.abs(k)} = ${a + k}$. El corte con el eje $y$ es $(0, ${a + k})$.`,
+        a < 0 ? "Como $a < 0$, la curva está volteada y queda por debajo de la asíntota." : "Como $a > 0$, la curva queda por encima de la asíntota.",
+      ],
+    };
+  },
+};
+
+const expReescribir: ExerciseGen = {
+  id: "exponencial-asintota-rango",
+  title: "Asíntota, corte y rango de una exponencial (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const b = r.pick([2, 3]);
+    const h = r.pick([1, -1]);
+    let c: number, A: number, k: number;
+    do {
+      c = h === 1 ? r.pick([1, -1]) : r.pick([b, -b, 2 * b, -2 * b]);
+      A = h === 1 ? c * b : c / b;
+      k = r.int(-4, 4);
+    } while (Math.abs(k + A) > 6);
+    const powTex = `${b}^{${minus("x", -h)}}`;
+    const fTex = sumTex([[k, ""], [c, powTex]]);
+    const up = A > 0;
+    const range = up ? [iv(k, Infinity)] : [iv(-Infinity, k)];
+    const split = h === 1 ? `${b} \\cdot ${b}^{x}` : `\\dfrac{${b}^{x}}{${b}}`;
+    return {
+      statement: `Sea $f(x) = ${fTex}$. Ubica su asíntota horizontal y su corte con el eje $y$, y después escribe su rango.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "place",
+          prompt: "Arrastra la recta y el punto. Al acertar aparece la curva.",
+          graph: expPlano(),
+          items: [
+            { type: "hline", label: "\\text{asíntota}", answer: k, start: 6 },
+            { type: "point", label: "\\text{corte con el eje } y", answer: [0, k + A], start: [5, -6] },
+          ],
+          reveal: [{ fn: fTex, color: "accent" }],
+        },
+        {
+          kind: "interval",
+          prompt: "Mira la curva. ¿Cuál es el rango de $f$?",
+          before: "\\operatorname{Rg} f =",
+          answer: range,
+          mistakes: [
+            { answer: up ? [iv(k, Infinity, true, false)] : [iv(-Infinity, k, false, true)], feedback: `La curva nunca toca la asíntota, así que $${k}$ no está en el rango.` },
+            { answer: up ? [iv(-Infinity, k)] : [iv(k, Infinity)], feedback: `La curva está ${up ? "por encima" : "por debajo"} de la asíntota. Revisa el signo del número que multiplica a la potencia.` },
+          ],
+        },
+      ],
+      hints: [
+        `Usa las leyes de los exponentes: $${powTex} = ${split}$.`,
+        `La potencia tiende a $0$, así que $f$ tiende a $${k}$. Para el corte calcula $f(0)$.`,
+        "Si el número que multiplica a la potencia es positivo, la curva queda encima de la asíntota. Si es negativo, debajo.",
+      ],
+      solution: [
+        `Por las leyes de los exponentes, $${powTex} = ${split}$. Así $f(x) = ${sumTex([[k, ""], [A, `${b}^{x}`]])}$.`,
+        `$${b}^{x}$ tiende a $0$ cuando $x \\to -\\infty$, así que $f$ tiende a $${k}$: la asíntota es $y = ${k}$.`,
+        `$f(0) = ${k} ${A > 0 ? "+" : "-"} ${Math.abs(A)} \\cdot 1 = ${k + A}$. El corte con el eje $y$ es $(0, ${k + A})$.`,
+        `Como $${A} ${up ? "> 0" : "< 0"}$, la curva queda ${up ? "por encima" : "por debajo"} de la asíntota sin tocarla. El rango es $${unionTex(range)}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -898,6 +1049,30 @@ const topic: Topic = {
           tone: "econ",
           title: "Crecer a un porcentaje fijo",
           md: "Crecer a un porcentaje fijo es crecer exponencialmente. Una población que aumenta 3 % al año se multiplica por $1{,}03$ cada año, así que después de $t$ años es $P(t) = P_0 (1{,}03)^t$. Algo que pierde 10 % de su valor cada año vale $V_0 (0{,}9)^t$, una exponencial decreciente.",
+        },
+        {
+          type: "text",
+          md: "Si a la exponencial le sumas un número, toda la curva se mueve en vertical. En $f(x) = 2^x - 3$ cada punto de $2^x$ baja 3 unidades, y la asíntota baja con ellos: pasa de $y = 0$ a $y = -3$. El corte con el eje $y$ también baja, de $(0, 1)$ a $(0, -2)$.\n\nSi en cambio la multiplicas, como en $3 \\cdot 2^x$, la asíntota no se mueve, porque $3$ por algo que tiende a cero también tiende a cero. Lo que cambia es el corte: ahora es $(0, 3)$.",
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Para $f(x) = 2^{x} + 2$, ubica la asíntota horizontal y el corte con el eje $y$.",
+            parts: [
+              {
+                kind: "place",
+                prompt: "Al acertar aparece la curva.",
+                graph: { x: [-6, 6], y: [-4, 8], height: 300 },
+                items: [
+                  { type: "hline", label: "\\text{asíntota}", answer: 2, start: -2 },
+                  { type: "point", label: "\\text{corte con el eje } y", answer: [0, 3], start: [5, -3] },
+                ],
+                reveal: [{ fn: "2^{x}+2", color: "accent" }],
+              },
+            ],
+            hints: ["Sumar $2$ sube toda la curva de $2^x$, asíntota incluida.", "Para el corte calcula $f(0)$."],
+            solution: ["$2^x$ se acerca a $0$ por la izquierda, así que $f$ se acerca a $2$: la asíntota es $y = 2$.", "$f(0) = 2^0 + 2 = 3$. El corte es $(0, 3)$."],
+          },
         },
         {
           type: "quick",
@@ -1207,12 +1382,15 @@ const topic: Topic = {
     formaExponencial,
     leyesPotencias,
     expVf,
+    asintotaExp,
     lnE,
     propiedadesCalc,
+    expEstirada,
     ecMismaBase,
     ecExpLog,
     cambioBase,
     dominioLog,
+    expReescribir,
     ecLog,
     ecExpCuad,
     interes,

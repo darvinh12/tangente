@@ -629,6 +629,171 @@ const transformacionCompuesta: ExerciseGen = {
   },
 };
 
+/* --------------------------- seguir puntos en el plano --------------------------- */
+
+/** Posición inicial de un punto arrastrable que no coincida con ninguna respuesta. */
+function libre(want: [number, number], taken: [number, number][]): [number, number] {
+  let x = want[0];
+  while (taken.some((t) => t[0] === x && t[1] === want[1])) x += 1;
+  return [x, want[1]];
+}
+
+const CLAVES = [
+  { base: "x^{2}", key: "vértice", inner: (h: number) => (h === 0 ? "x^{2}" : `(${minus("x", h)})^{2}`) },
+  { base: "|x|", key: "punta de la V", inner: (h: number) => `|${minus("x", h)}|` },
+  { base: "\\sqrt{x}", key: "punto de partida", inner: (h: number) => `\\sqrt{${minus("x", h)}}` },
+];
+
+/** a·f(x - h) + k escrito limpio. */
+function transTex(i: number, a: number, h: number, k: number) {
+  const pre = a === 1 ? "" : a === -1 ? "-" : String(a);
+  return `${pre}${CLAVES[i].inner(h)}${plusK(k)}`;
+}
+
+/** Curva base punteada y curva transformada, para mostrar al acertar. */
+function revealPar(i: number, a: number, h: number, k: number): Curve[] {
+  const isSqrt = i === 2;
+  return [
+    { fn: CLAVES[i].base, color: "muted", dashed: true, domain: isSqrt ? [0, 7] : undefined },
+    { fn: transTex(i, a, h, k), color: "accent", domain: isSqrt ? [h, 7] : undefined },
+  ];
+}
+
+const puntosBase = (xs: number[]): GraphPoint[] => xs.map((x) => ({ x, y: x * x, color: "muted", label: `(${x}, ${x * x})` }));
+
+const trasladarEnPalabras: ExerciseGen = {
+  id: "trasladar-en-palabras",
+  title: "Seguir dos puntos en una traslación",
+  level: 1,
+  generate: (r) => {
+    const i = r.int(0, 2);
+    const h = r.nz(-4, 4);
+    const k = r.nz(-4, 4);
+    const C = CLAVES[i];
+    const hor = `${uds(Math.abs(h))} a la ${h > 0 ? "derecha" : "izquierda"}`;
+    const ver = `${uds(Math.abs(k))} hacia ${k > 0 ? "arriba" : "abajo"}`;
+    const K: [number, number] = [h, k];
+    const Q: [number, number] = [h + 1, k + 1];
+    return {
+      statement: `La gráfica de $y = ${C.base}$ se mueve ${hor} y ${ver}. Ubica a dónde van su ${C.key}, que está en $(0, 0)$, y su punto $(1, 1)$.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-7, 7], y: [-7, 7], height: 300, points: puntosBase([0, 1]) },
+          items: [
+            { type: "point", label: `\\text{${C.key}}`, answer: K, start: libre([-6, 6], [K, Q]) },
+            { type: "point", label: "\\text{imagen de } (1, 1)", answer: Q, start: libre([4, -6], [K, Q]) },
+          ],
+          reveal: revealPar(i, 1, h, k),
+        },
+      ],
+      hints: [
+        "Un movimiento horizontal cambia solo la abscisa de cada punto. Uno vertical cambia solo la ordenada.",
+        "Hacia la derecha o hacia arriba se suma. Hacia la izquierda o hacia abajo se resta.",
+      ],
+      solution: [
+        `Cada punto $(x, y)$ pasa a $(x ${h > 0 ? "+" : "-"} ${Math.abs(h)},\\; y ${k > 0 ? "+" : "-"} ${Math.abs(k)})$.`,
+        `El ${C.key} va de $(0, 0)$ a $(${h}, ${k})$ y el punto $(1, 1)$ va a $(${h + 1}, ${k + 1})$.`,
+        `La gráfica nueva es $y = ${transTex(i, 1, h, k)}$. Fíjate en que el ${h > 0 ? "menos" : "más"} de adentro corresponde a un movimiento hacia la ${h > 0 ? "derecha" : "izquierda"}.`,
+      ],
+    };
+  },
+};
+
+const moverPuntoClave: ExerciseGen = {
+  id: "mover-punto-clave",
+  title: "A dónde van los puntos con a·f(x − h) + k",
+  level: 2,
+  generate: (r) => {
+    const i = r.int(0, 2);
+    const a = r.pick([2, -1, -2, 3]);
+    const h = r.nz(-4, 4);
+    const k = r.int(-4, 4);
+    const C = CLAVES[i];
+    const g = transTex(i, a, h, k);
+    const K: [number, number] = [h, k];
+    const Q: [number, number] = [h + 1, a + k];
+    return {
+      statement: `La gráfica de $g(x) = ${g}$ se obtiene transformando la de $y = ${C.base}$. Ubica a dónde van el ${C.key} $(0, 0)$ y el punto $(1, 1)$ de la gráfica original.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-7, 7], y: [-8, 8], height: 300, points: puntosBase([0, 1]) },
+          items: [
+            { type: "point", label: `\\text{${C.key}}`, answer: K, start: libre([-6, 7], [K, Q]) },
+            { type: "point", label: "\\text{imagen de } (1, 1)", answer: Q, start: libre([4, -7], [K, Q]) },
+          ],
+          reveal: revealPar(i, a, h, k),
+        },
+      ],
+      hints: [
+        "Sigue el orden: primero el movimiento horizontal, después la multiplicación por el número de adelante y al final la constante de afuera.",
+        `Multiplicar por $${a}$ multiplica cada altura por $${a}$. Una altura cero sigue siendo cero.`,
+      ],
+      solution: [
+        `Paso 1: $${C.inner(h)}$ corre todo ${uds(Math.abs(h))} a la ${h > 0 ? "derecha" : "izquierda"}. Los puntos pasan a $(${h}, 0)$ y $(${h + 1}, 1)$.`,
+        `Paso 2: multiplicar por $${a}$ ${a < 0 ? "voltea la gráfica y " : ""}multiplica las alturas: $(${h}, 0)$ y $(${h + 1}, ${a})$.`,
+        k === 0
+          ? `Paso 3: no hay constante afuera, así que los puntos quedan en $(${h}, 0)$ y $(${h + 1}, ${a})$.`
+          : `Paso 3: ${k > 0 ? "sumar" : "restar"} $${Math.abs(k)}$ mueve todo ${uds(Math.abs(k))} hacia ${k > 0 ? "arriba" : "abajo"}: $(${h}, ${k})$ y $(${h + 1}, ${a + k})$.`,
+        `En resumen, cada punto $(x, y)$ de $y = ${C.base}$ va a $(x ${h > 0 ? "+" : "-"} ${Math.abs(h)},\\; ${a === -1 ? "-" : a}y${plusK(k)})$.`,
+      ],
+    };
+  },
+};
+
+const puntoClaveParcial: ExerciseGen = {
+  id: "punto-clave-parcial",
+  title: "Completar el cuadrado y seguir tres puntos (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const a = r.pick([1, -1, 2, -2]);
+    const h = r.nz(-4, 4);
+    const k = r.int(-4, 4);
+    const gTex = poly([a, -2 * a * h, a * h * h + k]);
+    const pre = a === 1 ? "" : a === -1 ? "-" : String(a);
+    const V: [number, number] = [h, k];
+    const L: [number, number] = [h - 1, a + k];
+    const Rt: [number, number] = [h + 1, a + k];
+    const all = [V, L, Rt];
+    const rango = a > 0 ? [iv(k, Infinity, true)] : [iv(-Infinity, k, false, true)];
+    return {
+      statement: `La parábola $g(x) = ${gTex}$ se obtiene transformando $y = x^2$. Completa el cuadrado, ubica a dónde van los puntos $(-1, 1)$, $(0, 0)$ y $(1, 1)$ de $y = x^2$, y halla el rango de $g$.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-7, 7], y: [-8, 8], height: 320, points: puntosBase([-1, 0, 1]) },
+          items: [
+            { type: "point", label: "\\text{vértice}", answer: V, start: libre([-6, 7], all) },
+            { type: "point", label: "\\text{imagen de } (-1, 1)", answer: L, start: libre([-6, -7], all) },
+            { type: "point", label: "\\text{imagen de } (1, 1)", answer: Rt, start: libre([4, -7], all) },
+          ],
+          reveal: revealPar(0, a, h, k),
+        },
+        {
+          kind: "interval",
+          prompt: "Rango de $g$",
+          before: "\\text{Ran } g =",
+          answer: rango,
+          mistakes: [{ answer: a > 0 ? [iv(-Infinity, k, false, true)] : [iv(k, Infinity, true)], feedback: a > 0 ? "Con $a$ positivo la parábola abre hacia arriba." : "Con $a$ negativo la parábola abre hacia abajo." }],
+        },
+      ],
+      hints: [
+        Math.abs(a) === 1 ? "Completa el cuadrado para llevarla a la forma $a(x - h)^2 + k$." : `Saca factor común $${a}$ de los términos con $x$ y completa el cuadrado.`,
+        "En la forma $a(x - h)^2 + k$, cada punto $(x, y)$ de $y = x^2$ va a $(x + h,\\; a y + k)$.",
+      ],
+      solution: [
+        `Completando el cuadrado: $g(x) = ${pre}(${minus("x", h)})^{2}${plusK(k)}$. Se puede comprobar desarrollando.`,
+        `El vértice $(0, 0)$ se corre ${uds(Math.abs(h))} a la ${h > 0 ? "derecha" : "izquierda"} y su altura pasa a $${a} \\cdot 0${plusK(k)} = ${k}$: queda en $(${h}, ${k})$.`,
+        `Los puntos $(\\pm 1, 1)$ pasan a abscisas $${h - 1}$ y $${h + 1}$, con altura $${a} \\cdot 1${plusK(k)} = ${a + k}$: quedan en $(${h - 1}, ${a + k})$ y $(${h + 1}, ${a + k})$.`,
+        `La parábola abre hacia ${a > 0 ? "arriba" : "abajo"} desde la altura $${k}$: $\\text{Ran } g = ${ivTex(rango)}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const quickRangoGrafica: Exercise = {
@@ -816,6 +981,31 @@ const topic: Topic = {
             statement: "Marca la punta de la V de $y = -|x + 2| + 3$.",
             parts: [{ kind: "point", graph: { x: [-6, 6], y: [-6, 6] }, answer: [-2, 3] }],
             solution: ["$|x + 2|$ mueve la punta a $x = -2$, el signo menos voltea la V y el $+3$ la sube. La punta queda en $(-2, 3)$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "La gráfica de $g(x) = 2|x + 1| - 3$ sale de transformar $y = |x|$. Ubica a dónde van la punta $(0, 0)$ y el punto $(1, 1)$.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-6, 6], y: [-6, 6], height: 280, points: [{ x: 0, y: 0, color: "muted", label: "(0, 0)" }, { x: 1, y: 1, color: "muted", label: "(1, 1)" }] },
+                items: [
+                  { type: "point", label: "\\text{punta de la V}", answer: [-1, -3], start: [-5, 5] },
+                  { type: "point", label: "\\text{imagen de } (1, 1)", answer: [0, -1], start: [4, 5] },
+                ],
+                reveal: [
+                  { fn: "|x|", color: "muted", dashed: true },
+                  { fn: "2|x+1|-3", color: "accent" },
+                ],
+              },
+            ],
+            hints: ["Primero corre en horizontal, después multiplica las alturas por 2 y al final resta 3."],
+            solution: [
+              "$|x + 1|$ corre todo una unidad a la izquierda: $(0, 0) \\to (-1, 0)$ y $(1, 1) \\to (0, 1)$.",
+              "El 2 duplica las alturas: $(-1, 0)$ y $(0, 2)$. El $-3$ baja todo: $(-1, -3)$ y $(0, -1)$.",
+            ],
           },
         },
       ],
@@ -1012,6 +1202,9 @@ const topic: Topic = {
     rangoTrozosParcial,
     elegirGraficaTrozos,
     transformacionCompuesta,
+    trasladarEnPalabras,
+    moverPuntoClave,
+    puntoClaveParcial,
   ],
 };
 
