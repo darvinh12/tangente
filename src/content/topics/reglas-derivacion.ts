@@ -637,7 +637,7 @@ const vfErrores: ExerciseGen = {
       [`(e^{-${k}x})' = -${k}e^{-${k}x}`, true, `Por la cadena, la exponencial se copia y se multiplica por la derivada del exponente, $-${k}$.`],
       [`(\\log_{${b}} x)' = \\frac{1}{x\\ln ${b}}`, true, `Como $\\log_{${b}} x = \\frac{\\ln x}{\\ln ${b}}$, su derivada es $\\frac{1}{x \\ln ${b}}$.`],
       [`(x^{e})' = e\\,x^{e-1}`, true, "$e$ es una constante, así que $x^{e}$ es una potencia común y se deriva con la regla de la potencia."],
-      [`\\left(\\frac{x^{${n}}}{x+${k}}\\right)' = \\frac{${coef(n, xp(n - 1))}}{1}`, false, "La derivada de un cociente no es el cociente de las derivadas. Usa $\\frac{u'v - uv'}{v^{2}}$."],
+      [`\\left(\\frac{x^{${n}}}{x+${k}}\\right)' = ${coef(n, xp(n - 1))}`, false, `Eso es derivar arriba y abajo por separado: $\\frac{${coef(n, xp(n - 1))}}{1}$. La derivada de un cociente no es el cociente de las derivadas. Usa $\\frac{u'v - uv'}{v^{2}}$.`],
     ];
     const [claim, isTrue, why] = r.pick(items);
     return {
@@ -1196,7 +1196,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Derivadas de exponenciales",
-          md: "$$(e^{x})' = e^{x} \\qquad (e^{u})' = e^{u}\\,u'$$\n\n$$(a^{x})' = a^{x}\\ln a \\qquad (a^{u})' = a^{u}\\ln a\\cdot u' \\qquad (a > 0)$$",
+          md: "$$(e^{x})' = e^{x} \\qquad (e^{u})' = e^{u}\\,u'$$\n\n$$(a^{x})' = a^{x}\\ln a \\qquad (a > 0)$$\n\n$$(a^{u})' = a^{u}\\ln a\\cdot u'$$",
         },
         {
           type: "example",

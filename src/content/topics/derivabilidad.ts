@@ -84,7 +84,7 @@ const lateralesAbs: ExerciseGen = {
       parts: [
         { kind: "expr", prompt: "Por la izquierda:", before: `${fl(a)} =`, answer: String(L), special: SPECIAL, mistakes: [{ answer: String(R), feedback: `Para $x < ${a}$, $|${minus("x", a)}| = -(${minus("x", a)})$. Ese signo cambia la pendiente.` }] },
         { kind: "expr", prompt: "Por la derecha:", before: `${fr(a)} =`, answer: String(R), special: SPECIAL, mistakes: [{ answer: String(L), feedback: `Para $x > ${a}$, $|${minus("x", a)}| = ${minus("x", a)}$.` }] },
-        trueFalse(false, `Las derivadas laterales valen $${L}$ y $${R}$. Son distintas, así que no es derivable: hay un punto anguloso.`, `¿Es $f$ derivable en $x = ${a}$?`),
+        trueFalse(false, `Las derivadas laterales valen $${L}$ y $${R}$. Son distintas, así que no es derivable: hay un punto anguloso.`, `¿Verdadero o falso? $f$ es derivable en $x = ${a}$.`),
       ],
       hints: [
         `Quita el valor absoluto: a la derecha de $${a}$ vale $${minus("x", a)}$ y a la izquierda vale $-(${minus("x", a)})$.`,
@@ -149,7 +149,7 @@ const lateralesTrozos: ExerciseGen = {
         { kind: "expr", prompt: "Valor de la función:", before: `f(${a}) =`, answer: String(k) },
         { kind: "expr", prompt: "Derivada por la izquierda:", before: `${fl(a)} =`, answer: String(m1), special: SPECIAL },
         { kind: "expr", prompt: "Derivada por la derecha:", before: `${fr(a)} =`, answer: String(m2), special: SPECIAL },
-        trueFalse(same, same ? "Las laterales coinciden y la función es continua, así que es derivable." : `Las laterales son $${m1}$ y $${m2}$, distintas: punto anguloso.`, `¿Es $f$ derivable en $x = ${a}$?`),
+        trueFalse(same, same ? "Las laterales coinciden y la función es continua, así que es derivable." : `Las laterales son $${m1}$ y $${m2}$, distintas: punto anguloso.`, `¿Verdadero o falso? $f$ es derivable en $x = ${a}$.`),
       ],
       hints: [
         `Los dos tramos dan $${k}$ en $x = ${a}$, así que es continua. Eso permite derivar cada rama y evaluar en $${a}$.`,
@@ -239,7 +239,7 @@ const trozosDerivable: ExerciseGen = {
     const parts: Part[] = [
       { kind: "expr", prompt: "Valor en el punto:", before: `f(${a}) =`, answer: String(k) },
       { kind: "expr", prompt: "Límite por la derecha:", before: `\\lim_{x \\to ${a}^+} f(x) =`, answer: String(R), special: SPECIAL },
-      trueFalse(sc !== "discontinua", sc === "discontinua" ? `$f(${a}) = ${k}$ y por la derecha el límite es $${R}$. Hay un salto.` : "Los dos valores coinciden: es continua.", `¿Es $f$ continua en $x = ${a}$?`),
+      trueFalse(sc !== "discontinua", sc === "discontinua" ? `$f(${a}) = ${k}$ y por la derecha el límite es $${R}$. Hay un salto.` : "Los dos valores coinciden: es continua.", `¿Verdadero o falso? $f$ es continua en $x = ${a}$.`),
     ];
     if (sc !== "discontinua") {
       parts.push(
@@ -436,7 +436,7 @@ const estudioTrozos: ExerciseGen = {
       statement: `Dada $$f(x) = ${fTex}$$ estudia la continuidad y la derivabilidad de $f$ en $x = ${x1}$ y en $x = ${x2}$.`,
       sequential: true,
       parts: [
-        trueFalse(cont1, cont1 ? `Por la izquierda el límite es $${v1}$ y $f(${x1}) = ${v1}$.` : `Por la izquierda el límite es $${firstVal}$, que no es un entero, y $f(${x1}) = ${v1}$. Hay un salto.`, `¿Es $f$ continua en $x = ${x1}$?`),
+        trueFalse(cont1, cont1 ? `Por la izquierda el límite es $${v1}$ y $f(${x1}) = ${v1}$.` : `Por la izquierda el límite es $${firstVal}$, que no es un entero, y $f(${x1}) = ${v1}$. Hay un salto.`, `¿Verdadero o falso? $f$ es continua en $x = ${x1}$.`),
         puntoChoice(r1, ["derivable", "anguloso", "discontinua"], `¿Es derivable en $x = ${x1}$?`),
         { kind: "expr", prompt: `En $x = ${x2}$, derivada por la izquierda:`, before: `${fl(x2)} =`, answer: String(m), special: SPECIAL },
         { kind: "expr", prompt: `En $x = ${x2}$, derivada por la derecha:`, before: `${fr(x2)} =`, answer: String(d2R), special: SPECIAL, mistakes: d2R !== 2 * x2 ? [{ answer: String(2 * x2), feedback: `La derivada de $(${minus("x", p)})^2$ es $2(${minus("x", p)})$, no $2x$.` }] : [] },
@@ -632,12 +632,12 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Derivadas laterales",
-          md: "$$f'_-(a) = \\lim_{h \\to 0^-} \\frac{f(a + h) - f(a)}{h} \\qquad f'_+(a) = \\lim_{h \\to 0^+} \\frac{f(a + h) - f(a)}{h}$$\n\n$f$ es derivable en $a$ si y solo si las dos existen, son finitas y son iguales. En ese caso $f'(a)$ es ese valor común.",
+          md: "$$f'_-(a) = \\lim_{h \\to 0^-} \\frac{f(a + h) - f(a)}{h}$$\n\n$$f'_+(a) = \\lim_{h \\to 0^+} \\frac{f(a + h) - f(a)}{h}$$\n\n$f$ es derivable en $a$ si y solo si las dos existen, son finitas y son iguales. En ese caso $f'(a)$ es ese valor común.",
         },
         {
           type: "example",
           title: "El valor absoluto",
-          problem: "Estudia la derivabilidad de $f(x) = |x - 2|$ en $x = 2$.",
+          problem: "Estudia la derivabilidad de $f(x) = {|x - 2|}$ en $x = 2$.",
           steps: [
             "$f(2) = 0$ y $f(2 + h) = |h|$, así que el cociente es $\\dfrac{|h|}{h}$.",
             "Si $h > 0$, $|h| = h$ y el cociente vale $1$: $f'_+(2) = 1$.",
@@ -660,7 +660,7 @@ const topic: Topic = {
           type: "note",
           tone: "warning",
           title: "Derivar las ramas solo vale si hay continuidad",
-          md: "El atajo de derivar cada fórmula y evaluar en el punto funciona cuando $f$ es continua ahí. Mira $f(x) = x^2$ si $x < 1$ y $f(x) = 2x + 1$ si $x \\ge 1$. Las dos ramas tienen derivada $2$ en $x = 1$, pero $f(1) = 3$ y por la izquierda la función llega a $1$. Por definición, $f'_-(1) = \\lim_{h \\to 0^-} \\dfrac{(1 + h)^2 - 3}{h} = +\\infty$. No es derivable porque ni siquiera es continua.",
+          md: "El atajo de derivar cada fórmula y evaluar en el punto funciona cuando $f$ es continua ahí. Mira esta función:\n\n$$f(x) = \\begin{cases} x^2 & \\text{si } x < 1 \\\\ 2x + 1 & \\text{si } x \\ge 1 \\end{cases}$$\n\nLas dos ramas tienen derivada $2$ en $x = 1$, pero $f(1) = 3$ y por la izquierda la función llega a $1$. Por definición,\n\n$$f'_-(1) = \\lim_{h \\to 0^-} \\dfrac{(1 + h)^2 - 3}{h} = +\\infty$$\n\nNo es derivable porque ni siquiera es continua.",
         },
         {
           type: "quick",
@@ -693,12 +693,12 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Si sabes que...", "Puedes concluir", "No puedes concluir"],
+          headers: ["Si sabes que...", "Puedes concluir"],
           rows: [
-            ["$f$ es derivable en $a$", "$f$ es continua en $a$", "nada más"],
-            ["$f$ no es continua en $a$", "$f$ no es derivable en $a$", "nada más"],
-            ["$f$ es continua en $a$", "nada sobre la derivada", "que sea derivable (ver $|x|$)"],
-            ["$f$ no es derivable en $a$", "nada sobre la continuidad", "que sea discontinua (ver $|x|$)"],
+            ["$f$ es derivable en $a$", "$f$ es continua en $a$"],
+            ["$f$ no es continua en $a$", "$f$ no es derivable en $a$"],
+            ["$f$ es continua en $a$", "nada sobre la derivada. $|x|$ es continua en $0$ y no es derivable ahí."],
+            ["$f$ no es derivable en $a$", "nada sobre la continuidad. Puede ser continua, como $|x|$ en $0$."],
           ],
           caption: "La implicación va en un solo sentido.",
         },
@@ -728,11 +728,11 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Tipo", "Derivadas laterales", "Cómo se ve", "Ejemplo en $x = 0$"],
+          headers: ["Tipo", "Derivadas laterales y forma"],
           rows: [
-            ["Punto anguloso", "Finitas y distintas", "Un pico con dos pendientes", "$|x|$"],
-            ["Punto cuspidal", "Infinitas de signo contrario", "Una punta afilada, vertical por los dos lados", "$\\sqrt[3]{x^2}$, $\\sqrt{|x|}$"],
-            ["Tangente vertical", "Infinitas del mismo signo", "Pasa sin pico pero se pone vertical", "$\\sqrt[3]{x}$"],
+            ["Punto anguloso", "Finitas y distintas. Un pico con dos pendientes, como $|x|$ en $0$."],
+            ["Punto cuspidal", "Infinitas de signo contrario. Una punta afilada, vertical por los dos lados, como $\\sqrt[3]{x^2}$ en $0$."],
+            ["Tangente vertical", "Infinitas del mismo signo. Pasa sin pico pero se pone vertical, como $\\sqrt[3]{x}$ en $0$."],
           ],
         },
         { type: "graph", spec: puntoGraph("anguloso", 0, 0, 1), caption: "Punto anguloso: pendiente $-1$ a la izquierda y $2$ a la derecha." },
@@ -743,7 +743,7 @@ const topic: Topic = {
           title: "Raíz cúbica en el origen",
           problem: "Estudia la derivabilidad de $f(x) = \\sqrt[3]{x}$ y de $g(x) = \\sqrt[3]{x^2}$ en $x = 0$.",
           steps: [
-            "Para $f$: $\\dfrac{\\sqrt[3]{h}}{h} = \\dfrac{1}{\\sqrt[3]{h^2}}$. El denominador es positivo y tiende a $0$ por los dos lados, así que $f'_-(0) = f'_+(0) = +\\infty$. Tangente vertical.",
+            "Para $f$: $\\dfrac{\\sqrt[3]{h}}{h} = \\dfrac{1}{\\sqrt[3]{h^2}}$. El denominador es positivo y tiende a $0$ por los dos lados, así que las dos derivadas laterales valen $+\\infty$. Tangente vertical.",
             "Para $g$: $\\dfrac{\\sqrt[3]{h^2}}{h} = \\dfrac{1}{\\sqrt[3]{h}}$. Si $h \\to 0^+$ da $+\\infty$ y si $h \\to 0^-$ da $-\\infty$. Punto cuspidal.",
           ],
           answer: "Ninguna de las dos es derivable en $0$, aunque ambas son continuas.",
@@ -775,7 +775,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Tipo parcial",
-          problem: "Sea $f(x) = \\begin{cases} \\ln(x + 6) & \\text{si } -6 < x < -2 \\\\ -\\dfrac{x}{4} + \\dfrac{5}{2} & \\text{si } -2 \\le x < 2 \\\\ (x - 4)^2 - 2 & \\text{si } x \\ge 2 \\end{cases}$. Estudia la derivabilidad en $x = -2$ y en $x = 2$. ¿Es $(2, f(2))$ un punto anguloso, cuspidal o de derivada infinita?",
+          problem: "Sea\n\n$$f(x) = \\begin{cases} \\ln(x + 6) & \\text{si } -6 < x < -2 \\\\ -\\dfrac{x}{4} + \\dfrac{5}{2} & \\text{si } -2 \\le x < 2 \\\\ (x - 4)^2 - 2 & \\text{si } x \\ge 2 \\end{cases}$$\n\nEstudia la derivabilidad en $x = -2$ y en $x = 2$. ¿Es $(2, f(2))$ un punto anguloso, cuspidal o de derivada infinita?",
           steps: [
             "En $x = -2$: $f(-2) = \\frac{1}{2} + \\frac{5}{2} = 3$, pero por la izquierda $\\ln(-2 + 6) = \\ln 4 \\approx 1{,}39$. Hay un salto. No es continua, así que no es derivable.",
             "En $x = 2$: $f(2) = (2 - 4)^2 - 2 = 2$ y por la izquierda $-\\frac{2}{4} + \\frac{5}{2} = 2$. Es continua.",
@@ -835,7 +835,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Dos parámetros",
-          problem: "Determina $a$ y $b$ para que $f(x) = \\begin{cases} x^2 & \\text{si } x \\le 1 \\\\ ax + b & \\text{si } x > 1 \\end{cases}$ sea derivable en $x = 1$.",
+          problem: "Determina $a$ y $b$ para que esta función sea derivable en $x = 1$:\n\n$$f(x) = \\begin{cases} x^2 & \\text{si } x \\le 1 \\\\ ax + b & \\text{si } x > 1 \\end{cases}$$",
           steps: [
             "Continuidad: $f(1) = 1$ y por la derecha $a + b$. Ecuación: $a + b = 1$.",
             "Derivadas laterales: $2x$ en $x = 1$ da $2$, y la recta tiene pendiente $a$. Ecuación: $a = 2$.",
@@ -846,7 +846,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Tres parámetros, tipo parcial",
-          problem: "Sea $h(z) = \\begin{cases} e^{3z} & \\text{si } z < 0 \\\\ dz^2 + ez + f & \\text{si } 0 \\le z \\le 1 \\\\ z^3 & \\text{si } z > 1 \\end{cases}$. Determina $d$, $e$ y $f$ para que $h$ sea continua en $z = 0$ y derivable en $z = 1$.",
+          problem: "Sea\n\n$$h(z) = \\begin{cases} e^{3z} & \\text{si } z < 0 \\\\ dz^2 + ez + f & \\text{si } 0 \\le z \\le 1 \\\\ z^3 & \\text{si } z > 1 \\end{cases}$$\n\nDetermina $d$, $e$ y $f$ para que $h$ sea continua en $z = 0$ y derivable en $z = 1$.",
           steps: [
             "Aquí $e$ es un parámetro, no el número de Euler. En el exponente $e^{3z}$ sí es el número de Euler.",
             "Continua en $0$: $\\lim_{z \\to 0^-} e^{3z} = 1$ y $h(0) = f$. Entonces $f = 1$.",
@@ -865,7 +865,7 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Sea $f(x) = 3x^2$ si $x \\le 1$ y $f(x) = ax + b$ si $x > 1$. ¿Qué valor de $a$ hace falta para que sea derivable en $x = 1$?",
+            statement: "¿Qué valor de $a$ hace falta para que esta función sea derivable en $x = 1$?\n\n$$f(x) = \\begin{cases} 3x^2 & \\text{si } x \\le 1 \\\\ ax + b & \\text{si } x > 1 \\end{cases}$$",
             parts: [{ kind: "expr", before: "a =", answer: "6", mistakes: [{ answer: "3", feedback: "Ese es $f(1)$. La pendiente de la recta tiene que igualar a $(3x^2)' = 6x$ en $x = 1$." }] }],
             solution: ["$(3x^2)' = 6x$ vale $6$ en $x = 1$. Entonces $a = 6$, y por continuidad $b = 3 - 6 = -3$."],
           },

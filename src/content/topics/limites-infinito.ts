@@ -593,14 +593,184 @@ const cubicaDiferencia: ExerciseGen = {
   },
 };
 
+const ahGradosUbicar: ExerciseGen = {
+  id: "ah-grados-ubicar",
+  title: "Ubicar la recta a la que se pega la gráfica",
+  level: 1,
+  generate: (r) => {
+    const igual = r.bool(0.65);
+    const d = r.pick([1, 1, 2, 3]);
+    const k = r.int(1, 4);
+    const b = igual ? r.int(-3, 3) : r.nz(-3, 3);
+    let c = r.int(-3, 3);
+    if (b === 0 && c === 0) c = r.nz(-3, 3);
+    const L = igual ? r.nz(-4, 4) : 0;
+    // f(x) = L + (bx + c)/(d(x^2 + k))
+    const num = igual ? [L * d, b, c + L * d * k] : [b, c];
+    const den = [d, 0, d * k];
+    const fTex = dfrac(poly(num), poly(den));
+    return {
+      statement: `Cuando $x \\to \\pm\\infty$, la gráfica de $f(x) = ${fTex}$ se pega a una recta horizontal. Calcula $${lim("\\pm\\infty", "f(x)")}$ y arrastra la recta hasta esa altura.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-8, 8], y: [-8, 8], height: 280 },
+          items: [{ type: "hline", label: "y = L", answer: L }],
+          reveal: [{ fn: `\\frac{${poly(num)}}{${poly(den)}}`, color: "accent" }],
+        },
+      ],
+      hints: [
+        "Compara el grado del numerador con el del denominador.",
+        igual ? "Con grados iguales, divide todo entre $x^{2}$: quedan los coeficientes principales." : "Si el denominador tiene mayor grado, la fracción se hace cada vez más pequeña.",
+      ],
+      solution: igual
+        ? [
+            "Numerador y denominador tienen grado 2. Dividimos todo entre $x^{2}$ y los términos con $x$ abajo tienden a $0$.",
+            `Queda $\\dfrac{${L * d}}{${d}} = ${L}$. La recta es $y = ${L}$, igual hacia los dos lados.`,
+            "Al acertar aparece la curva. Cerca del origen puede cruzar la recta, pero lejos se pega a ella.",
+          ]
+        : [
+            `El numerador tiene grado ${b === 0 ? 0 : 1} y el denominador grado 2. Manda el denominador.`,
+            "Dividiendo entre $x^{2}$, arriba todo tiende a $0$ y abajo queda un número distinto de cero. El límite es $0$ y la recta es $y = 0$, el eje $x$.",
+          ],
+    };
+  },
+};
+
+const signosKCero: ExerciseGen = {
+  id: "signos-k-cero",
+  title: "Tabla de signos para decidir +∞ o −∞",
+  level: 2,
+  generate: (r) => {
+    const cuadrado = r.bool(0.35);
+    const a = r.int(-4, 4);
+    let p: number;
+    do p = r.int(-5, 5); while (p === a);
+    const flip = r.bool();
+    const numTex = flip ? (p === 0 ? "-x" : `${p} - x`) : minus("x", p);
+    const denTex = cuadrado ? sqDen(a) : minus("x", a);
+    const numS = (x: number) => (flip ? Math.sign(p - x) : Math.sign(x - p));
+    const denS = (x: number) => (cuadrado ? 1 : Math.sign(x - a));
+    const pts = [p, a].sort((u, v) => u - v);
+    const probe = [pts[0] - 1, (pts[0] + pts[1]) / 2, pts[1] + 1];
+    const row = (f: (x: number) => number) => probe.map((x) => (f(x) > 0 ? 1 : -1) as 1 | -1);
+    const sN = row(numS);
+    const sD = row(denS);
+    const sQ = sN.map((s, j) => (s * sD[j]) as 1 | -1);
+    const ia = pts.indexOf(a);
+    const left = sQ[ia];
+    const right = sQ[ia + 1];
+    const Na = flip ? p - a : a - p;
+    return {
+      statement: `Sea $$f(x) = ${dfrac(numTex, denTex)}$$ Al sustituir $x = ${a}$ sale $\\frac{${Na}}{0}$, así que $f$ se dispara cerca de $${a}$. Usa una tabla de signos para decidir hacia dónde va a cada lado.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: "Completa la tabla de signos.",
+          points: pts.map(String),
+          rows: [
+            { label: numTex, signs: sN },
+            { label: denTex, signs: sD },
+            { label: `\\frac{${numTex}}{${denTex}}`, signs: sQ },
+          ],
+        },
+        limPart(infTex(left), { before: `\\lim_{x \\to ${sideTex(a, -1)}} f(x) =`, mistakes: oppositeInf(left) }),
+        limPart(infTex(right), { before: `\\lim_{x \\to ${sideTex(a, 1)}} f(x) =`, mistakes: oppositeInf(right) }),
+        limPart(left === right ? infTex(left) : "dne", { before: `\\lim_{x \\to ${a}} f(x) =` }),
+      ],
+      hints: [
+        `Los puntos críticos son el cero del numerador, $x = ${p}$, y el del denominador, $x = ${a}$.`,
+        "En cada intervalo prueba con un número cualquiera y mira el signo de cada factor.",
+        `El límite por la izquierda de $${a}$ toma el signo del intervalo que termina en $${a}$. El de la derecha, el del intervalo que empieza en $${a}$.`,
+      ],
+      solution: [
+        `Puntos críticos: $x = ${pts[0]}$ y $x = ${pts[1]}$. El numerador $${numTex}$ es ${flip ? "positivo a la izquierda de su raíz y negativo a la derecha" : "negativo a la izquierda de su raíz y positivo a la derecha"}. ${cuadrado ? `El denominador $${denTex}$ es un cuadrado: positivo a los dos lados de $${a}$.` : `El denominador $${denTex}$ es negativo a la izquierda de $${a}$ y positivo a la derecha.`}`,
+        `Multiplicando los signos de cada columna, el cociente es $${sQ.map((s) => (s > 0 ? "+" : "-")).join("\\;")}$ en los tres intervalos.`,
+        `Justo a la izquierda de $${a}$ el cociente es ${left > 0 ? "positivo" : "negativo"} y su tamaño crece sin control: $\\lim_{x \\to ${sideTex(a, -1)}} f(x) = ${infWord(left)}$. Justo a la derecha es ${right > 0 ? "positivo" : "negativo"}: $\\lim_{x \\to ${sideTex(a, 1)}} f(x) = ${infWord(right)}$.`,
+        left === right ? `Los dos lados coinciden, así que $\\lim_{x \\to ${a}} f(x) = ${infWord(left)}$.` : "Los laterales tienen signos distintos, así que el límite no existe.",
+      ],
+    };
+  },
+};
+
+const ahDosLadosUbicar: ExerciseGen = {
+  id: "ah-dos-lados-ubicar",
+  title: "Una asíntota horizontal distinta a cada lado (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const tpl = r.pick(["raiz", "raiz", "exp"] as const);
+    let fTex: string, fn: string, R: number, Lf: number, steps: Rich[], hints: Rich[];
+    if (tpl === "raiz") {
+      const A = r.pick([1, 1, 2]);
+      const m = r.nz(-3, 3);
+      const p = A * m;
+      const q = r.int(-4, 4);
+      const k = r.pick([1, 4, 9]);
+      const inner = terms([[A * A, "x^{2}"], [k, ""]]);
+      const N = terms([[p, "x"], [q, ""]]);
+      fTex = dfrac(N, sq(inner));
+      fn = `\\frac{${N}}{\\sqrt{${inner}}}`;
+      R = m;
+      Lf = -m;
+      hints = [
+        `Saca $x^{2}$ de la raíz: $${sq(inner)} = |x|\\,${sq(`${A * A}${fracTerm(k, "x^{2}")}`)}$.`,
+        "Para $x < 0$, $|x| = -x$. Ese signo cambia el resultado por la izquierda.",
+      ];
+      steps = [
+        `$${sq(inner)} = |x|\\,${sq(`${A * A}${fracTerm(k, "x^{2}")}`)}$, y la raíz que queda tiende a $${A}$.`,
+        `Si $x \\to +\\infty$, $|x| = x$: $f(x) = \\dfrac{${p}${fracTerm(q, "x")}}{${sq(`${A * A}${fracTerm(k, "x^{2}")}`)}} \\to \\dfrac{${p}}{${A}} = ${R}$. Asíntota $y = ${R}$.`,
+        `Si $x \\to -\\infty$, $|x| = -x$ y el cociente cambia de signo: tiende a $${Lf}$. Asíntota $y = ${Lf}$.`,
+      ];
+    } else {
+      let p: number, q: number;
+      do {
+        p = r.int(-4, 4);
+        q = r.int(-4, 4);
+      } while (p === q);
+      const ex = r.pick(["e^{x}", "e^{2x}"]);
+      const N = terms([[p, ex], [q, ""]]);
+      fTex = dfrac(N, `${ex} + 1`);
+      fn = `\\frac{${N}}{${ex} + 1}`;
+      R = p;
+      Lf = q;
+      hints = [
+        `Recuerda que $${ex} \\to +\\infty$ si $x \\to +\\infty$ y $${ex} \\to 0$ si $x \\to -\\infty$.`,
+        `Por la derecha, divide numerador y denominador entre $${ex}$.`,
+      ];
+      steps = [
+        `Por la derecha dividimos entre $${ex}$: $\\dfrac{${p}${fracTerm(q, ex)}}{1 + \\frac{1}{${ex}}} \\to ${p}$. Asíntota $y = ${p}$.`,
+        `Por la izquierda $${ex} \\to 0$: queda $\\dfrac{${p} \\cdot 0 ${signed(q)}}{0 + 1} = ${q}$. Asíntota $y = ${q}$.`,
+      ];
+    }
+    return {
+      statement: `Determina las asíntotas horizontales de $f(x) = ${fTex}$, una hacia cada lado, y arrastra cada recta hasta su altura.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-8, 8], y: [-6, 6], height: 280 },
+          items: [
+            { type: "hline", label: "x \\to +\\infty", answer: R, start: 5 },
+            { type: "hline", label: "x \\to -\\infty", answer: Lf, start: -5 },
+          ],
+          reveal: [{ fn, color: "accent" }],
+        },
+      ],
+      hints,
+      solution: [...steps, "Una función puede tener una asíntota horizontal distinta a cada lado. Al acertar se ve la curva pegándose a cada recta por su lado."],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
   ...meta("limites-infinito"),
   objectives: [
-    "Calcular límites de la forma $\\frac{k}{0}$ estudiando el signo del denominador.",
+    "Calcular límites de la forma k/0 estudiando el signo del denominador.",
     "Calcular límites al infinito de polinomios y de cocientes de polinomios comparando grados.",
-    "Resolver $\\frac{\\infty}{\\infty}$ y $\\infty - \\infty$, también con raíces y con $x \\to -\\infty$.",
+    "Resolver ∞/∞ y ∞ − ∞, también con raíces y con x → −∞.",
     "Comparar el crecimiento de logaritmos, potencias y exponenciales.",
   ],
   sections: [
@@ -610,7 +780,7 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "Mira $f(x) = \\dfrac{1}{x^2}$ cerca de $0$. Con $x = 0{,}1$ vale $100$, con $x = 0{,}01$ vale $10\\,000$ y con $x = 0{,}001$ vale un millón. Mientras más cerca de $0$, más grande, y por los dos lados porque el cuadrado siempre es positivo. Eso se escribe\n\n$$\\lim_{x \\to 0} \\frac{1}{x^2} = +\\infty$$",
+          md: "Mira $f(x) = \\dfrac{1}{x^2}$ cerca de $0$. Con $x = 0{,}1$ vale $100$, con $x = 0{,}01$ vale $10\\,000$ y con $x = 0{,}001$ vale un millón. Mientras más cerca de cero, más grande. Y pasa por los dos lados, porque el cuadrado siempre es positivo. Eso se escribe\n\n$$\\lim_{x \\to 0} \\frac{1}{x^2} = +\\infty$$",
         },
         {
           type: "definition",
@@ -660,6 +830,35 @@ const topic: Topic = {
             statement: "Calcula $$\\lim_{x \\to 1} \\dfrac{-3}{(x - 1)^2}$$",
             parts: [limPart(NINF, { mistakes: [{ answer: INF, feedback: "El denominador es positivo, pero el numerador es negativo." }] })],
             solution: ["El denominador es un cuadrado: tiende a $0^+$ por los dos lados. Queda $\\frac{-3}{0^+} = -\\infty$ por ambos lados."],
+          },
+        },
+        {
+          type: "text",
+          md: "Cuando hay varios factores, una **tabla de signos** ordena el trabajo: marcas los ceros del numerador y del denominador, miras el signo de cada factor en cada intervalo y multiplicas por columnas. El signo del cociente justo a cada lado del punto es el signo del infinito.",
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Sea $f(x) = \\dfrac{x - 3}{x + 1}$. Completa la tabla de signos y decide hacia dónde va $f$ a cada lado de $x = -1$.",
+            sequential: true,
+            parts: [
+              {
+                kind: "signs",
+                points: ["-1", "3"],
+                rows: [
+                  { label: "x - 3", signs: [-1, -1, 1] },
+                  { label: "x + 1", signs: [-1, 1, 1] },
+                  { label: "\\frac{x-3}{x+1}", signs: [1, -1, 1] },
+                ],
+              },
+              limPart(INF, { before: "\\lim_{x \\to -1^{-}} f(x) =", mistakes: oppositeInf(1) }),
+              limPart(NINF, { before: "\\lim_{x \\to -1^{+}} f(x) =", mistakes: oppositeInf(-1) }),
+            ],
+            hints: ["Prueba con $x = -2$, $x = 0$ y $x = 4$, uno en cada intervalo."],
+            solution: [
+              "$x - 3$ es negativo antes de $3$ y positivo después. $x + 1$ es negativo antes de $-1$ y positivo después.",
+              "El cociente queda $+$, $-$, $+$. Justo a la izquierda de $-1$ es positivo, así que $f \\to +\\infty$. Justo a la derecha es negativo, así que $f \\to -\\infty$.",
+            ],
           },
         },
       ],
@@ -726,18 +925,18 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Grados", "Resultado de $\\lim_{x \\to \\pm\\infty} \\frac{P(x)}{Q(x)}$"],
+          headers: ["Grados", "Límite de $\\frac{P(x)}{Q(x)}$ en $\\pm\\infty$"],
           rows: [
-            ["grado $P$ menor que grado $Q$", "$0$"],
-            ["grado $P$ igual a grado $Q$", "cociente de los coeficientes principales"],
-            ["grado $P$ mayor que grado $Q$", "$+\\infty$ o $-\\infty$, según los signos"],
+            ["grado $P$ < grado $Q$", "$0$"],
+            ["grado $P$ = grado $Q$", "cociente de los coeficientes principales"],
+            ["grado $P$ > grado $Q$", "$+\\infty$ o $-\\infty$, según los signos"],
           ],
         },
         {
           type: "note",
           tone: "econ",
           title: "Costo promedio a largo plazo",
-          md: "Supón que una fábrica tiene costo $C(q) = 5000 + 20q$: $5000$ fijos y $20$ por unidad. El costo promedio es $\\dfrac{C(q)}{q} = \\dfrac{5000 + 20q}{q}$. Cuando $q \\to \\infty$ es un cociente de grados iguales y tiende a $20$. Al producir mucho, el costo fijo se reparte entre tantas unidades que casi no pesa, y cada unidad cuesta en promedio lo mismo que el costo variable.",
+          md: "Supón que una fábrica tiene costo $C(q) = 5000 + 20q$: $5000$ fijos y $20$ por unidad. El costo promedio es\n\n$$\\frac{C(q)}{q} = \\frac{5000 + 20q}{q}$$\n\nCuando $q \\to \\infty$ es un cociente de grados iguales y tiende a $20$. Al producir mucho, el costo fijo se reparte entre tantas unidades que casi no pesa, y cada unidad cuesta en promedio lo mismo que su costo variable, $20$.",
         },
         {
           type: "quick",
@@ -745,6 +944,22 @@ const topic: Topic = {
             statement: "Calcula $$\\lim_{x \\to +\\infty} \\dfrac{5x^3 - 2}{1 - 2x^3}$$",
             parts: [limPart("-\\frac{5}{2}", { mistakes: [{ answer: "-2", feedback: "Dividiste los términos independientes. Al infinito mandan los de mayor grado." }] })],
             solution: ["Mismo grado: el límite es el cociente de los coeficientes de $x^3$, $\\frac{5}{-2} = -\\frac{5}{2}$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Lejos del origen, la gráfica de $f(x) = \\dfrac{4x^{2} + x}{x^{2} + 1}$ se pega a una recta horizontal. Calcula el límite en $\\pm\\infty$ y arrastra la recta hasta esa altura.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-8, 8], y: [-3, 7], height: 260 },
+                items: [{ type: "hline", label: "y = L", answer: 4, start: 1 }],
+                reveal: [{ fn: "\\frac{4x^{2}+x}{x^{2}+1}", color: "accent" }],
+              },
+            ],
+            hints: ["Grados iguales: mandan los coeficientes de $x^{2}$."],
+            solution: ["Dividiendo entre $x^{2}$ queda $\\dfrac{4 + \\frac{1}{x}}{1 + \\frac{1}{x^{2}}} \\to 4$. La recta es $y = 4$."],
           },
         },
       ],
@@ -820,7 +1035,7 @@ const topic: Topic = {
           title: "Tipo parcial",
           problem: "Calcula $\\lim_{k \\to +\\infty} \\left[ \\sqrt{k^2 + k + 2} - (k - 5) \\right]$.",
           steps: [
-            "Conjugado: arriba queda $k^2 + k + 2 - (k - 5)^2 = k^2 + k + 2 - k^2 + 10k - 25 = 11k - 23$.",
+            "Multiplicamos por el conjugado. Arriba queda\n\n$$k^2 + k + 2 - (k - 5)^2 = 11k - 23$$",
             "Abajo queda $\\sqrt{k^2 + k + 2} + k - 5$. Dividimos todo entre $k$.",
             "Arriba tiende a $11$ y abajo a $1 + 1 = 2$.",
           ],
@@ -831,7 +1046,7 @@ const topic: Topic = {
           title: "Con raíces cúbicas",
           problem: "Calcula $\\lim_{x \\to +\\infty} \\left( \\sqrt[3]{x^3 + 1} - \\sqrt[3]{x^3 - x^2 + 1} \\right)$.",
           steps: [
-            "Con cubos se usa $u - v = \\dfrac{u^3 - v^3}{u^2 + uv + v^2}$.",
+            "Con cubos se usa\n\n$$u - v = \\dfrac{u^3 - v^3}{u^2 + uv + v^2}$$",
             "Arriba: $(x^3 + 1) - (x^3 - x^2 + 1) = x^2$.",
             "Abajo, cada uno de los tres términos se comporta como $x^2$: en total, $3x^2$.",
           ],
@@ -841,7 +1056,7 @@ const topic: Topic = {
           type: "note",
           tone: "warning",
           title: "∞ − ∞ no es cero",
-          md: "Igual que $\\frac{0}{0}$, la forma $\\infty - \\infty$ puede terminar en cualquier cosa. $(x + 5) - x \\to 5$, $x^2 - x \\to \\infty$ y $x - x^2 \\to -\\infty$. Si no hay raíces, saca factor común la mayor potencia. Si hay raíces, usa el conjugado.",
+          md: "Igual que $\\frac{0}{0}$, la forma $\\infty - \\infty$ puede terminar en cualquier cosa. Cuando $x \\to +\\infty$:\n\n- $(x + 5) - x \\to 5$\n- $x^2 - x \\to +\\infty$\n- $x - x^2 \\to -\\infty$\n\nSi no hay raíces, saca factor común la mayor potencia. Si hay raíces, usa el conjugado.",
         },
         {
           type: "quick",
@@ -885,9 +1100,9 @@ const topic: Topic = {
           widget: {
             kind: "sliders",
             fn: "\\frac{x^{n}}{e^{x}}",
-            params: [{ name: "n", min: 1, max: 5, step: 1, value: 3 }],
-            x: [0, 20],
-            y: [0, 25],
+            params: [{ name: "n", min: 1, max: 4, step: 1, value: 4 }],
+            x: [-0.5, 15],
+            y: [-1, 7],
             formula: "f(x) = \\frac{x^{{n}}}{e^{x}}",
           },
           caption: "Al principio $x^n$ va ganando, pero tarde o temprano la exponencial lo aplasta y el cociente cae a $0$.",
@@ -916,9 +1131,11 @@ const topic: Topic = {
   exercises: [
     kSobreCero,
     gradoIgual,
+    ahGradosUbicar,
     polinomioInfinito,
     expBasico,
     bilateralInfinito,
+    signosKCero,
     gradosDistintos,
     raizSobreLineal,
     conjugadoBasico,
@@ -927,6 +1144,7 @@ const topic: Topic = {
     raicesMixtas,
     parametrosGrado,
     cubicaDiferencia,
+    ahDosLadosUbicar,
   ],
 };
 

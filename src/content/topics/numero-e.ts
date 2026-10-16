@@ -68,7 +68,7 @@ const interesContinuo: ExerciseGen = {
 
 const unoKSobreX: ExerciseGen = {
   id: "uno-k-sobre-x",
-  title: "Límites de la forma (1 + k/x)^x",
+  title: "Límites de la forma (1 + k/x) elevado a x",
   level: 1,
   generate: (r) => {
     const symbolic = r.bool(0.2);
@@ -107,7 +107,7 @@ const unoKSobreX: ExerciseGen = {
 
 const noIndeterminado: ExerciseGen = {
   id: "no-indeterminado",
-  title: "¿Es de verdad 1^∞?",
+  title: "¿Es de verdad 1 elevado a ∞?",
   level: 1,
   generate: (r) => {
     const [p, rr] = r.pick([
@@ -308,7 +308,7 @@ const notableExp: ExerciseGen = {
 
 const enUnPunto: ExerciseGen = {
   id: "en-un-punto",
-  title: "1^∞ cuando x tiende a cero",
+  title: "1 elevado a ∞ cuando x tiende a cero",
   level: 2,
   generate: (r) => {
     const k = r.nz(-4, 4);
@@ -342,7 +342,7 @@ const enUnPunto: ExerciseGen = {
 
 const cuadratico: ExerciseGen = {
   id: "cuadratico",
-  title: "1^∞ con cocientes de grado dos (tipo parcial)",
+  title: "1 elevado a ∞ con cocientes de grado dos (tipo parcial)",
   level: 3,
   exam: true,
   generate: (r) => {
@@ -401,7 +401,7 @@ const cuadratico: ExerciseGen = {
 
 const cubicoExam: ExerciseGen = {
   id: "cubico",
-  title: "1^∞ con cocientes de grado tres (tipo parcial)",
+  title: "1 elevado a ∞ con cocientes de grado tres (tipo parcial)",
   level: 3,
   exam: true,
   generate: (r) => {
@@ -432,7 +432,7 @@ const cubicoExam: ExerciseGen = {
 
 const puntoDesplazado: ExerciseGen = {
   id: "punto-desplazado",
-  title: "1^∞ cuando x tiende a un número (tipo parcial)",
+  title: "1 elevado a ∞ cuando x tiende a un número (tipo parcial)",
   level: 3,
   exam: true,
   generate: (r) => {
@@ -538,10 +538,10 @@ const lnTraslado: ExerciseGen = {
 const topic: Topic = {
   ...meta("numero-e"),
   objectives: [
-    "Explicar de dónde sale el número $e$ con el interés compuesto.",
-    "Reconocer la indeterminación $1^{\\infty}$ y resolverla con $\\lim f^{g} = e^{\\lim g\\,(f - 1)}$.",
-    "Calcular límites $1^{\\infty}$ con cocientes de polinomios, al infinito y en un punto.",
-    "Usar los límites notables $\\frac{\\ln(1 + x)}{x} \\to 1$ y $\\frac{e^{x} - 1}{x} \\to 1$.",
+    "Explicar de dónde sale el número e con el interés compuesto.",
+    "Reconocer la indeterminación 1 elevado a ∞ y resolverla llevándola a una potencia de e.",
+    "Calcular límites 1 elevado a ∞ con cocientes de polinomios, al infinito y en un punto.",
+    "Usar los límites notables ln(1 + x)/x → 1 y (eˣ − 1)/x → 1.",
   ],
   sections: [
     {
@@ -550,7 +550,7 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "Imagina que depositas $1$ dólar en un banco que paga $100\\%$ de interés anual. Al final del año tienes $2$. Ahora el banco ofrece capitalizar dos veces al año: a mitad de año te pagan $50\\%$ y ese interés también gana intereses el resto del año. Terminas con $(1 + \\frac{1}{2})^2 = 2{,}25$. Ganas más.\n\nSi capitalizan $n$ veces al año, cada período paga $\\frac{1}{n}$ y al final tienes $\\left(1 + \\frac{1}{n}\\right)^n$. ¿Se puede ganar todo lo que uno quiera capitalizando más y más seguido?",
+          md: "Imagina que depositas $1$ dólar en un banco que paga $100\\%$ de interés anual. Al final del año tienes $2$. Ahora el banco ofrece capitalizar dos veces al año: a mitad de año te pagan $50\\%$ y ese interés también gana intereses el resto del año. Terminas con $1{,}5^2 = 2{,}25$. Ganas más.\n\nSi capitalizan $n$ veces al año, cada período paga $\\frac{1}{n}$ y al final tienes $\\left(1 + \\frac{1}{n}\\right)^n$. ¿Se puede ganar todo lo que uno quiera capitalizando más y más seguido?",
         },
         {
           type: "table",
@@ -576,9 +576,9 @@ const topic: Topic = {
             fn: "\\left(1+\\frac{1}{n}\\right)^{nx}",
             params: [{ name: "n", min: 1, max: 50, step: 1, value: 1, label: "veces por año" }],
             x: [0, 2],
-            y: [0, 8],
+            y: [-1, 8],
             formula: "M(t) = \\left(1 + \\frac{1}{{n}}\\right)^{{n}t}",
-            reference: [{ fn: "e^{x}", color: "orange", dashed: true, label: "e^t" }],
+            reference: [{ fn: "e^{x}", color: "orange", dashed: true, label: "eᵗ" }],
           },
           caption: "Monto de $1$ dólar al $100\\%$ anual después de $t$ años. Al subir $n$, la curva se pega a $e^{t}$, la curva punteada.",
         },
@@ -611,7 +611,7 @@ const topic: Topic = {
           type: "graph",
           spec: {
             x: [0, 20],
-            y: [0, 4],
+            y: [-0.5, 3.5],
             curves: [{ fn: "\\left(1+\\frac{1}{x}\\right)^{x}", domain: [0.05, 20], color: "accent" }],
             hlines: [{ y: 2.71828, dashed: true, color: "orange", label: "y = e" }],
           },
@@ -650,7 +650,7 @@ const topic: Topic = {
     },
     {
       id: "formula-1-infinito",
-      title: "La fórmula para 1^∞",
+      title: "La fórmula para 1 elevado a ∞",
       blocks: [
         {
           type: "text",
@@ -658,7 +658,7 @@ const topic: Topic = {
         },
         {
           type: "definition",
-          title: "Receta para 1^∞",
+          title: "Receta para 1 elevado a ∞",
           md: "- Comprueba que la base tiende a $1$ y el exponente a $\\pm\\infty$.\n- Calcula $f - 1$ con común denominador y simplifica.\n- Calcula $L = \\lim g\\,(f - 1)$. Normalmente es un límite de cocientes de polinomios.\n- El resultado es $e^{L}$.",
         },
         {
@@ -677,7 +677,7 @@ const topic: Topic = {
           title: "Dos ejemplos de parcial",
           problem: "Calcula $\\lim_{x \\to \\infty} \\left(\\dfrac{2x^2 + 2}{2x^2 - 1}\\right)^{x}$ y $\\lim_{x \\to +\\infty} \\left[\\dfrac{x^3 - 2x^2 + 1}{x^3 + 6}\\right]^{2x}$.",
           steps: [
-            "Primero: $f - 1 = \\dfrac{3}{2x^2 - 1}$ y $g\\,(f - 1) = \\dfrac{3x}{2x^2 - 1} \\to 0$. El resultado es $e^{0} = 1$.",
+            "Primero: $f - 1 = \\dfrac{3}{2x^2 - 1}$, así que\n\n$$g\\,(f - 1) = \\dfrac{3x}{2x^2 - 1} \\to 0$$\n\nEl resultado es $e^{0} = 1$.",
             "Segundo: $f - 1 = \\dfrac{-2x^2 - 5}{x^3 + 6}$ y $g\\,(f - 1) = \\dfrac{2x(-2x^2 - 5)}{x^3 + 6} = \\dfrac{-4x^3 - 10x}{x^3 + 6} \\to -4$. El resultado es $e^{-4}$.",
           ],
           answer: "$1$ y $e^{-4}$",
@@ -700,7 +700,7 @@ const topic: Topic = {
     },
     {
       id: "en-un-punto",
-      title: "1^∞ cuando x tiende a un número",
+      title: "1 elevado a ∞ cuando x tiende a un número",
       blocks: [
         {
           type: "text",
@@ -746,7 +746,7 @@ const topic: Topic = {
         },
         {
           type: "text",
-          md: "El primero sale de $\\frac{\\ln(1 + x)}{x} = \\ln\\left[(1 + x)^{1/x}\\right]$, y lo de adentro tiende a $e$, así que el logaritmo tiende a $\\ln e = 1$. El segundo sale del primero con el cambio $u = e^{x} - 1$: entonces $x = \\ln(1 + u)$ y queda $\\frac{u}{\\ln(1 + u)} \\to 1$.\n\nIgual que con $e$, la letra no importa: si $u \\to 0$, entonces $\\frac{\\ln(1 + u)}{u} \\to 1$ y $\\frac{e^{u} - 1}{u} \\to 1$. Por ejemplo, $\\lim_{x \\to 0} \\frac{\\ln(1 + 3x)}{x} = 3$.",
+          md: "El primero sale de reescribir\n\n$$\\frac{\\ln(1 + x)}{x} = \\ln\\left[(1 + x)^{1/x}\\right]$$\n\nLo de adentro tiende a $e$, así que el logaritmo tiende a $\\ln e = 1$. El segundo sale del primero con el cambio $u = e^{x} - 1$. Así $x = \\ln(1 + u)$ y queda $\\dfrac{u}{\\ln(1 + u)} \\to 1$.\n\nIgual que con $e$, la letra no importa: si $u \\to 0$, entonces $\\frac{\\ln(1 + u)}{u} \\to 1$ y $\\frac{e^{u} - 1}{u} \\to 1$. Por ejemplo, $\\lim_{x \\to 0} \\frac{\\ln(1 + 3x)}{x} = 3$.",
         },
         {
           type: "example",

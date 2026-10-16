@@ -267,7 +267,7 @@ const tipoNoVertical: ExerciseGen = {
     const opts: Record<typeof kind, string> = {
       menor: "Horizontal $y = 0$",
       igual: `Horizontal $y = ${ratio}$`,
-      oblicua: "Oblicua, de la forma $y = mx + b$ con $m \\neq 0$",
+      oblicua: "Oblicua, de la forma ${y = mx + b}$ con $m \\neq 0$",
       ninguna: "Ni horizontal ni oblicua",
     };
     const fb: Record<typeof kind, string> = {
@@ -277,7 +277,7 @@ const tipoNoVertical: ExerciseGen = {
       ninguna: "Eso pasa cuando el numerador supera al denominador en dos grados o más.",
     };
     return {
-      statement: `¿Qué asíntota no vertical tiene $f(x) = \\dfrac{${poly(numC)}}{${poly(denC)}}$?`,
+      statement: `¿Qué asíntota no vertical tiene esta función?\n\n$$f(x) = \\dfrac{${poly(numC)}}{${poly(denC)}}$$`,
       parts: [
         choice(
           opts[kind],
@@ -586,6 +586,144 @@ const trozosAsintotas: ExerciseGen = {
   },
 };
 
+/** Plano vacío para los ejercicios de arrastrar asíntotas. */
+const planoVacio = (): GraphSpec => ({ x: [-8, 8], y: [-8, 8], height: 300 });
+
+const ubicarAsintotas: ExerciseGen = {
+  id: "ubicar-asintotas",
+  title: "Ubicar las asíntotas en el plano",
+  level: 1,
+  generate: (r) => {
+    const a = r.int(-4, 4);
+    const L = r.int(-4, 4);
+    const c = r.nz(-6, 6);
+    const k = r.pick([1, 1, 2, 3]);
+    // f(x) = L + c/(x - a), con numerador y denominador multiplicados por k
+    const num = poly([k * L, k * (c - L * a)]);
+    const den = poly([k, -k * a]);
+    const fTex = `\\dfrac{${num}}{${den}}`;
+    return {
+      statement: `Halla las asíntotas de $f(x) = ${fTex}$ y arrastra cada recta hasta su lugar en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          graph: planoVacio(),
+          items: [
+            { type: "vline", label: "\\text{vertical}", answer: a },
+            { type: "hline", label: "\\text{horizontal}", answer: L },
+          ],
+          reveal: [{ fn: plusConst(`\\frac{${c}}{${minus("x", a)}}`, L), breaks: [a], color: "accent" }],
+        },
+      ],
+      hints: [
+        "La vertical va donde se anula el denominador, siempre que el numerador no se anule también.",
+        L === 0
+          ? "Compara los grados del numerador y del denominador."
+          : "Numerador y denominador tienen el mismo grado: la horizontal es el cociente de los coeficientes principales.",
+      ],
+      solution: [
+        `El denominador $${den}$ se anula en $x = ${a}$. Ahí el numerador vale $${k * c}$, distinto de cero, así que $f$ se dispara: asíntota vertical $x = ${a}$.`,
+        L === 0
+          ? `El numerador es una constante y el denominador tiene grado 1. Cuando $x \\to \\pm\\infty$ la fracción tiende a $0$: asíntota horizontal $y = 0$.`
+          : `Los dos tienen grado 1, así que $${lim("\\pm\\infty")} f(x) = \\dfrac{${k * L}}{${k}} = ${L}$: asíntota horizontal $y = ${L}$.`,
+        `Al acertar aparece la curva. Fíjate en que se pega a las dos rectas sin tocarlas.`,
+      ],
+    };
+  },
+};
+
+const ubicarDosVerticales: ExerciseGen = {
+  id: "ubicar-dos-verticales",
+  title: "Determinar y ubicar tres asíntotas (tipo parcial)",
+  level: 2,
+  exam: true,
+  generate: (r) => {
+    const [a, b] = r.sample([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], 2).sort((x, y) => x - y);
+    const L = r.int(-3, 3);
+    const k = r.pick([-6, -4, -3, -2, 2, 3, 4, 6]);
+    // f(x) = L + k/((x - a)(x - b))
+    const den = poly([1, -(a + b), a * b]);
+    const num = poly([L, -L * (a + b), L * a * b + k]);
+    const fTex = `\\dfrac{${num}}{${den}}`;
+    return {
+      statement: `Determina las asíntotas verticales y horizontales de $f(x) = ${fTex}$. Después arrastra cada recta hasta su lugar.`,
+      parts: [
+        {
+          kind: "place",
+          graph: planoVacio(),
+          items: [
+            { type: "vline", label: "\\text{vertical izquierda}", answer: a, start: -7 },
+            { type: "vline", label: "\\text{vertical derecha}", answer: b, start: 7 },
+            { type: "hline", label: "\\text{horizontal}", answer: L },
+          ],
+          reveal: [{ fn: plusConst(`\\frac{${k}}{(${minus("x", a)})(${minus("x", b)})}`, L), breaks: [a, b], color: "accent" }],
+        },
+      ],
+      hints: [
+        "Factoriza el denominador. Cada raíz es candidata a asíntota vertical.",
+        "Revisa que el numerador no se anule en esas raíces.",
+        "Para la horizontal compara los grados del numerador y del denominador.",
+      ],
+      solution: [
+        `El denominador se factoriza como $(${minus("x", a)})(${minus("x", b)})$, que se anula en $x = ${a}$ y en $x = ${b}$.`,
+        `El numerador vale $${k}$ en los dos puntos, distinto de cero. Hay asíntotas verticales $x = ${a}$ y $x = ${b}$.`,
+        L === 0
+          ? `El numerador es la constante $${k}$ y el denominador tiene grado 2. La fracción tiende a $0$: asíntota horizontal $y = 0$.`
+          : `Numerador y denominador tienen grado 2. La horizontal es el cociente de los coeficientes principales: $y = \\frac{${L}}{1} = ${L}$.`,
+        `Se puede comprobar escribiendo $f(x) = ${plusConst(`\\dfrac{${k}}{(${minus("x", a)})(${minus("x", b)})}`, L)}$: la fracción tiende a $0$ en $\\pm\\infty$.`,
+      ],
+    };
+  },
+};
+
+const ubicarConHueco: ExerciseGen = {
+  id: "ubicar-asintotas-hueco",
+  title: "Asíntotas y hueco de una racional (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const a = r.int(-4, 4);
+    const dd = r.pick([-2, -1, 1, 2]);
+    const h = a + dd;
+    const t = r.nz(-2, 2);
+    const c = t * dd;
+    const L = r.int(-3, 3);
+    const yh = L + t;
+    // g(x) = L + c/(x - a) simplificada; f = g con el factor (x - h) arriba y abajo
+    const inner = [L, c - L * a];
+    const num = pmul([1, -h], inner);
+    const den = pmul([1, -h], [1, -a]);
+    return {
+      statement: `Dada $f(x) = \\dfrac{${poly(num)}}{${poly(den)}}$, determina sus asíntotas y el punto donde la gráfica tiene un hueco. Ubica todo en el plano.`,
+      parts: [
+        {
+          kind: "place",
+          graph: planoVacio(),
+          items: [
+            { type: "vline", label: "\\text{vertical}", answer: a },
+            { type: "hline", label: "\\text{horizontal}", answer: L },
+            { type: "point", label: "\\text{hueco}", answer: [h, yh] },
+          ],
+          reveal: [{ fn: plusConst(`\\frac{${c}}{${minus("x", a)}}`, L), breaks: [a, h], color: "accent" }],
+        },
+      ],
+      hints: [
+        `Factoriza el denominador y prueba si $x = ${h}$ también anula el numerador.`,
+        "Simplifica el factor común. El cero que se cancela da un hueco y el que queda da la asíntota vertical.",
+        "La altura del hueco es el valor de la función simplificada en ese punto.",
+      ],
+      solution: [
+        `El denominador es $(${minus("x", h)})(${minus("x", a)})$ y el numerador es $${L === 0 ? coef(c, `(${minus("x", h)})`) : `(${minus("x", h)})(${poly(inner)})`}$. Para $x \\neq ${h}$: $f(x) = \\dfrac{${poly(inner)}}{${minus("x", a)}}$.`,
+        `En $x = ${a}$ el numerador simplificado vale $${c}$, distinto de cero: asíntota vertical $x = ${a}$.`,
+        `En $x = ${h}$ el límite es finito: $\\dfrac{${L * h + c - L * a}}{${h - a}} = ${yh}$. Hay un hueco en $(${h}, ${yh})$, no una asíntota.`,
+        L === 0
+          ? "Después de simplificar el numerador es constante y el denominador tiene grado 1: asíntota horizontal $y = 0$."
+          : `Los grados son iguales y el cociente de coeficientes principales es $${L}$: asíntota horizontal $y = ${L}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const ejemploBosquejo: GraphSpec = {
@@ -618,8 +756,8 @@ const topic: Topic = {
   ...meta("asintotas"),
   objectives: [
     "Hallar asíntotas verticales con límites infinitos y descartar los huecos.",
-    "Hallar asíntotas horizontales con límites en $\\pm\\infty$, también con raíces y exponenciales.",
-    "Calcular la asíntota oblicua con $m = \\lim \\frac{f(x)}{x}$ y $b = \\lim [f(x) - mx]$ o dividiendo polinomios.",
+    "Hallar asíntotas horizontales con límites en ±∞, también con raíces y exponenciales.",
+    "Calcular la asíntota oblicua y = mx + b con límites o dividiendo polinomios.",
     "Leer asíntotas en una gráfica y bosquejar una función a partir de sus límites, como en el segundo parcial.",
   ],
   sections: [
@@ -648,11 +786,11 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Tipo", "Ecuación", "Cuándo existe"],
+          headers: ["Asíntota", "Cuándo existe"],
           rows: [
-            ["Vertical", "$x = a$", "$\\lim_{x \\to a^-} f(x)$ o $\\lim_{x \\to a^+} f(x)$ es $\\pm\\infty$"],
-            ["Horizontal", "$y = L$", "$\\lim_{x \\to +\\infty} f(x) = L$ o $\\lim_{x \\to -\\infty} f(x) = L$"],
-            ["Oblicua", "$y = mx + b$, $m \\neq 0$", "$\\lim_{x \\to \\pm\\infty} [f(x) - (mx + b)] = 0$"],
+            ["Vertical $x = a$", "algún lateral en $a$ da $\\pm\\infty$"],
+            ["Horizontal $y = L$", "$f(x) \\to L$ cuando $x \\to +\\infty$ o $x \\to -\\infty$"],
+            ["Oblicua $y = mx + b$, con $m \\neq 0$", "$f(x) - (mx + b) \\to 0$ cuando $x \\to \\pm\\infty$"],
           ],
         },
         {
@@ -738,12 +876,12 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Grados", "Ejemplo", "Asíntota no vertical"],
+          headers: ["Grado del numerador", "Asíntota no vertical"],
           rows: [
-            ["numerador menor", "$\\frac{3x+1}{x^2+4}$", "Horizontal $y = 0$"],
-            ["iguales", "$\\frac{6x^2 - x}{2x^2 + 5}$", "Horizontal $y = \\frac{6}{2} = 3$"],
-            ["numerador con un grado más", "$\\frac{x^2+2x}{x-2}$", "Oblicua"],
-            ["numerador con dos grados o más", "$\\frac{x^3}{x-1}$", "Ninguna"],
+            ["menor, como en $\\frac{3x+1}{x^2+4}$", "horizontal $y = 0$"],
+            ["igual, como en $\\frac{6x^2 - x}{2x^2 + 5}$", "horizontal $y = \\frac{6}{2} = 3$"],
+            ["uno más, como en $\\frac{x^2+2x}{x-2}$", "oblicua"],
+            ["dos o más, como en $\\frac{x^3}{x-1}$", "ninguna"],
           ],
           caption: "Con grados iguales la asíntota es el cociente de los coeficientes principales.",
         },
@@ -772,7 +910,7 @@ const topic: Topic = {
           title: "Con raíz: una asíntota distinta a cada lado",
           problem: "Halla las asíntotas horizontales de $f(x) = \\dfrac{3x}{\\sqrt{x^2+1}}$.",
           steps: [
-            "Sacamos $x^2$ de la raíz: $\\sqrt{x^2+1} = \\sqrt{x^2}\\sqrt{1 + \\frac{1}{x^2}} = |x|\\sqrt{1 + \\frac{1}{x^2}}$.",
+            "Sacamos $x^2$ de la raíz:\n\n$$\\sqrt{x^2+1} = \\sqrt{x^2}\\sqrt{1 + \\frac{1}{x^2}} = |x|\\sqrt{1 + \\frac{1}{x^2}}$$",
             "Si $x \\to +\\infty$, $|x| = x$ y $f(x) = \\dfrac{3x}{x\\sqrt{1 + 1/x^2}} \\to 3$.",
             "Si $x \\to -\\infty$, $|x| = -x$ y $f(x) = \\dfrac{3x}{-x\\sqrt{1 + 1/x^2}} \\to -3$.",
           ],
@@ -788,7 +926,7 @@ const topic: Topic = {
           type: "note",
           tone: "econ",
           title: "Costo medio a largo plazo",
-          md: "Si fabricar $x$ unidades cuesta $C(x) = 200 + 5x$, el costo medio por unidad es $\\bar{C}(x) = \\dfrac{200 + 5x}{x} = 5 + \\dfrac{200}{x}$. Su asíntota horizontal es $y = 5$: con producciones muy grandes el costo fijo se reparte entre tantas unidades que cada una termina costando casi lo mismo que su costo variable.",
+          md: "Si fabricar $x$ unidades cuesta $C(x) = 200 + 5x$, el costo medio por unidad es\n\n$$\\bar{C}(x) = \\frac{200 + 5x}{x} = 5 + \\frac{200}{x}$$\n\nSu asíntota horizontal es $y = 5$: con producciones muy grandes el costo fijo se reparte entre tantas unidades que cada una termina costando casi lo mismo que su costo variable.",
         },
         {
           type: "quick",
@@ -811,7 +949,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Cálculo de la asíntota oblicua",
-          md: "$$m = \\lim_{x \\to \\pm\\infty} \\frac{f(x)}{x} \\qquad b = \\lim_{x \\to \\pm\\infty} [f(x) - mx]$$\n\nSi los dos límites existen, son finitos y $m \\neq 0$, la recta $y = mx + b$ es asíntota oblicua por ese lado. Se calcula por separado hacia $+\\infty$ y hacia $-\\infty$.",
+          md: "$$m = \\lim_{x \\to \\pm\\infty} \\frac{f(x)}{x}$$\n\n$$b = \\lim_{x \\to \\pm\\infty} [f(x) - mx]$$\n\nSi los dos límites existen, son finitos y $m \\neq 0$, la recta $y = mx + b$ es asíntota oblicua por ese lado. Se calcula por separado hacia $+\\infty$ y hacia $-\\infty$.",
         },
         {
           type: "example",
@@ -856,8 +994,8 @@ const topic: Topic = {
           problem: "Calcula las asíntotas de $f(x) = \\dfrac{x^2}{\\sqrt{x^2 - 9}}$.",
           steps: [
             "Dominio: $x^2 - 9 > 0$, o sea $x < -3$ o $x > 3$. Cuando $x \\to 3^+$ o $x \\to -3^-$ el denominador tiende a $0^+$ y el numerador a $9$: asíntotas verticales $x = 3$ y $x = -3$.",
-            "Por la derecha: $m = \\lim_{x \\to +\\infty} \\dfrac{x^2}{x\\sqrt{x^2-9}} = \\lim \\dfrac{x}{x\\sqrt{1 - 9/x^2}} = 1$.",
-            "$b = \\lim_{x \\to +\\infty} \\left[ \\dfrac{x^2}{\\sqrt{x^2-9}} - x \\right] = \\lim \\dfrac{x^2 - x\\sqrt{x^2-9}}{\\sqrt{x^2-9}}$. Multiplicando por el conjugado $x^2 + x\\sqrt{x^2 - 9}$ el numerador queda $x^4 - x^2(x^2-9) = 9x^2$, y el límite es $\\lim \\dfrac{9x^2}{\\sqrt{x^2-9}\\,(x^2 + x\\sqrt{x^2-9})} = 0$.",
+            "Por la derecha:\n\n$$m = \\lim_{x \\to +\\infty} \\dfrac{x^2}{x\\sqrt{x^2-9}} = \\lim \\dfrac{x}{x\\sqrt{1 - 9/x^2}} = 1$$",
+            "Para $b$:\n\n$$b = \\lim_{x \\to +\\infty} \\left[ \\dfrac{x^2}{\\sqrt{x^2-9}} - x \\right] = \\lim \\dfrac{x^2 - x\\sqrt{x^2-9}}{\\sqrt{x^2-9}}$$\n\nMultiplicando por el conjugado $x^2 + x\\sqrt{x^2 - 9}$ el numerador queda $x^4 - x^2(x^2-9) = 9x^2$, y el límite es\n\n$$\\lim \\dfrac{9x^2}{\\sqrt{x^2-9}\\,(x^2 + x\\sqrt{x^2-9})} = 0$$",
             "Por la izquierda $\\sqrt{x^2} = -x$, así que $m = -1$, y con la misma cuenta $b = 0$.",
           ],
           answer: "Verticales $x = \\pm 3$, oblicuas $y = x$ por la derecha y $y = -x$ por la izquierda.",
@@ -889,19 +1027,19 @@ const topic: Topic = {
         { type: "graph", spec: graficaLectura, caption: "Una función con dos asíntotas verticales, una horizontal por la izquierda y una oblicua por la derecha." },
         {
           type: "table",
-          headers: ["Lo que ves", "Límite", "Asíntota"],
+          headers: ["Zona", "Lo que ves", "Asíntota"],
           rows: [
-            ["A la izquierda se aplana en $-1$", "$\\lim_{x \\to -\\infty} f(x) = -1$", "$y = -1$"],
-            ["Cerca de $-3$ baja por la izquierda y sube por la derecha", "$\\lim_{x \\to -3^-} f(x) = -\\infty$, $\\lim_{x \\to -3^+} f(x) = +\\infty$", "$x = -3$"],
-            ["Cerca de $2$ sube por la izquierda y baja por la derecha", "$\\lim_{x \\to 2^-} f(x) = +\\infty$, $\\lim_{x \\to 2^+} f(x) = -\\infty$", "$x = 2$"],
-            ["A la derecha se pega a la recta que pasa por $(2, 0)$ y $(4, 2)$", "$\\lim_{x \\to +\\infty} [f(x) - (x - 2)] = 0$", "$y = x - 2$"],
+            ["Extremo izquierdo", "se aplana en $-1$, o sea $\\lim_{x \\to -\\infty} f(x) = -1$", "$y = -1$"],
+            ["Cerca de $-3$", "$f \\to -\\infty$ por la izquierda y $f \\to +\\infty$ por la derecha", "$x = -3$"],
+            ["Cerca de $2$", "$f \\to +\\infty$ por la izquierda y $f \\to -\\infty$ por la derecha", "$x = 2$"],
+            ["Extremo derecho", "se pega a la recta que pasa por $(2, 0)$ y $(4, 2)$", "$y = x - 2$"],
           ],
         },
         {
           type: "note",
           tone: "tip",
           title: "Para la oblicua, saca la recta con dos puntos",
-          md: "Si la recta punteada pasa por dos puntos de la cuadrícula, su pendiente es $m = \\frac{y_2 - y_1}{x_2 - x_1}$ y $b$ es el corte con el eje $y$. Aquí $m = \\frac{2 - 0}{4 - 2} = 1$ y $b = -2$.",
+          md: "Si la recta punteada pasa por dos puntos de la cuadrícula, su pendiente es $m = \\dfrac{y_2 - y_1}{x_2 - x_1}$ y $b$ es el corte con el eje $y$. Aquí $m = \\frac{2 - 0}{4 - 2} = 1$ y $b = -2$.",
         },
         {
           type: "quick",
@@ -909,6 +1047,28 @@ const topic: Topic = {
             statement: "En la gráfica de arriba, ¿cuánto vale $\\lim_{x \\to -\\infty} f(x)$?",
             parts: [{ kind: "expr", answer: "-1", special: ["inf", "-inf", "dne"], before: "\\lim_{x \\to -\\infty} f(x) =" }],
             solution: ["Hacia la izquierda la curva se aplana a la altura $-1$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Ahora al revés: de la fórmula al dibujo. Halla las asíntotas de $f(x) = \\dfrac{3x - 6}{x + 2}$ y arrastra cada recta hasta su lugar.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-8, 8], y: [-6, 12], height: 300 },
+                items: [
+                  { type: "vline", label: "\\text{vertical}", answer: -2 },
+                  { type: "hline", label: "\\text{horizontal}", answer: 3 },
+                ],
+                reveal: [{ fn: "\\frac{3x-6}{x+2}", breaks: [-2], color: "accent" }],
+              },
+            ],
+            hints: ["La vertical sale del cero del denominador. Para la horizontal, los grados son iguales."],
+            solution: [
+              "El denominador se anula en $x = -2$ y ahí el numerador vale $-12$: asíntota vertical $x = -2$.",
+              "Grados iguales: $y = \\frac{3}{1} = 3$.",
+            ],
           },
         },
       ],
@@ -924,7 +1084,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Condiciones tipo parcial",
-          problem: "Construye la gráfica de una función $h$ tal que $h(-2) = h(2) = 0$, $\\lim_{x \\to 0} h(x) = +\\infty$, $\\lim_{x \\to -3} h(x) = +\\infty$, $\\lim_{x \\to +\\infty} h(x) = -1$ y $h$ tiene asíntota oblicua $y = -x - 4$ hacia la izquierda.",
+          problem: "Construye la gráfica de una función $h$ que cumpla:\n\n- $h(-2) = h(2) = 0$\n- $\\lim_{x \\to 0} h(x) = +\\infty$\n- $\\lim_{x \\to -3} h(x) = +\\infty$\n- $\\lim_{x \\to +\\infty} h(x) = -1$\n- asíntota oblicua $y = -x - 4$ hacia la izquierda",
           steps: [
             "Asíntotas verticales: $x = -3$ y $x = 0$. A los dos lados de cada una la curva sube, porque el límite es $+\\infty$ sin especificar lado.",
             "Asíntota horizontal $y = -1$ por la derecha. Asíntota oblicua $y = -x - 4$ por la izquierda.",
@@ -961,12 +1121,15 @@ const topic: Topic = {
     ahRacional,
     leerLimite,
     leerGrafica,
+    ubicarAsintotas,
     tipoNoVertical,
+    ubicarDosVerticales,
     oblicuaRacional,
     expRaiz,
     elegirGrafica,
     raizCompleto,
     racionalCompleto,
+    ubicarConHueco,
     trozosAsintotas,
   ],
 };

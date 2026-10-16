@@ -6,6 +6,7 @@ import { meta, moduleOf, MODULES, neighbors, TOPICS } from "@/content/catalog";
 import { loaders, topicIndex } from "@/content/generated";
 import { Lesson } from "@/components/lesson/lesson";
 import { TopicTabs } from "@/components/lesson/topic-tabs";
+import { RichInline } from "@/components/math/rich";
 
 export function generateStaticParams() {
   return TOPICS.filter((t) => loaders[t.slug]).map((t) => ({ slug: t.slug }));
@@ -61,7 +62,7 @@ export default async function TopicPage({ params }: PageProps<"/temas/[slug]">) 
               {topic.objectives.map((o, i) => (
                 <li key={i} className="flex gap-2">
                   <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <span>{o}</span>
+                  <span><RichInline md={o} /></span>
                 </li>
               ))}
             </ul>

@@ -52,6 +52,12 @@ function clean(answer: string, ms: Mistake[]): Mistake[] {
   return out;
 }
 
+/** Signo de g en cada intervalo que dejan los puntos ordenados (se prueba en un punto interior). */
+function signsOn(pts: number[], g: (x: number) => number): (1 | -1)[] {
+  const test = [pts[0] - 1, ...pts.slice(1).map((b, i) => (pts[i] + b) / 2), pts[pts.length - 1] + 1];
+  return test.map((x) => (g(x) > 0 ? 1 : -1));
+}
+
 /* ----------------------------------- ejercicios ----------------------------------- */
 
 const asintotasRacional: ExerciseGen = {
@@ -148,7 +154,7 @@ const asintotaDeLimites: ExerciseGen = {
     const n = (-p * t) / q;
     const side = r.pick(["-\\infty", "+\\infty"]);
     return {
-      statement: `Una función cumple $\\lim_{x \\to ${side}} \\dfrac{f(x)}{x} = ${m}$ y $\\lim_{x \\to ${side}} \\left[f(x) - ${m === "1" ? "" : p < 0 ? `\\left(${m}\\right)` : m}x\\right] = ${n}$. Escribe su asíntota oblicua $y = mx + n$ y halla dónde corta al eje $x$.`,
+      statement: `Una función cumple $$\\begin{aligned} &\\lim_{x \\to ${side}} \\frac{f(x)}{x} = ${m} \\\\ &\\lim_{x \\to ${side}} \\left[f(x) ${p < 0 ? "+" : "-"} ${frac(Math.abs(p), q) === "1" ? "" : frac(Math.abs(p), q)}x\\right] = ${n} \\end{aligned}$$ Escribe su asíntota oblicua, de la forma $y = mx + n$, y halla dónde corta al eje $x$.`,
       parts: [
         { kind: "expr", before: "m =", answer: m },
         { kind: "expr", before: "n =", answer: String(n) },
@@ -330,7 +336,7 @@ const estudioG: ExerciseGen = {
     const nearUp = isMax === xc > q;
     const growth = `$g$ ${nearUp ? "crece" : "decrece"} en $${unionTex([near])}$, ${nearUp ? "decrece" : "crece"} en $${unionTex([far])}$ y ${nearUp ? "decrece" : "crece"} en $${unionTex([other])}$.`;
     return {
-      statement: `Realiza el estudio completo de $g(x) = ${g}$.`,
+      statement: `Realiza el estudio completo de $\\displaystyle g(x) = ${g}$.`,
       sequential: true,
       parts: [
         { kind: "expr", prompt: "Asíntota vertical", before: "x =", answer: String(q) },
@@ -377,7 +383,7 @@ const estudioAcotada: ExerciseGen = {
     const f = `\\frac{${cf(a)}x}{x^{2} + ${c}}`;
     const mT = sq ? frac(-a, 2 * Math.sqrt(c)) : `-${M}`;
     return {
-      statement: `Realiza el estudio completo de $f(x) = ${f}$.`,
+      statement: `Realiza el estudio completo de $\\displaystyle f(x) = ${f}$.`,
       sequential: true,
       parts: [
         { kind: "choice", prompt: "Simetría", shuffle: false, options: SIM_LABELS.map((l, i) => ({ label: l, correct: i === 1, feedback: i === 1 ? undefined : `$f(-x) = \\frac{-${cf(a)}x}{x^{2} + ${c}} = -f(x)$.` })) },
@@ -451,6 +457,118 @@ const coefCubica: ExerciseGen = {
   },
 };
 
+const ubicarAsintotas: ExerciseGen = {
+  id: "ubicar-asintotas",
+  title: "Ubicar las asíntotas en el plano",
+  level: 1,
+  generate: (r) => {
+    const c = r.int(-3, 3);
+    let f: string, h: number, why: string;
+    if (r.bool()) {
+      const a = r.pick([1, 2, 3, -1, -2, -3]);
+      let b: number;
+      do b = r.int(-6, 6); while (a * c + b === 0);
+      f = `\\frac{${poly([a, b])}}{${xm(c)}}`;
+      h = a;
+      why = `Numerador y denominador tienen grado 1, así que $\\lim_{x \\to \\pm\\infty} f(x) = \\frac{${a}}{1} = ${a}$. Asíntota horizontal $y = ${a}$.`;
+    } else {
+      const k = r.nz(-4, 4);
+      h = r.int(-3, 3);
+      f = `${k < 0 ? "-" : ""}\\frac{${Math.abs(k)}}{${xm(c)}}${h === 0 ? "" : h > 0 ? ` + ${h}` : ` - ${-h}`}`;
+      why = `Cuando $x \\to \\pm\\infty$ la fracción tiende a $0$ y queda $\\lim_{x \\to \\pm\\infty} f(x) = ${h}$. Asíntota horizontal $y = ${h}$.`;
+    }
+    return {
+      statement: `Arrastra las dos rectas punteadas hasta las asíntotas de $f(x) = ${f}$. Al acertar aparece la gráfica.`,
+      parts: [{
+        kind: "place",
+        graph: { x: [-6, 6], y: [-6, 6] },
+        items: [
+          { type: "vline", label: "\\text{asíntota vertical}", answer: c },
+          { type: "hline", label: "\\text{asíntota horizontal}", answer: h },
+        ],
+        reveal: [{ fn: f, breaks: [c], color: "accent" }],
+      }],
+      hints: [
+        "La vertical va donde se anula el denominador y no el numerador.",
+        "La horizontal es el límite de $f(x)$ cuando $x \\to \\pm\\infty$.",
+      ],
+      solution: [
+        `El denominador se anula en $x = ${c}$ y allí el numerador no vale cero. Asíntota vertical $x = ${c}$.`,
+        why,
+      ],
+    };
+  },
+};
+
+const tablaDerivadasAsintota: ExerciseGen = {
+  id: "tabla-derivadas-asintota",
+  title: "Tabla de f' y f'' y gráfica con asíntotas (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const q = r.int(-2, 2);
+    const d = r.pick([1, -1, 2, -2]);
+    const M = Math.abs(d) === 2 ? r.pick([1, -1]) : r.pick([1, 2, -1, -2]);
+    const p = q + d;
+    const m = 4 * d * M;
+    const xc = q + 2 * d;
+    const xi = q + 3 * d;
+    const pts = [q, xc, xi].sort((u, v) => u - v);
+    const g = `\\frac{${poly([m, -m * p])}}{${fx(q)}^{2}}`;
+    const g1 = (x: number) => (-m * (x - xc)) / (x - q) ** 3;
+    const g2 = (x: number) => (2 * m * (x - xi)) / (x - q) ** 4;
+    const isMax = M > 0;
+    const conv = signSolve([{ root: xi }, { root: q, mult: 4, den: true }], m, ">");
+    const conc = signSolve([{ root: xi }, { root: q, mult: 4, den: true }], m, "<");
+    const lo = Math.min(q, xi) - 3;
+    const hi = Math.max(q, xi) + 3;
+    const s1 = signsOn(pts, g1).map((s) => (s > 0 ? "+" : "-")).join(", ");
+    const s2 = signsOn(pts, g2).map((s) => (s > 0 ? "+" : "-")).join(", ");
+    return {
+      statement: `Sea $\\displaystyle g(x) = ${g}$. Sus derivadas son $$g'(x) = \\frac{${poly([-m, m * xc])}}{${fx(q)}^{3}} \\qquad g''(x) = \\frac{${poly([2 * m, -2 * m * xi])}}{${fx(q)}^{4}}$$ Completa el estudio.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: `Completa la tabla de signos de $g'$ y de $g''$. El punto $x = ${q}$ entra en la tabla porque anula el denominador.`,
+          points: pts.map(String),
+          rows: [
+            { label: "g'(x)", signs: signsOn(pts, g1) },
+            { label: "g''(x)", signs: signsOn(pts, g2) },
+          ],
+        },
+        choice(isMax ? "Máximo local" : "Mínimo local", [
+          [isMax ? "Mínimo local" : "Máximo local", "Mira cómo cambia el signo de $g'$ en ese punto."],
+          ["Punto de inflexión", "La inflexión está donde cambia el signo de $g''$, no el de $g'$."],
+        ], `¿Qué tiene $g$ en $x = ${xc}$?`),
+        { kind: "interval", prompt: "$g$ es convexa en", answer: conv, mistakes: [{ answer: conc, feedback: "Ahí $g'' < 0$: es cóncava." }] },
+        {
+          kind: "place",
+          prompt: "Arrastra la asíntota vertical, la asíntota horizontal y el extremo local a su lugar. Al acertar aparece la gráfica.",
+          graph: { x: [lo, hi], y: [-5, 5] },
+          items: [
+            { type: "vline", label: "\\text{asíntota vertical}", answer: q },
+            { type: "hline", label: "\\text{asíntota horizontal}", answer: 0 },
+            { type: "point", label: "\\text{extremo}", answer: [xc, M], start: [hi - 1, -4] },
+          ],
+          reveal: [{ fn: g, breaks: [q], color: "accent" }],
+        },
+      ],
+      hints: [
+        "El signo de una fracción es el del numerador por el del denominador. Una potencia par del denominador siempre es positiva, una impar cambia de signo en su raíz.",
+        `El grado de arriba es menor que el de abajo: la horizontal es $y = 0$. La vertical está en $x = ${q}$.`,
+        `Para la altura del extremo calcula $g(${xc})$.`,
+      ],
+      solution: [
+        `Puntos de la tabla: $${pts.join("$, $")}$. Signos de $g'$ en los cuatro intervalos: $${s1}$. Signos de $g''$: $${s2}$.`,
+        `En $x = ${xc}$, $g'$ pasa de $${g1(xc - 0.5) > 0 ? "+" : "-"}$ a $${g1(xc + 0.5) > 0 ? "+" : "-"}$: ${isMax ? "máximo" : "mínimo"} local.`,
+        `Convexa en $${unionTex(conv)}$ y cóncava en $${unionTex(conc)}$. La inflexión está en $x = ${xi}$.`,
+        `Asíntota vertical $x = ${q}$ y horizontal $y = 0$. El extremo es $g(${xc}) = \\dfrac{${m * (xc - p)}}{${(xc - q) ** 2}} = ${M}$, es decir el punto $(${xc}, ${M})$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -472,18 +590,8 @@ const topic: Topic = {
           md: "Estudiar una función es juntar todo lo que sabes de ella hasta poder dibujarla sin calculadora. Cada paso aporta una pieza: dónde existe, dónde corta los ejes, hacia dónde se va, dónde sube y baja, hacia dónde se curva. Al final las piezas encajan en una sola gráfica.",
         },
         {
-          type: "table",
-          headers: ["Paso", "Qué se calcula", "Para qué sirve"],
-          rows: [
-            ["1. Dominio", "Dónde está definida $f$", "Saber qué tramos dibujar y dónde buscar asíntotas verticales"],
-            ["2. Cortes", "$f(x) = 0$ y $f(0)$", "Ubicar los puntos sobre los ejes"],
-            ["3. Simetría", "$f(-x)$ frente a $f(x)$", "Si es par o impar, basta estudiar la mitad"],
-            ["4. Asíntotas", "Límites en los bordes del dominio y en $\\pm\\infty$", "Saber hacia dónde se va la gráfica"],
-            ["5. Crecimiento", "Signo de $f'$", "Intervalos de crecimiento, máximos y mínimos"],
-            ["6. Concavidad", "Signo de $f''$", "Intervalos de convexidad y puntos de inflexión"],
-            ["7. Tabla y gráfica", "Valores en los puntos notables", "Dibujar uniendo todo"],
-            ["8. Rango", "Leer la gráfica", "Qué valores toma $f$"],
-          ],
+          type: "text",
+          md: "Los pasos, en orden:\n\n- **1. Dominio.** Dónde está definida $f$. Dice qué tramos dibujar y dónde buscar asíntotas verticales.\n- **2. Cortes.** $f(x) = 0$ y $f(0)$, para ubicar los puntos sobre los ejes.\n- **3. Simetría.** Comparar $f(-x)$ con $f(x)$. Si es par o impar, basta estudiar la mitad.\n- **4. Asíntotas.** Límites en los bordes del dominio y en $\\pm\\infty$. Dicen hacia dónde se va la gráfica.\n- **5. Crecimiento.** Signo de $f'$: intervalos de crecimiento, máximos y mínimos.\n- **6. Concavidad.** Signo de $f''$: intervalos de convexidad y puntos de inflexión.\n- **7. Tabla y gráfica.** Valores en los puntos notables y dibujo uniendo todo.\n- **8. Rango.** Se lee en la gráfica: qué valores toma $f$.",
         },
         {
           type: "note",
@@ -548,11 +656,11 @@ const topic: Topic = {
               { x: 1.4142, y: 0.3536, label: "máx", color: "red" },
               { x: -1.4142, y: -0.3536, label: "mín", color: "blue" },
               { x: 0, y: 0, color: "orange" },
-              { x: 2.4495, y: 0.3062, label: "inflexión", color: "orange" },
+              { x: 2.4495, y: 0.3062, color: "orange" },
               { x: -2.4495, y: -0.3062, color: "orange" },
             ],
           },
-          caption: "$f(x) = \\frac{x}{x^{2} + 2}$. La escala vertical está ampliada para que se vea la forma.",
+          caption: "$f(x) = \\frac{x}{x^{2} + 2}$. Los puntos naranjas son las tres inflexiones. La escala vertical está ampliada para que se vea la forma.",
         },
         {
           type: "note",
@@ -590,10 +698,11 @@ const topic: Topic = {
             points: [
               { x: 2, y: 0 },
               { x: 0, y: -8 },
-              { x: 3, y: 1, label: "máx (3, 1)", color: "red" },
-              { x: 4, y: 0.8889, label: "inflexión", color: "orange" },
+              { x: 3, y: 1, label: "máx", color: "red" },
+              { x: 4, y: 0.8889, color: "orange" },
             ],
           },
+          caption: "Máximo en $(3, 1)$ e inflexión en $\\left(4, \\frac{8}{9}\\right)$, el punto naranja.",
         },
         {
           type: "note",
@@ -607,6 +716,24 @@ const topic: Topic = {
             statement: "¿Cuál es el rango de $g(x) = \\dfrac{4x - 8}{(x - 1)^{2}}$?",
             parts: [{ kind: "interval", answer: [iv(-Infinity, 1, false, true)] }],
             solution: ["El valor más alto es el máximo $g(3) = 1$ y la función baja sin límite cerca de $x = 1$. Rango $(-\\infty, 1]$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Sin mirar la gráfica de arriba, arrastra las dos asíntotas y el máximo de $g(x) = \\dfrac{4x - 8}{(x - 1)^{2}}$ a su lugar. Al acertar aparece la curva.",
+            parts: [{
+              kind: "place",
+              graph: { x: [-4, 10], y: [-6, 3] },
+              items: [
+                { type: "vline", label: "\\text{asíntota vertical}", answer: 1 },
+                { type: "hline", label: "\\text{asíntota horizontal}", answer: 0 },
+                { type: "point", label: "\\text{máximo}", answer: [3, 1], start: [8, -5] },
+              ],
+              reveal: [{ fn: "\\frac{4x - 8}{(x - 1)^{2}}", breaks: [1], color: "accent" }],
+            }],
+            hints: ["Usa el estudio del ejemplo: dominio, asíntotas y el signo de $g'$."],
+            solution: ["Asíntota vertical $x = 1$, asíntota horizontal $y = 0$ y máximo local en $(3, 1)$."],
           },
         },
       ],
@@ -638,10 +765,11 @@ const topic: Topic = {
             y: [-8, 12],
             curves: [
               { fn: "\\frac{x^{2}}{x - 1}", color: "accent", breaks: [1] },
-              { fn: "x + 1", color: "muted", dashed: true, label: "y = x + 1" },
+              { fn: "x + 1", color: "muted", dashed: true },
             ],
             vlines: [{ x: 1, dashed: true, color: "muted" }],
             points: [{ x: 0, y: 0, label: "máx", color: "red" }, { x: 2, y: 4, label: "mín", color: "blue" }],
+            labels: [{ x: 3.2, y: 2.6, text: "y = x + 1", color: "muted" }],
           },
           caption: "La curva se pega a la recta $y = x + 1$ cuando $x$ se aleja.",
         },
@@ -661,9 +789,29 @@ const topic: Topic = {
           type: "graph",
           spec: {
             x: [-7, 2],
-            y: [-1, 3],
+            y: [-1, 2],
             curves: [{ fn: "xe^{x}", color: "accent" }],
-            points: [{ x: -1, y: -0.3679, label: "mín", color: "blue" }, { x: -2, y: -0.2707, label: "inflexión", color: "orange" }],
+            points: [{ x: -1, y: -0.3679, color: "blue" }, { x: -2, y: -0.2707, color: "orange" }],
+          },
+          caption: "$f(x) = xe^{x}$. El punto azul es el mínimo, en $x = -1$, y el naranja la inflexión, en $x = -2$.",
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Para $f(x) = xe^{x}$ se tiene $f'(x) = (x + 1)e^{x}$ y $f''(x) = (x + 2)e^{x}$. Completa en una sola tabla los signos de $f'$ y de $f''$.",
+            parts: [{
+              kind: "signs",
+              points: ["-2", "-1"],
+              rows: [
+                { label: "f'(x)", signs: [-1, -1, 1] },
+                { label: "f''(x)", signs: [-1, 1, 1] },
+              ],
+            }],
+            hints: ["La exponencial es positiva. El signo de cada derivada es el de su factor lineal."],
+            solution: [
+              "$f'$ cambia de signo solo en $-1$ y $f''$ solo en $-2$.",
+              "En $(-\\infty, -2)$ decrece y es cóncava, en $(-2, -1)$ decrece y es convexa, y en $(-1, +\\infty)$ crece y es convexa.",
+            ],
           },
         },
         {
@@ -769,7 +917,7 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Si $\\lim_{x \\to -\\infty} \\frac{f(x)}{x} = 2$ y $\\lim_{x \\to -\\infty} [f(x) - 2x] = -4$, ¿en qué punto corta la asíntota oblicua al eje $x$?",
+            statement: "Se sabe que $\\displaystyle\\lim_{x \\to -\\infty} \\frac{f(x)}{x} = 2$ y $\\displaystyle\\lim_{x \\to -\\infty} [f(x) - 2x] = -4$. ¿En qué valor de $x$ corta la asíntota oblicua al eje horizontal?",
             parts: [{ kind: "expr", before: "x =", answer: "2", mistakes: [{ answer: "-2", feedback: "La asíntota es $y = 2x - 4$. Iguala a cero: $2x - 4 = 0$." }] }],
             solution: ["La asíntota es $y = 2x - 4$, que vale cero en $x = 2$."],
           },
@@ -779,6 +927,7 @@ const topic: Topic = {
   ],
   exercises: [
     asintotasRacional,
+    ubicarAsintotas,
     cortesEjes,
     simetria,
     asintotaDeLimites,
@@ -789,6 +938,7 @@ const topic: Topic = {
     estudioG,
     estudioAcotada,
     coefCubica,
+    tablaDerivadasAsintota,
   ],
 };
 

@@ -73,7 +73,7 @@ function BlockView({ block, slug, si, bi }: { block: Block; slug: string; si: nu
     case "table":
       return (
         <figure className="overflow-x-auto rounded-2xl border border-line bg-surface">
-          <table className="w-full min-w-[480px] text-left text-[0.98rem]">
+          <table className={`w-full text-left text-[0.98rem] ${block.headers.length >= 5 ? "min-w-[520px]" : ""}`}>
             <thead className="bg-sunk/70">
               <tr>
                 {block.headers.map((h, i) => (

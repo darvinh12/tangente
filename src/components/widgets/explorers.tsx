@@ -57,6 +57,10 @@ function cleanFormula(s: string): string {
   return s
     .replace(/\+\s*-/g, "- ")
     .replace(/-\s*-/g, "+ ")
+    // términos con coeficiente cero: "0x + 1" -> "1", "x^2 + 0x" -> "x^2"
+    .replace(/(^|[=(]\s*)0\s*[a-z](\^\{[^}]*\}|\^\d)?\s*\+\s*/g, "$1")
+    .replace(/\s*[+-]\s*0\s*[a-z](\^\{[^}]*\}|\^\d)?(?![a-z])/g, "")
+    .replace(/\s*[+-]\s*0(?![\d{.,])/g, "")
     .replace(/(^|[^0-9.])1\s*([a-z(\\])/g, "$1$2")
     .replace(/\s+/g, " ");
 }
@@ -159,7 +163,7 @@ export function LimitWidget({ fn, a, x, y, breaks }: { fn: string; a: number; x:
         </div>
       </div>
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[420px] text-center text-[0.92rem] tabular-nums">
+        <table className="w-full text-center text-[0.8rem] tabular-nums sm:text-[0.92rem]">
           <thead>
             <tr className="text-ink-2">
               <th className="py-1 font-medium"><Tex tex="x" /></th>
@@ -277,7 +281,8 @@ export function TangentWidget({
           </span>
           {Number.isFinite(m2) && Math.abs(m2) > 0.02 ? (
             <span className="rounded-full bg-sunk px-3 py-1 text-ink-2">
-              {m2 > 0 ? "Abre hacia arriba: f'' > 0" : "Abre hacia abajo: f'' < 0"}
+              {m2 > 0 ? "Abre hacia arriba: " : "Abre hacia abajo: "}
+              <Tex tex={m2 > 0 ? "f''(x_0) > 0" : "f''(x_0) < 0"} />
             </span>
           ) : null}
         </div>

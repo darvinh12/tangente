@@ -509,7 +509,7 @@ const trozosLimite: ExerciseGen = {
 
 const racionalizarDoble: ExerciseGen = {
   id: "racionalizar-doble",
-  title: "Doble racionalización (tipo parcial)",
+  title: "Racionalizar con dos raíces (tipo parcial)",
   level: 3,
   exam: true,
   generate: (r) => {
@@ -724,8 +724,8 @@ const topic: Topic = {
   ...meta("calculo-limites"),
   objectives: [
     "Usar las propiedades de los límites y la sustitución directa.",
-    "Reconocer la indeterminación $\\frac{0}{0}$ y entender por qué no tiene un valor fijo.",
-    "Resolver $\\frac{0}{0}$ por factorización, racionalización y cambio de variable.",
+    "Reconocer la indeterminación 0/0 y entender por qué no tiene un valor fijo.",
+    "Resolver 0/0 por factorización, racionalización y cambio de variable.",
     "Calcular límites de funciones a trozos y hallar parámetros para que el límite exista.",
   ],
   sections: [
@@ -878,7 +878,7 @@ const topic: Topic = {
           type: "note",
           tone: "econ",
           title: "Un 0/0 que vas a ver en economía",
-          md: "Si el ingreso por vender $q$ unidades es $I(q) = 50q - q^2$, el cambio de ingreso por unidad entre $10$ y $q$ unidades es $\\dfrac{I(q) - I(10)}{q - 10}$. Cuando $q \\to 10$ eso da $\\frac{0}{0}$. Factorizando: $\\dfrac{-(q^2 - 50q + 400)}{q - 10} = \\dfrac{-(q - 10)(q - 40)}{q - 10} = 40 - q \\to 30$. Ese $30$ es el **ingreso marginal** en $q = 10$, y es justo la idea de derivada que verás más adelante.",
+          md: "Si el ingreso por vender $q$ unidades es $I(q) = 50q - q^2$, el cambio de ingreso por unidad entre $10$ y $q$ unidades es $\\dfrac{I(q) - I(10)}{q - 10}$. Cuando $q \\to 10$ eso da $\\frac{0}{0}$. Factorizando:\n\n$$\\dfrac{-(q^2 - 50q + 400)}{q - 10} = \\dfrac{-(q - 10)(q - 40)}{q - 10} = 40 - q \\to 30$$\n\nEse $30$ es el **ingreso marginal** en $q = 10$, y es justo la idea de derivada que verás más adelante.",
         },
         {
           type: "quick",

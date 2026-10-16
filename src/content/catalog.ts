@@ -67,7 +67,7 @@ export const TOPICS: TopicMeta[] = [
   { slug: "idea-limite", module: "limites", title: "La idea de límite", summary: "Qué significa acercarse a un punto, límites laterales, leer límites en una gráfica y la definición formal." },
   { slug: "calculo-limites", module: "limites", title: "Cálculo de límites", summary: "Propiedades, sustitución directa y las indeterminaciones 0/0 resueltas por factorización y racionalización." },
   { slug: "limites-infinito", module: "limites", title: "Límites infinitos y al infinito", summary: "Cuando la función crece sin control o x se va al infinito. Indeterminaciones ∞/∞ y ∞ − ∞." },
-  { slug: "numero-e", module: "limites", title: "El número e y los límites 1^∞", summary: "De dónde sale e, el interés compuesto continuo y cómo resolver límites de la forma 1 elevado a infinito." },
+  { slug: "numero-e", module: "limites", title: "El número e y los límites de la forma 1 elevado a ∞", summary: "De dónde sale e, el interés compuesto continuo y cómo resolver límites de la forma 1 elevado a infinito." },
   { slug: "asintotas", module: "limites", title: "Asíntotas", summary: "Asíntotas verticales, horizontales y oblicuas, y cómo bosquejar una gráfica a partir de sus límites." },
   { slug: "continuidad", module: "limites", title: "Continuidad", summary: "Continuidad en un punto, tipos de discontinuidad, funciones a trozos con parámetros y el teorema de Bolzano." },
 

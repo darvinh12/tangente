@@ -253,11 +253,11 @@ const encuentraError: ExerciseGen = {
       const a = r.int(1, 4);
       const p = r.int(1, 5);
       const q = r.int(1, 4);
-      work = `Para calcular $${lim(String(a), `\\frac{x^{2} + ${p}}{x + ${q}}`)}$ un estudiante deriva arriba y abajo y escribe $${lim(String(a), "\\frac{2x}{1}")} = ${2 * a}$.`;
+      work = `Para calcular $\\displaystyle ${lim(String(a), `\\frac{x^{2} + ${p}}{x + ${q}}`)}$ un estudiante deriva arriba y abajo y escribe $${lim(String(a), "\\frac{2x}{1}")} = ${2 * a}$.`;
       why = `Al sustituir queda $\\frac{${a * a + p}}{${a + q}}$, que es un número. No había indeterminación, así que la regla no se podía usar. El límite correcto es $${frac(a * a + p, a + q)}$.`;
     } else if (kind === "cociente") {
       const k = r.int(2, 5);
-      work = `Para calcular $${lim("0", `\\frac{e^{${k}x} - 1}{x}`)}$ un estudiante escribe $${lim("0", `\\frac{${k}e^{${k}x} \\cdot x - (e^{${k}x} - 1)}{x^{2}}`)}$ y vuelve a obtener $\\frac{0}{0}$.`;
+      work = `Para calcular $\\displaystyle ${lim("0", `\\frac{e^{${k}x} - 1}{x}`)}$ un estudiante escribe $$${lim("0", `\\frac{${k}e^{${k}x} \\cdot x - (e^{${k}x} - 1)}{x^{2}}`)}$$ y vuelve a obtener $\\frac{0}{0}$.`;
       why = `Usó la regla del cociente, que sirve para derivar una función, no para L'Hôpital. Se deriva arriba ($${k}e^{${k}x}$) y abajo ($1$) por separado, y el límite es $${k}$.`;
     } else {
       const a = r.int(2, 5);
@@ -665,15 +665,15 @@ const parcialLimites: ExerciseGen = {
     return {
       statement: "Calcula los siguientes límites. En cada uno revisa primero que haya indeterminación.",
       parts: [
-        limPart(ansA, [{ answer: em, feedback: "La derivada de $\\ln x$ es $\\frac{1}{x}$. Evaluada en el punto da el inverso." }], `a) $${la}$`),
+        limPart(ansA, [{ answer: em, feedback: "La derivada de $\\ln x$ es $\\frac{1}{x}$. Evaluada en el punto da el inverso." }], `a) $\\displaystyle ${la}$`),
         limPart(String(-k), [
           { answer: String(k), feedback: "Revisa el signo: el numerador es $1 - e^{kx}$, su derivada es negativa." },
           { answer: "-1", feedback: `Falta la regla de la cadena: $(e^{${k}x})' = ${k}e^{${k}x}$.` },
-        ], `b) $${lb}$`),
+        ], `b) $\\displaystyle ${lb}$`),
         limPart(ansC, [
           { answer: "1", feedback: "Mandan los términos con $x$, no los logaritmos. Deriva y mira." },
           { answer: "0", feedback: "Arriba y abajo crecen a la misma velocidad. Deriva y compara los coeficientes." },
-        ], `c) $${lc}$`),
+        ], `c) $\\displaystyle ${lc}$`),
       ],
       hints: [
         `En a), $\\ln ${em} = ${m}$. Es $\\frac{0}{0}$.`,
@@ -793,16 +793,14 @@ const topic: Topic = {
           answer: "$0$",
         },
         {
-          type: "table",
-          headers: ["Crece más lento", "", "Crece más rápido"],
-          rows: [["$\\ln x$", "$x^{p}$ con $p > 0$", "$e^{kx}$ con $k > 0$"]],
-          caption: "Cuando $x \\to +\\infty$, cada función de la derecha le gana a las de su izquierda. El cociente de una lenta entre una rápida tiende a $0$.",
+          type: "text",
+          md: "Cuando $x \\to +\\infty$, de la más lenta a la más rápida van $\\ln x$, después $x^{p}$ con $p > 0$ y por último $e^{kx}$ con $k > 0$. Cada una le gana a las anteriores, así que el cociente de una lenta entre una rápida tiende a $0$.",
         },
         {
           type: "graph",
           spec: {
             x: [0, 8],
-            y: [-1, 20],
+            y: [-3, 20],
             step: 2,
             curves: [
               { fn: "\\ln x", domain: [0.05, 8], color: "green", label: "ln x" },
@@ -810,7 +808,7 @@ const topic: Topic = {
               { fn: "e^{x}", color: "red", label: "eˣ" },
             ],
           },
-          caption: "Al principio $x^{2}$ va por encima de $e^{x}$ en algunos tramos, pero a la larga la exponencial deja atrás a cualquier potencia.",
+          caption: "Cerca de $0$ las tres curvas van parejas, pero $e^{x}$ se dispara antes que $x^{2}$ y $\\ln x$ casi no sube.",
         },
         {
           type: "note",

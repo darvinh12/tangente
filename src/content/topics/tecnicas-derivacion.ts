@@ -355,7 +355,7 @@ const logaritmicaProducto: ExerciseGen = {
     const t3 = e === 1 ? `\\frac{1}{x + ${d}}` : `\\frac{${e}}{x + ${d}}`;
     const ans = `${t1} + ${t2} - ${t3}`;
     return {
-      statement: `Sea $f(x) = ${fTex}$, con $x > 0$. Usa derivación logarítmica para hallar $\\dfrac{f'(x)}{f(x)}$.`,
+      statement: `Sea $$f(x) = ${fTex.replace("\\frac", "\\dfrac")}$$ con $x > 0$. Usa derivación logarítmica para hallar el cociente $f'(x)/f(x)$.`,
       parts: [
         {
           kind: "expr",
@@ -864,7 +864,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Derivadas de orden superior",
-          md: "$$f''(x) = \\big(f'(x)\\big)' \\qquad f'''(x) = \\big(f''(x)\\big)' \\qquad f^{(n)}(x) = \\big(f^{(n-1)}(x)\\big)'$$\n\nDesde la cuarta se escribe el orden entre paréntesis: $f^{(4)}$, $f^{(5)}$. Otra notación es $\\dfrac{d^{2}y}{dx^{2}}$ para la segunda.",
+          md: "$$\\begin{aligned} f''(x) &= \\big(f'(x)\\big)' \\\\ f'''(x) &= \\big(f''(x)\\big)' \\\\ f^{(n)}(x) &= \\big(f^{(n-1)}(x)\\big)' \\end{aligned}$$\n\nDesde la cuarta se escribe el orden entre paréntesis: $f^{(4)}$, $f^{(5)}$. Otra notación es $\\dfrac{d^{2}y}{dx^{2}}$ para la segunda.",
         },
         {
           type: "example",
@@ -966,7 +966,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "El procedimiento",
-          md: "- Toma logaritmo natural en los dos lados: $\\ln y = \\ln f(x)$.\n- Usa las propiedades del logaritmo para separar todo lo posible.\n- Deriva los dos lados. A la izquierda, por la cadena, queda $\\dfrac{y'}{y}$.\n- Despeja: $y' = y\\cdot(\\text{lo que salió a la derecha})$.",
+          md: "- Toma logaritmo natural en los dos lados: $\\ln y = \\ln f(x)$.\n- Usa las propiedades del logaritmo para separar todo lo posible.\n- Deriva los dos lados. A la izquierda, por la cadena, queda $\\dfrac{y'}{y}$.\n- Despeja $y'$ multiplicando por $y$ lo que salió a la derecha.",
         },
         {
           type: "example",
@@ -1084,13 +1084,15 @@ const topic: Topic = {
           type: "graph",
           spec: {
             x: [-7, 9],
-            y: [-6, 8],
+            y: [-7, 9],
+            step: 2,
             curves: [
               { fn: "\\sqrt{25 - x^{2}}", domain: [-5, 5], color: "accent" },
               { fn: "-\\sqrt{25 - x^{2}}", domain: [-5, 5], color: "accent" },
-              { fn: "-\\frac{3}{4}x + \\frac{25}{4}", color: "orange", dashed: true, label: "tangente" },
+              { fn: "-\\frac{3}{4}x + \\frac{25}{4}", color: "orange", dashed: true },
             ],
             points: [{ x: 3, y: 4, label: "(3, 4)" }],
+            labels: [{ x: 5.5, y: 3, text: "tangente", color: "orange" }],
           },
           caption: "La circunferencia no es la gráfica de una función, pero cerca de $(3, 4)$ sí lo es, y ahí tiene tangente.",
         },

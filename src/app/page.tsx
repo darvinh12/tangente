@@ -3,7 +3,7 @@ import { ArrowRight, Exam } from "@phosphor-icons/react/dist/ssr";
 import { MODULES, TOPICS, topicsOf } from "@/content/catalog";
 import { loaders, topicIndex } from "@/content/generated";
 import { DemoExercise, HeroGraph } from "@/components/home/hero-demo";
-import { ContinueCard, ModuleProgress, TopicList } from "@/components/home/topic-list";
+import { ContinueCard, ModuleProgress, ReviewNudge, TopicList } from "@/components/home/topic-list";
 
 const STEPS = [
   {
@@ -58,6 +58,7 @@ export default function Home() {
             {TOPICS.length} temas · {totalGens} tipos de ejercicio · sin registro, tu avance se guarda en este navegador
           </p>
           <ContinueCard titles={titles} />
+          <ReviewNudge />
         </div>
         <div className="rise relative" style={{ animationDelay: "200ms" }}>
           <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-[radial-gradient(ellipse_at_30%_20%,#e1eeec,transparent_60%)]" />

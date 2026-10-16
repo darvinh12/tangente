@@ -621,7 +621,7 @@ const topic: Topic = {
         },
         {
           type: "widget",
-          widget: { kind: "tangent", fn: "\\frac{x^{3}}{30} - \\frac{x^{2}}{2} + 4x + 2", x: [0, 12], y: [0, 40], derivative: "\\frac{x^{2}}{10} - x + 4" },
+          widget: { kind: "tangent", fn: "\\frac{x^{3}}{30} - \\frac{x^{2}}{2} + 4x + 2", x: [0, 12], y: [-4, 40], derivative: "\\frac{x^{2}}{10} - x + 4" },
           caption: "Una curva de costo total típica. La pendiente de la tangente es el costo marginal: primero baja y después sube.",
         },
         {
@@ -692,7 +692,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Derivada del costo promedio",
-          md: "Por la regla del cociente:\n\n$$\\overline{C}'(q) = \\frac{q\\,C'(q) - C(q)}{q^{2}} = \\frac{1}{q}\\left(C'(q) - \\overline{C}(q)\\right)$$\n\nEl signo depende de comparar el marginal con el promedio. Si $C'(q) < \\overline{C}(q)$ el promedio baja. Si $C'(q) > \\overline{C}(q)$ el promedio sube. Donde son iguales, el promedio toca su mínimo.",
+          md: "Por la regla del cociente:\n\n$$\\begin{aligned} \\overline{C}'(q) &= \\frac{q\\,C'(q) - C(q)}{q^{2}} \\\\ &= \\frac{1}{q}\\left(C'(q) - \\overline{C}(q)\\right) \\end{aligned}$$\n\nEl signo depende de comparar el marginal con el promedio. Si $C'(q) < \\overline{C}(q)$ el promedio baja. Si $C'(q) > \\overline{C}(q)$ el promedio sube. Donde son iguales, el promedio toca su mínimo.",
         },
         {
           type: "example",
@@ -707,14 +707,18 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [0, 30],
-            y: [0, 70],
+            x: [-2, 30],
+            y: [-6, 70],
             step: 10,
             curves: [
-              { fn: "x + 4 + \\frac{100}{x}", domain: [1.5, 30], color: "accent", label: "costo promedio" },
-              { fn: "2x + 4", domain: [0, 30], color: "orange", label: "costo marginal" },
+              { fn: "x + 4 + \\frac{100}{x}", domain: [1.5, 30], color: "accent" },
+              { fn: "2x + 4", domain: [0, 30], color: "orange" },
             ],
             points: [{ x: 10, y: 24, label: "(10, 24)" }],
+            labels: [
+              { x: 18, y: 52, text: "$C'(q)$", color: "orange" },
+              { x: 26, y: 27, text: "$\\overline{C}(q)$", color: "accent" },
+            ],
           },
           caption: "La curva de costo marginal corta a la de costo promedio justo en su mínimo.",
         },
@@ -739,7 +743,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Elasticidad de f en x",
-          md: "La guía de la cátedra la obtiene como el límite del cociente de las variaciones relativas:\n\n$$E_f(x) = \\lim_{h \\to 0}\\frac{\\frac{f(x+h) - f(x)}{f(x)}}{\\frac{h}{x}} = \\frac{x}{f(x)}\\,f'(x) \\qquad (f(x) \\ne 0)$$\n\nLectura: si $x$ aumenta 1 %, $f(x)$ cambia aproximadamente $E_f(x)$ %.",
+          md: "La guía de la cátedra la obtiene como el límite del cociente de las variaciones relativas:\n\n$$\\begin{aligned} E_f(x) &= \\lim_{h \\to 0}\\frac{\\frac{f(x+h) - f(x)}{f(x)}}{\\frac{h}{x}} \\\\ &= \\frac{x}{f(x)}\\,f'(x) \\end{aligned}$$\n\nVale donde $f(x) \\ne 0$. Lectura: si $x$ aumenta 1 %, $f(x)$ cambia aproximadamente $E_f(x)$ %.",
         },
         {
           type: "example",
@@ -783,11 +787,11 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Valor", "La demanda es", "Qué significa"],
+          headers: ["Valor", "La demanda es"],
           rows: [
-            ["$|E| > 1$", "Elástica", "La cantidad cambia en mayor proporción que el precio"],
-            ["$|E| < 1$", "Inelástica", "La cantidad cambia en menor proporción que el precio"],
-            ["$|E| = 1$", "Unitaria", "Cambian en la misma proporción"],
+            ["${|E| > 1}$", "**Elástica.** La cantidad cambia en mayor proporción que el precio."],
+            ["${|E| < 1}$", "**Inelástica.** La cantidad cambia en menor proporción que el precio."],
+            ["${|E| = 1}$", "**Unitaria.** Cambian en la misma proporción."],
           ],
         },
         {
@@ -804,8 +808,8 @@ const topic: Topic = {
         {
           type: "graph",
           spec: {
-            x: [0, 45],
-            y: [0, 130],
+            x: [-4, 45],
+            y: [-12, 130],
             step: 10,
             curves: [
               { fn: "120 - 3x", domain: [0, 20], color: "green", label: "inelástica" },
@@ -837,15 +841,15 @@ const topic: Topic = {
       blocks: [
         {
           type: "text",
-          md: "¿Le conviene a una empresa subir el precio? Depende de la elasticidad. El ingreso como función del precio es $I(p) = p\\,q(p)$. Por la regla del producto:\n\n$$I'(p) = q(p) + p\\,q'(p) = q(p)\\left(1 + \\frac{p}{q(p)}q'(p)\\right) = q(p)\\,(1 + E)$$\n\nComo $q(p) > 0$, el signo de $I'(p)$ es el signo de $1 + E$.",
+          md: "¿Le conviene a una empresa subir el precio? Depende de la elasticidad. El ingreso como función del precio es $I(p) = p\\,q(p)$. Por la regla del producto:\n\n$$\\begin{aligned} I'(p) &= q(p) + p\\,q'(p) \\\\ &= q(p)\\left(1 + \\frac{p}{q(p)}\\,q'(p)\\right) \\\\ &= q(p)\\,(1 + E) \\end{aligned}$$\n\nComo $q(p) > 0$, el signo de $I'(p)$ es el signo de $1 + E$.",
         },
         {
           type: "table",
-          headers: ["Demanda", "Signo de $1 + E$", "Si el precio sube un poco"],
+          headers: ["Demanda", "Si el precio sube un poco"],
           rows: [
-            ["Inelástica, $|E| < 1$", "Positivo", "El ingreso aumenta"],
-            ["Elástica, $|E| > 1$", "Negativo", "El ingreso disminuye"],
-            ["Unitaria, $|E| = 1$", "Cero", "El ingreso no cambia y está en su máximo"],
+            ["Inelástica, ${|E| < 1}$", "${1 + E > 0}$, el ingreso aumenta"],
+            ["Elástica, ${|E| > 1}$", "${1 + E < 0}$, el ingreso disminuye"],
+            ["Unitaria, ${|E| = 1}$", "${1 + E = 0}$, el ingreso no cambia y está en su máximo"],
           ],
         },
         {

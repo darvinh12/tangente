@@ -55,6 +55,15 @@ function quarticInflection(p: number, q: number, s: number, c: number, d: number
   return [s, -2 * s * (p + q), 6 * s * p * q, c, d];
 }
 
+/** Producto de dos factores lineales con la x sola delante: (-2, 0) -> "x(x + 2)" */
+const fx2 = (p: number, q: number) => (q === 0 ? `x${fx(p)}` : `${fx(p)}${fx(q)}`);
+
+/** Signo de g en cada intervalo que dejan los puntos ordenados (se prueba en un punto interior). */
+function signsOn(pts: number[], g: (x: number) => number): (1 | -1)[] {
+  const test = [pts[0] - 1, ...pts.slice(1).map((b, i) => (pts[i] + b) / 2), pts[pts.length - 1] + 1];
+  return test.map((x) => (g(x) > 0 ? 1 : -1));
+}
+
 /* --------------------------------- gráficas de forma --------------------------------- */
 
 type Shape = "cc" | "ck" | "dc" | "dk";
@@ -64,7 +73,7 @@ const SHAPES: Record<Shape, { fn: string; text: string; d1: string; d2: string }
   dc: { fn: "\\frac{(x - 4)^{2}}{4}", text: "decreciente y convexa", d1: "f' < 0", d2: "f'' > 0" },
   dk: { fn: "4 - \\frac{x^{2}}{4}", text: "decreciente y cóncava", d1: "f' < 0", d2: "f'' < 0" },
 };
-const shapeGraph = (s: Shape): GraphSpec => ({ x: [-0.5, 4.5], y: [-0.5, 4.5], height: 180, curves: [{ fn: SHAPES[s].fn, domain: [0, 4], color: "accent" }] });
+const shapeGraph = (s: Shape): GraphSpec => ({ x: [-0.5, 4.5], y: [-0.5, 4.5], height: 180, step: 1, curves: [{ fn: SHAPES[s].fn, domain: [0, 4], color: "accent" }] });
 
 /* ----------------------------------- ejercicios ----------------------------------- */
 
@@ -133,7 +142,7 @@ const convencion: ExerciseGen = {
         { tex: "\\sqrt{x}", conv: false, d2: "-\\frac{1}{4x\\sqrt{x}}" },
       ]);
       return {
-        statement: `¿Cómo es $f(x) = ${f.tex}$ en todo su dominio (salvo, quizá, puntos aislados)?`,
+        statement: `¿Cómo es $f(x) = ${f.tex}$ en todo su dominio?`,
         parts: [choice(f.conv ? "Convexa" : "Cóncava", [[f.conv ? "Cóncava" : "Convexa", `Calcula $f''(x) = ${f.d2}$ y mira su signo.`], ["Cambia de concavidad", "Su segunda derivada no cambia de signo."]])],
         hints: ["Calcula la segunda derivada y mira su signo."],
         solution: [`$f''(x) = ${f.d2}$, que es ${f.conv ? "positiva (o cero en un punto aislado)" : "negativa"}. La función es ${f.conv ? "convexa" : "cóncava"}.`],
@@ -544,6 +553,171 @@ const leerSignos: ExerciseGen = {
   },
 };
 
+const tablaSignosSegunda: ExerciseGen = {
+  id: "tabla-signos-segunda",
+  title: "Tabla de signos de la segunda derivada",
+  level: 2,
+  generate: (r) => {
+    if (r.bool()) {
+      const s = r.pick([1, -1]);
+      const p = r.int(-3, 1);
+      const q = r.int(p + 1, 3);
+      const coefs = quarticInflection(p, q, s, r.int(-5, 5), r.int(-5, 5));
+      const pts = [p, q];
+      const d2 = (x: number) => 12 * s * (x - p) * (x - q);
+      const conv = signSolve([{ root: p }, { root: q }], s, ">");
+      const conc = signSolve([{ root: p }, { root: q }], s, "<");
+      const rows: { label: string; signs: (1 | -1)[] }[] = [];
+      if (s < 0) rows.push({ label: "-12", signs: [-1, -1, -1] });
+      rows.push(
+        { label: xm(p), signs: signsOn(pts, (x) => x - p) },
+        { label: xm(q), signs: signsOn(pts, (x) => x - q) },
+        { label: "f''(x)", signs: signsOn(pts, d2) },
+      );
+      return {
+        statement: `Estudia la convexidad de $f(x) = ${poly(coefs)}$ con una tabla de signos de $f''$.`,
+        sequential: true,
+        parts: [
+          {
+            kind: "expr",
+            prompt: "Calcula la segunda derivada.",
+            before: "f''(x) =",
+            answer: poly(dpoly(dpoly(coefs))),
+            vars: ["x"],
+            mistakes: [{ answer: poly(dpoly(coefs)), feedback: "Esa es la primera derivada. Deriva una vez más." }],
+          },
+          {
+            kind: "signs",
+            prompt: `Factorizando, $f''(x) = ${cf(12 * s)}${fx2(p, q)}$. Completa la tabla.`,
+            points: [String(p), String(q)],
+            rows,
+            given: s < 0 ? [0] : undefined,
+          },
+          { kind: "interval", prompt: "$f$ es convexa en", answer: conv, mistakes: [{ answer: conc, feedback: "Ahí $f'' < 0$. Para la cátedra, $f'' > 0$ es convexa y $f'' < 0$ es cóncava." }] },
+          { kind: "set", prompt: "Abscisas de los puntos de inflexión", before: "x \\in", answer: [p, q] },
+        ],
+        hints: [
+          "Deriva dos veces y saca factor común $12$ o $-12$.",
+          "Convexa donde $f'' > 0$. Hay inflexión donde $f''$ cambia de signo.",
+        ],
+        solution: [
+          `$f'(x) = ${poly(dpoly(coefs))}$ y $f''(x) = ${poly(dpoly(dpoly(coefs)))} = ${cf(12 * s)}${fx2(p, q)}$.`,
+          `Signo de $f''$: $${s > 0 ? "+" : "-"}$ en $(-\\infty, ${p})$, $${s > 0 ? "-" : "+"}$ en $(${p}, ${q})$ y $${s > 0 ? "+" : "-"}$ en $(${q}, +\\infty)$.`,
+          `Convexa en $${unionTex(conv)}$ y cóncava en $${unionTex(conc)}$.`,
+          `$f''$ cambia de signo en $x = ${p}$ y en $x = ${q}$: los dos son puntos de inflexión.`,
+        ],
+      };
+    }
+    const k = r.pick([1, -1]);
+    const c = r.int(-3, 3);
+    const xi = c - 2 * k;
+    const ek = k === 1 ? "x" : "-x";
+    const conv = [iv(xi, Infinity)];
+    const d1 = k === 1 ? `${fx(c - 1)}e^{x}` : `(${poly([-1, c + 1])})e^{-x}`;
+    return {
+      statement: `Estudia la convexidad de $f(x) = ${fx(c)}e^{${ek}}$ con una tabla de signos de $f''$.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "expr",
+          prompt: "Calcula la segunda derivada y saca factor común la exponencial.",
+          before: "f''(x) =",
+          answer: `${fx(xi)}e^{${ek}}`,
+          vars: ["x"],
+          mistakes: [{ answer: d1, feedback: "Esa es la primera derivada. Deriva una vez más con la regla del producto." }],
+        },
+        {
+          kind: "signs",
+          prompt: "Completa la tabla de signos.",
+          points: [String(xi)],
+          rows: [
+            { label: xm(xi), signs: [-1, 1] },
+            { label: `e^{${ek}}`, signs: [1, 1] },
+            { label: "f''(x)", signs: [-1, 1] },
+          ],
+        },
+        { kind: "interval", prompt: "$f$ es convexa en", answer: conv, mistakes: [{ answer: [iv(-Infinity, xi)], feedback: "Ahí $f'' < 0$: la función es cóncava." }] },
+        { kind: "set", prompt: "Abscisa del punto de inflexión", before: "x \\in", answer: [xi], mistakes: [{ answer: [c - k], feedback: "Ese es el punto crítico, donde $f' = 0$. La inflexión sale de $f''$." }] },
+      ],
+      hints: [
+        `Regla del producto: la derivada de $e^{${ek}}$ es $${k === 1 ? "" : "-"}e^{${ek}}$.`,
+        "Después de cada derivada saca factor común la exponencial. Siempre queda un polinomio de grado 1 por la exponencial.",
+        "La exponencial es positiva y no cambia el signo.",
+      ],
+      solution: [
+        `$f'(x) = ${d1}$.`,
+        `$f''(x) = ${fx(xi)}e^{${ek}}$.`,
+        `La exponencial es positiva, así que el signo de $f''$ es el de $${xm(xi)}$: $-$ antes de $${xi}$ y $+$ después.`,
+        `Convexa en $(${xi}, +\\infty)$, cóncava en $(-\\infty, ${xi})$ e inflexión en $x = ${xi}$.`,
+      ],
+    };
+  },
+};
+
+const inflexionEnPlano: ExerciseGen = {
+  id: "inflexion-en-el-plano",
+  title: "Ubicar el punto de inflexión (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const a = r.pick([1, -1, 2, -2]);
+    const p = r.int(-3, 3);
+    const m = r.int(-3, 3);
+    const yi = r.int(-4, 4);
+    const coefs = [a, -3 * a * p, 3 * a * p * p + m, -a * p ** 3 - m * p + yi];
+    const rows: { label: string; signs: (1 | -1)[] }[] = [];
+    if (a < 0) rows.push({ label: String(6 * a), signs: [-1, -1] });
+    rows.push({ label: xm(p), signs: [-1, 1] }, { label: "f''(x)", signs: a > 0 ? [-1, 1] : [1, -1] });
+    const toConv = a > 0;
+    return {
+      statement: `Sea $f(x) = ${poly(coefs)}$. Estudia el signo de $f''$ y ubica el punto de inflexión en el plano.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "expr",
+          prompt: "Calcula la segunda derivada.",
+          before: "f''(x) =",
+          answer: poly([6 * a, -6 * a * p]),
+          vars: ["x"],
+          mistakes: [{ answer: poly(dpoly(coefs)), feedback: "Esa es la primera derivada. Deriva una vez más." }],
+        },
+        {
+          kind: "signs",
+          prompt: `Como $f''(x) = ${cf(6 * a)}${fx(p)}$, completa la tabla.`,
+          points: [String(p)],
+          rows,
+          given: a < 0 ? [0] : undefined,
+        },
+        choice(toConv ? "De cóncava a convexa" : "De convexa a cóncava", [
+          [toConv ? "De convexa a cóncava" : "De cóncava a convexa", "Lee la última fila de la tabla: $f'' < 0$ es cóncava y $f'' > 0$ es convexa."],
+          ["No cambia de curvatura", `$f''$ sí cambia de signo en $x = ${p}$.`],
+        ], `¿Cómo cambia la curvatura de $f$ al pasar por $x = ${p}$?`),
+        {
+          kind: "place",
+          prompt: "Arrastra el punto hasta el punto de inflexión. Al acertar verás la curva y su tangente en ese punto.",
+          graph: { x: [-5, 5], y: [-6, 6] },
+          items: [{ type: "point", label: "\\text{inflexión}", answer: [p, yi], start: [4, -5] }],
+          reveal: [
+            { fn: poly(coefs), color: "accent" },
+            { fn: poly([m, yi - m * p]), color: "orange", dashed: true },
+          ],
+        },
+      ],
+      hints: [
+        "Deriva dos veces. $f''$ es una recta.",
+        "Hay inflexión donde $f''$ cambia de signo.",
+        "La altura del punto sale de sustituir en $f$, no en $f''$.",
+      ],
+      solution: [
+        `$f'(x) = ${poly(dpoly(coefs))}$ y $f''(x) = ${poly([6 * a, -6 * a * p])} = ${cf(6 * a)}${fx(p)}$.`,
+        `$f''$ se anula en $x = ${p}$. Es ${toConv ? "negativa antes y positiva después: pasa de cóncava a convexa" : "positiva antes y negativa después: pasa de convexa a cóncava"}.`,
+        `$f(${p}) = ${yi}$. El punto de inflexión es $(${p}, ${yi})$.`,
+        `La tangente allí es $y = ${poly([m, yi - m * p])}$ y atraviesa la curva: de un lado la curva queda encima y del otro debajo.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -571,7 +745,7 @@ const topic: Topic = {
         },
         {
           type: "text",
-          md: "La definición formal usa cuerdas. $f$ es convexa en $[a, b]$ si el segmento que une dos puntos cualesquiera de la gráfica queda **por encima** de la curva. Es cóncava si el segmento queda **por debajo**. Escrito con un parámetro $t \\in (0, 1)$:\n\n$$f\\big((1-t)a + tb\\big) < (1-t)f(a) + tf(b) \\quad \\text{(convexa)}$$\n\nEsta forma es la que más se usa en teoría económica.",
+          md: "La definición formal usa cuerdas. $f$ es convexa en $[a, b]$ si el segmento que une dos puntos cualesquiera de la gráfica queda **por encima** de la curva. Es cóncava si el segmento queda **por debajo**. Con un parámetro $t \\in (0, 1)$, la condición para que sea convexa se escribe así:\n\n$$f\\big((1-t)a + tb\\big) < (1-t)f(a) + tf(b)$$\n\nEsta forma es la que más se usa en teoría económica.",
         },
         {
           type: "graph",
@@ -579,9 +753,11 @@ const topic: Topic = {
             x: [-3, 3],
             y: [-1, 5],
             height: 260,
-            curves: [{ fn: "\\frac{x^{2}}{2}", color: "accent", label: "convexa" }],
+            step: 1,
+            curves: [{ fn: "\\frac{x^{2}}{2}", color: "accent" }],
             segments: [{ from: [-2, 2], to: [1.5, 1.125], color: "orange" }],
             points: [{ x: -2, y: 2 }, { x: 1.5, y: 1.125 }],
+            labels: [{ x: 0.3, y: 3.6, text: "convexa", color: "accent" }],
           },
           caption: "Convexa: la cuerda queda por encima de la curva.",
         },
@@ -591,9 +767,11 @@ const topic: Topic = {
             x: [-3, 3],
             y: [-1, 5],
             height: 260,
-            curves: [{ fn: "4 - \\frac{x^{2}}{2}", color: "blue", label: "cóncava" }],
+            step: 1,
+            curves: [{ fn: "4 - \\frac{x^{2}}{2}", color: "blue" }],
             segments: [{ from: [-2, 2], to: [1.5, 2.875], color: "orange" }],
             points: [{ x: -2, y: 2 }, { x: 1.5, y: 2.875 }],
+            labels: [{ x: -2.2, y: 0.5, text: "cóncava", color: "blue" }],
           },
           caption: "Cóncava: la cuerda queda por debajo de la curva.",
         },
@@ -649,7 +827,11 @@ const topic: Topic = {
             y: [2, 10],
             step: 1,
             curves: [{ fn: "x^{4} - 3x^{2} + 6", color: "accent" }],
-            points: [{ x: -0.7071, y: 4.75, label: "inflexión", color: "orange" }, { x: 0.7071, y: 4.75, label: "inflexión", color: "orange" }],
+            points: [{ x: -0.7071, y: 4.75, color: "orange" }, { x: 0.7071, y: 4.75, color: "orange" }],
+            labels: [
+              { x: -1.05, y: 3, text: "inflexión", color: "orange" },
+              { x: 0.35, y: 3, text: "inflexión", color: "orange" },
+            ],
           },
           caption: "$f(x) = x^{4} - 3x^{2} + 6$ cambia de convexa a cóncava y de vuelta a convexa.",
         },
@@ -665,6 +847,26 @@ const topic: Topic = {
             statement: "¿En qué intervalo es cóncava $f(x) = x^{3} - 6x^{2} + 1$?",
             parts: [{ kind: "interval", answer: [iv(-Infinity, 2)] }],
             solution: ["$f''(x) = 6x - 12$, negativa para $x < 2$. Cóncava en $(-\\infty, 2)$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "En el ejemplo, $f''(x) = 12\\left(x + \\frac{\\sqrt{2}}{2}\\right)\\left(x - \\frac{\\sqrt{2}}{2}\\right)$. Completa la tabla de signos de $f''$.",
+            parts: [{
+              kind: "signs",
+              points: ["-\\frac{\\sqrt{2}}{2}", "\\frac{\\sqrt{2}}{2}"],
+              rows: [
+                { label: "x + \\frac{\\sqrt{2}}{2}", signs: [-1, 1, 1] },
+                { label: "x - \\frac{\\sqrt{2}}{2}", signs: [-1, -1, 1] },
+                { label: "f''(x)", signs: [1, -1, 1] },
+              ],
+            }],
+            hints: ["$\\frac{\\sqrt{2}}{2} \\approx 0{,}71$. Prueba con $x = -1$, $x = 0$ y $x = 1$."],
+            solution: [
+              "Cada factor es negativo a la izquierda de su raíz y positivo a la derecha.",
+              "Multiplicando por columnas, $f''$ es $+$, $-$, $+$: convexa, cóncava y convexa otra vez.",
+            ],
           },
         },
       ],
@@ -717,6 +919,23 @@ const topic: Topic = {
             statement: "Halla las abscisas de los puntos de inflexión de $f(x) = x^{4} - 6x^{2}$.",
             parts: [{ kind: "set", before: "x \\in", answer: [-1, 1] }],
             solution: ["$f''(x) = 12x^{2} - 12 = 12(x - 1)(x + 1)$, que cambia de signo en $x = \\pm 1$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Arrastra el punto hasta el punto de inflexión de $f(x) = x^{3} - 3x^{2} + 2$. Al acertar aparece la curva.",
+            parts: [{
+              kind: "place",
+              graph: { x: [-2, 4], y: [-4, 4] },
+              items: [{ type: "point", label: "\\text{inflexión}", answer: [1, 0], start: [3, 3] }],
+              reveal: [{ fn: "x^{3} - 3x^{2} + 2", color: "accent" }],
+            }],
+            hints: ["$f''(x) = 6x - 6$.", "Después de hallar la abscisa, calcula la altura con $f$."],
+            solution: [
+              "$f''(x) = 6x - 6$ se anula en $x = 1$ y pasa de negativa a positiva: de cóncava a convexa.",
+              "$f(1) = 1 - 3 + 2 = 0$. El punto de inflexión es $(1, 0)$.",
+            ],
           },
         },
       ],
@@ -819,7 +1038,11 @@ const topic: Topic = {
             x: [-4, 4],
             y: [-0.2, 1.2],
             curves: [{ fn: "e^{-\\frac{x^{2}}{2}}", color: "accent" }],
-            points: [{ x: -1, y: 0.6065, label: "inflexión", color: "orange" }, { x: 1, y: 0.6065, label: "inflexión", color: "orange" }],
+            points: [{ x: -1, y: 0.6065, color: "orange" }, { x: 1, y: 0.6065, color: "orange" }],
+            labels: [
+              { x: -2.55, y: 0.62, text: "inflexión", color: "orange" },
+              { x: 1.25, y: 0.62, text: "inflexión", color: "orange" },
+            ],
           },
           caption: "Con $a = 1$ y $b = 2$ las inflexiones están en $x = \\pm 1$. Es la forma de la campana de Gauss.",
         },
@@ -894,6 +1117,7 @@ const topic: Topic = {
     criterioSimple,
     inflexionCuartica,
     expSegunda,
+    tablaSignosSegunda,
     graficaSignos,
     vfInflexion,
     parametroInflexion,
@@ -901,6 +1125,7 @@ const topic: Topic = {
     raizSegunda,
     parametrosNormal,
     leerSignos,
+    inflexionEnPlano,
   ],
 };
 

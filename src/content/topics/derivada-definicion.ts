@@ -506,7 +506,7 @@ const puntoConRaiz: ExerciseGen = {
     const fa = p * a + s;
     const ans = frac(2 * p * s + 1, 2 * s);
     return {
-      statement: `Aplicando la definición $f'(x_1) = \\lim_{h \\to 0} \\dfrac{f(x_1 + h) - f(x_1)}{h}$, calcula $f'(${a})$ siendo $f(x) = ${fTex}$.`,
+      statement: `Aplicando la definición\n\n$$f'(x_1) = \\lim_{h \\to 0} \\dfrac{f(x_1 + h) - f(x_1)}{h}$$\n\ncalcula $f'(${a})$ siendo $f(x) = ${fTex}$.`,
       sequential: true,
       parts: [
         { kind: "expr", prompt: "Primero, el valor en el punto.", before: `f(${a}) =`, answer: String(fa) },
@@ -665,7 +665,7 @@ const topic: Topic = {
   objectives: [
     "Calcular e interpretar la tasa media de cambio como pendiente de una secante.",
     "Entender la derivada como la pendiente de la recta tangente y como tasa de cambio instantánea.",
-    "Calcular $f'(a)$ y $f'(x)$ con el límite $\\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$ en polinomios, fracciones, raíces y logaritmos.",
+    "Calcular f′(a) y f′(x) con el límite del cociente incremental en polinomios, fracciones, raíces y logaritmos.",
     "Leer la derivada en economía como costo, ingreso o utilidad marginal.",
   ],
   sections: [
@@ -766,8 +766,8 @@ const topic: Topic = {
           problem: "Aplicando la definición, calcula $f'(1)$ siendo $f(x) = 2x + \\sqrt{x + 3}$.",
           steps: [
             "$f(1) = 2 + \\sqrt{4} = 4$ y $f(1 + h) = 2 + 2h + \\sqrt{4 + h}$.",
-            "$\\dfrac{f(1+h) - f(1)}{h} = \\dfrac{2h + \\sqrt{4 + h} - 2}{h} = 2 + \\dfrac{\\sqrt{4 + h} - 2}{h}$.",
-            "Racionalizamos la fracción: $\\dfrac{\\sqrt{4 + h} - 2}{h} \\cdot \\dfrac{\\sqrt{4 + h} + 2}{\\sqrt{4 + h} + 2} = \\dfrac{4 + h - 4}{h(\\sqrt{4 + h} + 2)} = \\dfrac{1}{\\sqrt{4 + h} + 2}$.",
+            "$$\\dfrac{f(1+h) - f(1)}{h} = \\dfrac{2h + \\sqrt{4 + h} - 2}{h} = 2 + \\dfrac{\\sqrt{4 + h} - 2}{h}$$",
+            "Racionalizamos la fracción:\n\n$$\\dfrac{\\sqrt{4 + h} - 2}{h} \\cdot \\dfrac{\\sqrt{4 + h} + 2}{\\sqrt{4 + h} + 2} = \\dfrac{4 + h - 4}{h(\\sqrt{4 + h} + 2)} = \\dfrac{1}{\\sqrt{4 + h} + 2}$$",
             "$f'(1) = 2 + \\lim_{h \\to 0} \\dfrac{1}{\\sqrt{4 + h} + 2} = 2 + \\dfrac{1}{4}$.",
           ],
           answer: "$f'(1) = \\frac{9}{4}$.",
@@ -776,7 +776,7 @@ const topic: Topic = {
           type: "note",
           tone: "warning",
           title: "Los dos errores que más restan puntos",
-          md: "Sustituir $h = 0$ antes de simplificar, que da $\\frac{0}{0}$ y no lleva a nada. Y escribir $f(a + h) = f(a) + h$, que es falso: hay que meter $a + h$ dentro de la fórmula. Por ejemplo, si $f(x) = x^2$, $f(2 + h) = (2 + h)^2$, no $4 + h$.",
+          md: "- Sustituir $h = 0$ antes de simplificar. Da $\\frac{0}{0}$ y no lleva a nada.\n- Escribir $f(a + h) = f(a) + h$. Es falso: hay que meter $a + h$ dentro de la fórmula. Si $f(x) = x^2$, entonces $f(2 + h) = (2 + h)^2$ y no $4 + h$.",
         },
         {
           type: "quick",
@@ -806,7 +806,7 @@ const topic: Topic = {
           title: "La derivada de un polinomio",
           problem: "Calcula por definición la derivada de $f(x) = 3x^2 - 5x + 1$.",
           steps: [
-            "$f(x + h) = 3(x + h)^2 - 5(x + h) + 1 = 3x^2 + 6xh + 3h^2 - 5x - 5h + 1$.",
+            "$$f(x + h) = 3(x + h)^2 - 5(x + h) + 1 = 3x^2 + 6xh + 3h^2 - 5x - 5h + 1$$",
             "$f(x + h) - f(x) = 6xh + 3h^2 - 5h = h(6x + 3h - 5)$.",
             "$\\dfrac{f(x + h) - f(x)}{h} = 6x + 3h - 5$.",
             "$f'(x) = \\lim_{h \\to 0} (6x + 3h - 5) = 6x - 5$.",
@@ -820,12 +820,12 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Notación", "Se lee", "Quién la usa"],
+          headers: ["Notación", "Se lee y se usa"],
           rows: [
-            ["$f'(x)$", "efe prima de equis", "Lagrange, la más común en el curso"],
-            ["$y'$", "ye prima", "Cuando la función se escribe $y = \\dots$"],
-            ["$\\dfrac{dy}{dx}$, $\\dfrac{df}{dx}$", "derivada de $y$ respecto de $x$", "Leibniz, útil en economía y en la regla de la cadena"],
-            ["$D_x f$", "derivada de $f$ respecto de $x$", "Algunos libros"],
+            ["$f'(x)$", "\"efe prima de equis\". Es la de Lagrange, la más común en el curso."],
+            ["$y'$", "\"ye prima\". Se usa cuando la función se escribe $y = \\dots$"],
+            ["$\\dfrac{dy}{dx}$, $\\dfrac{df}{dx}$", "\"derivada de $y$ respecto de $x$\". Es la de Leibniz, útil en economía y en la regla de la cadena."],
+            ["$D_x f$", "\"derivada de $f$ respecto de $x$\". Aparece en algunos libros."],
           ],
         },
         {
@@ -857,7 +857,7 @@ const topic: Topic = {
           title: "Una fracción",
           problem: "Calcula por definición la derivada de $f(x) = \\dfrac{1}{x + 2}$.",
           steps: [
-            "$f(x + h) - f(x) = \\dfrac{1}{x + h + 2} - \\dfrac{1}{x + 2} = \\dfrac{(x + 2) - (x + h + 2)}{(x + h + 2)(x + 2)} = \\dfrac{-h}{(x + h + 2)(x + 2)}$.",
+            "$$f(x + h) - f(x) = \\dfrac{1}{x + h + 2} - \\dfrac{1}{x + 2} = \\dfrac{(x + 2) - (x + h + 2)}{(x + h + 2)(x + 2)} = \\dfrac{-h}{(x + h + 2)(x + 2)}$$",
             "Dividiendo entre $h$: $\\dfrac{-1}{(x + h + 2)(x + 2)}$.",
             "Con $h \\to 0$: $f'(x) = \\dfrac{-1}{(x + 2)^2}$.",
           ],
@@ -867,9 +867,9 @@ const topic: Topic = {
           title: "Una raíz, tipo parcial",
           problem: "Calcula por definición la derivada de $g(x) = \\sqrt{2x + 1}$.",
           steps: [
-            "$\\dfrac{g(x + h) - g(x)}{h} = \\dfrac{\\sqrt{2x + 2h + 1} - \\sqrt{2x + 1}}{h}$.",
-            "Multiplicamos por $\\dfrac{\\sqrt{2x + 2h + 1} + \\sqrt{2x + 1}}{\\sqrt{2x + 2h + 1} + \\sqrt{2x + 1}}$. El numerador queda $(2x + 2h + 1) - (2x + 1) = 2h$.",
-            "Cancelando $h$: $\\dfrac{2}{\\sqrt{2x + 2h + 1} + \\sqrt{2x + 1}}$.",
+            "$$\\dfrac{g(x + h) - g(x)}{h} = \\dfrac{\\sqrt{2x + 2h + 1} - \\sqrt{2x + 1}}{h}$$",
+            "Multiplicamos arriba y abajo por el conjugado $\\sqrt{2x + 2h + 1} + \\sqrt{2x + 1}$. El numerador queda $(2x + 2h + 1) - (2x + 1) = 2h$.",
+            "Cancelando $h$:\n\n$$\\dfrac{2}{\\sqrt{2x + 2h + 1} + \\sqrt{2x + 1}}$$",
             "Con $h \\to 0$: $g'(x) = \\dfrac{2}{2\\sqrt{2x + 1}} = \\dfrac{1}{\\sqrt{2x + 1}}$.",
           ],
         },
@@ -878,10 +878,10 @@ const topic: Topic = {
           title: "Fracción y raíz a la vez",
           problem: "Calcula por definición la derivada de $f(x) = \\dfrac{1}{\\sqrt{x}}$.",
           steps: [
-            "Común denominador: $\\dfrac{1}{\\sqrt{x + h}} - \\dfrac{1}{\\sqrt{x}} = \\dfrac{\\sqrt{x} - \\sqrt{x + h}}{\\sqrt{x}\\sqrt{x + h}}$.",
-            "Conjugado: $\\sqrt{x} - \\sqrt{x + h} = \\dfrac{x - (x + h)}{\\sqrt{x} + \\sqrt{x + h}} = \\dfrac{-h}{\\sqrt{x} + \\sqrt{x + h}}$.",
+            "Común denominador:\n\n$$\\dfrac{1}{\\sqrt{x + h}} - \\dfrac{1}{\\sqrt{x}} = \\dfrac{\\sqrt{x} - \\sqrt{x + h}}{\\sqrt{x}\\sqrt{x + h}}$$",
+            "Conjugado:\n\n$$\\sqrt{x} - \\sqrt{x + h} = \\dfrac{x - (x + h)}{\\sqrt{x} + \\sqrt{x + h}} = \\dfrac{-h}{\\sqrt{x} + \\sqrt{x + h}}$$",
             "Dividiendo entre $h$: $\\dfrac{-1}{\\sqrt{x}\\sqrt{x + h}(\\sqrt{x} + \\sqrt{x + h})}$.",
-            "Con $h \\to 0$: $f'(x) = \\dfrac{-1}{\\sqrt{x} \\cdot \\sqrt{x} \\cdot 2\\sqrt{x}} = \\dfrac{-1}{2x\\sqrt{x}}$.",
+            "Con $h \\to 0$:\n\n$$f'(x) = \\dfrac{-1}{\\sqrt{x} \\cdot \\sqrt{x} \\cdot 2\\sqrt{x}} = \\dfrac{-1}{2x\\sqrt{x}}$$",
           ],
           answer: "$f'(x) = -\\dfrac{1}{2x\\sqrt{x}}$. Por ejemplo, la pendiente vale $-\\frac{1}{16}$ cuando $x = 4$.",
         },
@@ -890,10 +890,10 @@ const topic: Topic = {
           title: "Una raíz con parámetro",
           problem: "Halla por definición la derivada de $f(x) = \\sqrt{ax^3}$, con $a > 0$ y $x > 0$.",
           steps: [
-            "Conjugado: $\\sqrt{a(x+h)^3} - \\sqrt{ax^3} = \\dfrac{a[(x+h)^3 - x^3]}{\\sqrt{a(x+h)^3} + \\sqrt{ax^3}}$.",
+            "Conjugado:\n\n$$\\sqrt{a(x+h)^3} - \\sqrt{ax^3} = \\dfrac{a[(x+h)^3 - x^3]}{\\sqrt{a(x+h)^3} + \\sqrt{ax^3}}$$",
             "$(x + h)^3 - x^3 = 3x^2h + 3xh^2 + h^3 = h(3x^2 + 3xh + h^2)$.",
             "Dividiendo entre $h$: $\\dfrac{a(3x^2 + 3xh + h^2)}{\\sqrt{a(x+h)^3} + \\sqrt{ax^3}}$.",
-            "Con $h \\to 0$: $f'(x) = \\dfrac{3ax^2}{2\\sqrt{ax^3}} = \\dfrac{3ax^2}{2x\\sqrt{ax}} = \\dfrac{3}{2}\\sqrt{ax}$.",
+            "Con $h \\to 0$:\n\n$$f'(x) = \\dfrac{3ax^2}{2\\sqrt{ax^3}} = \\dfrac{3ax^2}{2x\\sqrt{ax}} = \\dfrac{3}{2}\\sqrt{ax}$$",
           ],
         },
         {
@@ -925,9 +925,9 @@ const topic: Topic = {
           title: "Un logaritmo, tipo parcial",
           problem: "Sea $f(x) = \\ln(2 - x)$. Halla la derivada por definición.",
           steps: [
-            "$f(x + h) - f(x) = \\ln(2 - x - h) - \\ln(2 - x) = \\ln \\dfrac{2 - x - h}{2 - x} = \\ln\\left(1 - \\dfrac{h}{2 - x}\\right)$.",
+            "$$f(x + h) - f(x) = \\ln(2 - x - h) - \\ln(2 - x) = \\ln \\dfrac{2 - x - h}{2 - x} = \\ln\\left(1 - \\dfrac{h}{2 - x}\\right)$$",
             "Llamamos $u = -\\dfrac{h}{2 - x}$. Cuando $h \\to 0$, también $u \\to 0$.",
-            "$\\dfrac{f(x + h) - f(x)}{h} = \\dfrac{\\ln(1 + u)}{h} = \\dfrac{\\ln(1 + u)}{u} \\cdot \\dfrac{u}{h} = \\dfrac{\\ln(1 + u)}{u} \\cdot \\dfrac{-1}{2 - x}$.",
+            "$$\\dfrac{f(x + h) - f(x)}{h} = \\dfrac{\\ln(1 + u)}{h} = \\dfrac{\\ln(1 + u)}{u} \\cdot \\dfrac{u}{h} = \\dfrac{\\ln(1 + u)}{u} \\cdot \\dfrac{-1}{2 - x}$$",
             "El primer factor tiende a $1$: $f'(x) = \\dfrac{-1}{2 - x} = \\dfrac{1}{x - 2}$.",
           ],
           answer: "$f'(x) = \\dfrac{1}{x - 2}$, para $x < 2$.",

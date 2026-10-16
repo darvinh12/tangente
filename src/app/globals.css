@@ -109,6 +109,15 @@ body {
 }
 .mafs-wrap .MafsView text {
   font-family: var(--font-sans);
+  paint-order: stroke;
+  stroke: #fffdf8 !important;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.mafs-wrap .MafsView foreignObject .katex {
+  background: rgb(255 253 248 / 0.88);
+  border-radius: 4px;
+  padding: 0 3px;
 }
 
 /* MathLive */

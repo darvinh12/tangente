@@ -699,6 +699,96 @@ const parametroTrozos: ExerciseGen = {
   },
 };
 
+const ubicarLimiteTabla: ExerciseGen = {
+  id: "ubicar-limite-tabla",
+  title: "Ubicar en el plano el punto al que se acerca la gráfica",
+  level: 1,
+  generate: (r) => {
+    const a = r.int(-3, 4);
+    const L = r.int(-5, 5);
+    const m = r.pick([-2, -1, 1, 2, 3]);
+    const curva = r.bool(0.4);
+    const s = r.pick([-1, 1]);
+    // f(x) = L + m(x - a) + s(x - a)^2 si es curva
+    const f = (x: number) => L + m * (x - a) + (curva ? s * (x - a) ** 2 : 0);
+    const u = minus("x", a);
+    const fn = `${L} ${m > 0 ? "+" : "-"} ${Math.abs(m)}(${u})${curva ? ` ${s > 0 ? "+" : "-"} (${u})^{2}` : ""}`;
+    const xs = NEAR.map((h) => a + h);
+    const ys = xs.map(f);
+    return {
+      statement: `Una función $f$ no está definida en $x = ${a}$. La tabla muestra algunos de sus valores cerca de ese punto.\n\n$$${tableTex(xs, ys)}$$\n\nSu gráfica tiene un hueco. Arrastra el punto hasta ese hueco, es decir, hasta $(${a}, ${limF(a)})$.`,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-6, 6], y: [-8, 8], height: 280 },
+          items: [{ type: "point", label: "P", answer: [a, L], start: [-5, 7] }],
+          reveal: [{ fn, breaks: [a], color: "accent" }],
+        },
+      ],
+      hints: [
+        "La primera coordenada es el valor al que se acerca $x$.",
+        "La segunda es el número al que se acercan los valores de $f(x)$ por los dos lados.",
+      ],
+      solution: [
+        `Por la izquierda: $${num(ys[0])}, \\; ${num(ys[1])}, \\; ${num(ys[2])}$, que se acercan a $${L}$.`,
+        `Por la derecha: $${num(ys[5])}, \\; ${num(ys[4])}, \\; ${num(ys[3])}$, que también se acercan a $${L}$.`,
+        `Entonces $${limF(a)} = ${L}$ y el hueco está en $(${a}, ${L})$. Al acertar aparece la curva: pasa justo por ese punto, aunque $f(${a})$ no exista.`,
+      ],
+    };
+  },
+};
+
+const ubicarLaterales: ExerciseGen = {
+  id: "ubicar-laterales",
+  title: "Ubicar los límites laterales de una función a trozos (tipo parcial)",
+  level: 2,
+  exam: true,
+  generate: (r) => {
+    const a = r.int(-3, 3);
+    const L1 = r.int(-5, 5);
+    const same = r.bool(0.35);
+    let L2 = L1;
+    if (!same) do L2 = r.int(-5, 5); while (L2 === L1);
+    const m1 = r.nz(-2, 2);
+    const b1 = L1 - m1 * a;
+    const p = r.pick([-1, 1]);
+    const q = L2 - p * a * a;
+    const linTex = terms([[m1, "x"], [b1, ""]]);
+    const quadTex = terms([[p, "x^{2}"], [q, ""]]);
+    return {
+      statement: `Sea $$f(x) = ${cases([[linTex, `x < ${a}`], [quadTex, `x \\ge ${a}`]])}$$ Calcula los límites laterales en $x = ${a}$ y ubica en el plano el punto al que llega la curva por cada lado.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-6, 6], y: [-8, 8], height: 280 },
+          items: [
+            { type: "point", label: "\\text{izquierda}", answer: [a, L1], start: [-5, -7] },
+            { type: "point", label: "\\text{derecha}", answer: [a, L2], start: [5, -7] },
+          ],
+          reveal: [
+            { fn: linTex, domain: [-6, a], color: "accent" },
+            { fn: quadTex, domain: [a, 6], color: "accent" },
+          ],
+        },
+        limPart(same ? fmt(L1) : "dne", { prompt: "Con esos dos puntos, calcula el límite. Si no existe, márcalo.", before: `${limF(a)} =` }),
+      ],
+      hints: [
+        `Por la izquierda manda $${linTex}$ y por la derecha $${quadTex}$. Sustituye $x = ${a}$ en cada una.`,
+        `Los dos puntos van sobre la recta vertical $x = ${a}$. Solo cambia la altura.`,
+        "Si los dos puntos quedan en el mismo lugar, el límite existe.",
+      ],
+      solution: [
+        `Por la izquierda: $${limF(a, "-")} = ${coef(m1, `(${a})`)}${b1 === 0 ? "" : ` ${signed(b1)}`} = ${L1}$. El punto es $(${a}, ${L1})$.`,
+        `Por la derecha: $${limF(a, "+")} = ${coef(p, `(${a})^{2}`)}${q === 0 ? "" : ` ${signed(q)}`} = ${L2}$. El punto es $(${a}, ${L2})$.`,
+        same
+          ? `Los dos puntos coinciden: $${limF(a)} = ${L1}$.`
+          : `Los puntos están a alturas distintas, la gráfica tiene un salto y $${limF(a)}$ no existe.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const lecturaSpec: GraphSpec = {
@@ -874,6 +964,22 @@ const topic: Topic = {
             solution: ["La curva llega a la altura $2$ por los dos lados, donde hay un hueco. El límite es $2$. El punto relleno en $4$ es el valor $f(3)$, que no cuenta para el límite."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Ahora sin gráfica. La función $f(x) = \\dfrac{x^2 - 2x - 3}{x - 3}$ no está definida en $x = 3$. Arrastra el punto hasta $\\left(3, \\lim_{x \\to 3} f(x)\\right)$, el hueco de su gráfica.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-3, 6], y: [-3, 7], height: 260 },
+                items: [{ type: "point", label: "P", answer: [3, 4], start: [-2, -2] }],
+                reveal: [{ fn: "x+1", breaks: [3], color: "accent" }],
+              },
+            ],
+            hints: ["Factoriza el numerador: una de sus raíces es $3$."],
+            solution: ["$x^2 - 2x - 3 = (x - 3)(x + 1)$. Para $x \\neq 3$, $f(x) = x + 1$, que cerca de $3$ se acerca a $4$. El hueco está en $(3, 4)$."],
+          },
+        },
       ],
     },
     {
@@ -967,11 +1073,11 @@ const topic: Topic = {
             step: 0.5,
             curves: [{ fn: "3x+1", color: "accent" }],
             hlines: [
-              { y: 6.4, dashed: true, color: "orange", label: "L - ε" },
+              { y: 6.4, dashed: true, color: "orange", label: "L − ε" },
               { y: 7.6, dashed: true, color: "orange", label: "L + ε" },
             ],
             vlines: [
-              { x: 1.8, dashed: true, color: "blue", label: "a - δ" },
+              { x: 1.8, dashed: true, color: "blue", label: "a − δ" },
               { x: 2.2, dashed: true, color: "blue", label: "a + δ" },
             ],
             points: [{ x: 2, y: 7 }],
@@ -982,7 +1088,7 @@ const topic: Topic = {
           type: "note",
           tone: "idea",
           title: "δ depende de ε",
-          md: "Mientras más exigente es la tolerancia $\\varepsilon$, más pequeño tiene que ser $\\delta$. En una recta $mx + k$ la cuenta siempre da $\\delta = \\dfrac{\\varepsilon}{|m|}$: una recta empinada exige que $x$ esté más cerca.",
+          md: "Mientras más exigente es la tolerancia $\\varepsilon$, más pequeño tiene que ser $\\delta$. En una recta $mx + k$ la cuenta siempre da\n\n$$\\delta = \\frac{\\varepsilon}{|m|}$$\n\nAsí, una recta empinada exige que $x$ esté más cerca.",
         },
         {
           type: "quick",
@@ -1012,7 +1118,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Teorema de unicidad",
-          md: "Si $\\lim_{x \\to a} f(x) = L$ y $\\lim_{x \\to a} f(x) = M$, entonces $L = M$.",
+          md: "Si $\\lim_{x \\to a} f(x) = L$ y también $\\lim_{x \\to a} f(x) = M,$ entonces $L = M$.",
         },
         {
           type: "text",
@@ -1032,11 +1138,13 @@ const topic: Topic = {
   exercises: [
     tabla,
     tablaLaterales,
+    ubicarLimiteTabla,
     lateralLectura,
     existeVF,
     interpretar,
     trozosLaterales,
     trozosTres,
+    ubicarLaterales,
     valorAbsoluto,
     deltaLineal,
     graficaCompleta,

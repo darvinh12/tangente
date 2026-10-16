@@ -70,6 +70,15 @@ function cubicWithCritical(r: Rng, range: [number, number], aChoices: number[]) 
 
 const ivTex = (I: Interval[]) => unionTex(I);
 
+/** Producto de dos factores lineales con la x sola delante: (0, 2) y (-2, 0) -> "x(x - 2)", "x(x + 2)" */
+const fx2 = (p: number, q: number) => (q === 0 ? `x${fx(p)}` : `${fx(p)}${fx(q)}`);
+
+/** Signo de g en cada intervalo que dejan los puntos ordenados (se prueba en un punto interior). */
+function signsOn(pts: number[], g: (x: number) => number): (1 | -1)[] {
+  const test = [pts[0] - 1, ...pts.slice(1).map((b, i) => (pts[i] + b) / 2), pts[pts.length - 1] + 1];
+  return test.map((x) => (g(x) > 0 ? 1 : -1));
+}
+
 /* ----------------------------------- ejercicios ----------------------------------- */
 
 const puntosCriticos: ExerciseGen = {
@@ -459,7 +468,7 @@ const monotoniaProducto: ExerciseGen = {
     const opts = ["$f$ es creciente", "$f$ es decreciente", "No se puede asegurar"];
     const why = sub(it.why);
     return {
-      statement: `Sea $g$ una función derivable, ${it.cond} en todo su dominio (con $g'(x) > 0$ si es creciente y $g'(x) < 0$ si es decreciente). ¿Qué se puede asegurar de $f(x) = ${sub(it.f)}$?`,
+      statement: `Sea $g$ una función derivable, ${it.cond} en todo su dominio, es decir, $g(x) ${it.cond.startsWith("negativa") ? "<" : ">"} 0$ y $g'(x) ${it.cond.endsWith("decreciente") ? "<" : ">"} 0$ para todo $x$. ¿Qué se puede asegurar de $f(x) = ${sub(it.f)}$?`,
       parts: [{
         kind: "choice",
         shuffle: false,
@@ -590,6 +599,169 @@ const utilidadMaxima: ExerciseGen = {
   },
 };
 
+const tablaSignosCrecimiento: ExerciseGen = {
+  id: "tabla-signos-crecimiento",
+  title: "Tabla de signos de la derivada",
+  level: 2,
+  generate: (r) => {
+    if (r.bool()) {
+      const k = r.int(1, 4);
+      const k2 = k * k;
+      const pts = [-k, 0, k];
+      const fs = [{ root: -k }, { root: k }, { root: 0, mult: 2, den: true }];
+      const inc = signSolve(fs, 1, ">");
+      const dec = signSolve(fs, 1, "<");
+      return {
+        statement: `Estudia el crecimiento de $f(x) = x + \\dfrac{${k2}}{x}$ con una tabla de signos.`,
+        sequential: true,
+        parts: [
+          {
+            kind: "expr",
+            prompt: "Deriva y escribe $f'(x)$ como una sola fracción.",
+            before: "f'(x) =",
+            answer: `\\frac{x^{2} - ${k2}}{x^{2}}`,
+            vars: ["x"],
+            domain: [0.5, 4],
+            mistakes: [{ answer: `1 + \\frac{${k2}}{x^{2}}`, feedback: `La derivada de $\\frac{${k2}}{x} = ${k2}x^{-1}$ es $-${k2}x^{-2}$. Revisa el signo.` }],
+          },
+          {
+            kind: "signs",
+            prompt: `El numerador se factoriza como $(x + ${k})(x - ${k})$. Completa la tabla. El $0$ va en la tabla porque anula el denominador, aunque no esté en el dominio.`,
+            points: [String(-k), "0", String(k)],
+            rows: [
+              { label: `x + ${k}`, signs: signsOn(pts, (x) => x + k) },
+              { label: `x - ${k}`, signs: signsOn(pts, (x) => x - k) },
+              { label: "x^{2}", signs: signsOn(pts, (x) => x * x) },
+              { label: "f'(x)", signs: signsOn(pts, (x) => 1 - k2 / (x * x)) },
+            ],
+          },
+          { kind: "interval", prompt: "$f$ es creciente en", answer: inc, mistakes: [{ answer: dec, feedback: "Ahí $f'$ es negativa, así que $f$ decrece." }] },
+          { kind: "interval", prompt: "$f$ es decreciente en", answer: dec, mistakes: [{ answer: [iv(-k, k)], feedback: "El $0$ no está en el dominio, así que el intervalo se parte en dos." }] },
+        ],
+        hints: [
+          `Escribe $f(x) = x + ${k2}x^{-1}$ y deriva término a término.`,
+          "El denominador $x^{2}$ es positivo fuera del $0$. El signo lo decide el numerador.",
+        ],
+        solution: [
+          `$f'(x) = 1 - \\dfrac{${k2}}{x^{2}} = \\dfrac{x^{2} - ${k2}}{x^{2}} = \\dfrac{(x + ${k})(x - ${k})}{x^{2}}$.`,
+          `Los puntos de la tabla son $-${k}$, $0$ y $${k}$. Signo de $f'$: $+$ en $(-\\infty, -${k})$, $-$ en $(-${k}, 0)$, $-$ en $(0, ${k})$ y $+$ en $(${k}, +\\infty)$.`,
+          `Creciente en $${ivTex(inc)}$. Decreciente en $${ivTex(dec)}$.`,
+          `Máximo local en $x = -${k}$ y mínimo local en $x = ${k}$. El $0$ no es extremo porque no está en el dominio.`,
+        ],
+      };
+    }
+    const c = r.int(-2, 3);
+    const c2 = c - 2;
+    const pts = [c2, c];
+    const inc = signSolve([{ root: c2 }, { root: c }], 1, ">");
+    const dec = [iv(c2, c)];
+    return {
+      statement: `Estudia el crecimiento de $f(x) = ${fx(c)}^{2}e^{x}$ con una tabla de signos.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "expr",
+          prompt: "Deriva y factoriza.",
+          before: "f'(x) =",
+          answer: `${fx2(c2, c)}e^{x}`,
+          vars: ["x"],
+          mistakes: [{ answer: `2${fx(c)}e^{x}`, feedback: "Derivaste solo el primer factor. Con la regla del producto también se deriva $e^{x}$." }],
+        },
+        {
+          kind: "signs",
+          prompt: "Completa la tabla de signos de cada factor y de $f'$.",
+          points: [String(c2), String(c)],
+          rows: [
+            { label: xm(c2), signs: signsOn(pts, (x) => x - c2) },
+            { label: xm(c), signs: signsOn(pts, (x) => x - c) },
+            { label: "e^{x}", signs: [1, 1, 1] },
+            { label: "f'(x)", signs: signsOn(pts, (x) => (x - c2) * (x - c)) },
+          ],
+        },
+        { kind: "interval", prompt: "$f$ es creciente en", answer: inc, mistakes: [{ answer: dec, feedback: "Ahí $f'$ es negativa, así que $f$ decrece." }] },
+        { kind: "interval", prompt: "$f$ es decreciente en", answer: dec },
+      ],
+      hints: [
+        `Regla del producto: $f'(x) = 2${fx(c)}e^{x} + ${fx(c)}^{2}e^{x}$.`,
+        `Saca factor común $${fx(c)}e^{x}$.`,
+        "La exponencial siempre es positiva.",
+      ],
+      solution: [
+        `$f'(x) = 2${fx(c)}e^{x} + ${fx(c)}^{2}e^{x} = ${fx(c)}e^{x}\\left(2 + ${xm(c)}\\right) = ${fx2(c2, c)}e^{x}$.`,
+        `Puntos críticos: $x = ${c2}$ y $x = ${c}$. La exponencial no cambia el signo, así que $f'$ es $+$, $-$, $+$ en los tres intervalos.`,
+        `Creciente en $${ivTex(inc)}$ y decreciente en $${ivTex(dec)}$.`,
+        `Máximo local en $x = ${c2}$ y mínimo local en $x = ${c}$, con $f(${c}) = 0$.`,
+      ],
+    };
+  },
+};
+
+const extremosEnPlano: ExerciseGen = {
+  id: "extremos-en-el-plano",
+  title: "Ubicar los extremos de una cúbica (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const [a, gap] = r.pick([[1, 2], [-1, 2], [2, 1], [-2, 1]] as [number, number][]);
+    const p = r.int(-3, 3 - gap);
+    const q = p + gap;
+    const base = [a, (-3 * a * (p + q)) / 2, 3 * a * p * q, 0];
+    const maxX = a > 0 ? p : q;
+    const minX = a > 0 ? q : p;
+    const ymin = r.int(-4, 1);
+    const coefs = [base[0], base[1], base[2], ymin - pval(base, minX)];
+    const ymax = pval(coefs, maxX);
+    const pts = [p, q];
+    const rows: { label: string; signs: (1 | -1)[] }[] = [];
+    if (a < 0) rows.push({ label: String(3 * a), signs: [-1, -1, -1] });
+    rows.push(
+      { label: xm(p), signs: signsOn(pts, (x) => x - p) },
+      { label: xm(q), signs: signsOn(pts, (x) => x - q) },
+      { label: "f'(x)", signs: signsOn(pts, (x) => 3 * a * (x - p) * (x - q)) },
+    );
+    const plane = { x: [-5, 5] as [number, number], y: [-6, 6] as [number, number] };
+    const sg = a > 0 ? ["+", "-", "+"] : ["-", "+", "-"];
+    return {
+      statement: `Sea $f(x) = ${poly(coefs)}$. Estudia el signo de $f'$ y ubica en el plano el máximo local y el mínimo local.`,
+      sequential: true,
+      parts: [
+        { kind: "set", prompt: "Puntos críticos", before: "x \\in", answer: [p, q], mistakes: p === -q ? [] : [{ answer: [-p, -q], feedback: "Revisa los signos al factorizar. El factor $(x - p)$ se anula en $p$." }] },
+        {
+          kind: "signs",
+          prompt: `Con $f'(x) = ${cf(3 * a)}${fx2(p, q)}$, completa la tabla de signos.`,
+          points: [String(p), String(q)],
+          rows,
+          given: a < 0 ? [0] : undefined,
+        },
+        {
+          kind: "place",
+          prompt: "Arrastra el punto hasta el máximo local.",
+          graph: plane,
+          items: [{ type: "point", label: "\\text{máximo}", answer: [maxX, ymax], start: [4, -5] }],
+        },
+        {
+          kind: "place",
+          prompt: "Ahora arrastra el punto hasta el mínimo local. Al acertar aparece la curva.",
+          graph: { ...plane, points: [{ x: maxX, y: ymax, label: "máx", color: "red" }] },
+          items: [{ type: "point", label: "\\text{mínimo}", answer: [minX, ymin], start: [4, -5] }],
+          reveal: [{ fn: poly(coefs), color: "accent" }],
+        },
+      ],
+      hints: [
+        "Deriva, saca factor común y factoriza el trinomio.",
+        "Máximo donde $f'$ pasa de $+$ a $-$. Mínimo donde pasa de $-$ a $+$.",
+        "La altura de cada punto sale de sustituir en $f$, no en $f'$.",
+      ],
+      solution: [
+        `$f'(x) = ${poly([3 * a, 2 * base[1], base[2]])} = ${cf(3 * a)}${fx2(p, q)}$. Puntos críticos: $x = ${p}$ y $x = ${q}$.`,
+        `Signo de $f'$: $${sg[0]}$ en $(-\\infty, ${p})$, $${sg[1]}$ en $(${p}, ${q})$ y $${sg[2]}$ en $(${q}, +\\infty)$.`,
+        `En $x = ${maxX}$ pasa de $+$ a $-$: máximo local en $(${maxX}, ${ymax})$.`,
+        `En $x = ${minX}$ pasa de $-$ a $+$: mínimo local en $(${minX}, ${ymin})$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -665,6 +837,26 @@ const topic: Topic = {
             solution: ["$f'(x) = 2x - 4$, que es negativa cuando $x < 2$. Decrece en $(-\\infty, 2)$."],
           },
         },
+        {
+          type: "quick",
+          exercise: {
+            statement: "La derivada de una función es $f'(x) = 3(x + 2)(x - 1)$. Completa la tabla de signos tocando cada casilla.",
+            parts: [{
+              kind: "signs",
+              points: ["-2", "1"],
+              rows: [
+                { label: "x + 2", signs: [-1, 1, 1] },
+                { label: "x - 1", signs: [-1, -1, 1] },
+                { label: "f'(x)", signs: [1, -1, 1] },
+              ],
+            }],
+            hints: ["Prueba un número de cada intervalo, por ejemplo $-3$, $0$ y $2$."],
+            solution: [
+              "$x + 2$ es negativo antes de $-2$ y positivo después. $x - 1$ es negativo antes de $1$ y positivo después.",
+              "Multiplicando por columnas, $f'$ es $+$, $-$, $+$. La función crece en $(-\\infty, -2)$, decrece en $(-2, 1)$ y vuelve a crecer en $(1, +\\infty)$.",
+            ],
+          },
+        },
       ],
     },
     {
@@ -693,7 +885,7 @@ const topic: Topic = {
         },
         {
           type: "graph",
-          spec: { x: [-2, 2], y: [-3, 3], curves: [{ fn: "x^{3}", color: "accent" }], points: [{ x: 0, y: 0, label: "f'(0) = 0" }] },
+          spec: { x: [-2, 2], y: [-3, 3], step: 1, curves: [{ fn: "x^{3}", color: "accent" }], points: [{ x: 0, y: 0 }], labels: [{ x: 0.45, y: -0.9, text: "f'(0) = 0" }] },
           caption: "$f(x) = x^{3}$ tiene tangente horizontal en el origen, pero no tiene extremo allí.",
         },
         {
@@ -756,8 +948,26 @@ const topic: Topic = {
           spec: {
             x: [-1, 5],
             y: [-3, 8],
+            step: 1,
             curves: [{ fn: "x^{3} - 6x^{2} + 9x + 1", color: "accent" }],
             points: [{ x: 1, y: 5, label: "máx (1, 5)", color: "red" }, { x: 3, y: 1, label: "mín (3, 1)", color: "blue" }],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Para $f(x) = x^{3} - 3x^{2} + 4$, arrastra el punto hasta el mínimo local. Al acertar aparece la curva.",
+            parts: [{
+              kind: "place",
+              graph: { x: [-3, 4], y: [-3, 7] },
+              items: [{ type: "point", label: "\\text{mínimo}", answer: [2, 0], start: [-2, 5] }],
+              reveal: [{ fn: "x^{3} - 3x^{2} + 4", color: "accent" }],
+            }],
+            hints: ["$f'(x) = 3x^{2} - 6x = 3x(x - 2)$.", "El mínimo está donde $f'$ pasa de negativa a positiva. Después calcula la altura con $f$."],
+            solution: [
+              "$f'(x) = 3x(x - 2)$ es $+$ en $(-\\infty, 0)$, $-$ en $(0, 2)$ y $+$ en $(2, +\\infty)$.",
+              "En $x = 2$ pasa de $-$ a $+$: mínimo local. $f(2) = 8 - 12 + 4 = 0$, así que el punto es $(2, 0)$.",
+            ],
           },
         },
         {
@@ -858,6 +1068,7 @@ const topic: Topic = {
           spec: {
             x: [-0.5, 2.5],
             y: [-1, 5],
+            step: 1,
             curves: [{ fn: "x^{2}", color: "accent" }, { fn: "2x - 1", color: "orange", dashed: true, domain: [-0.3, 2.5] }],
             segments: [{ from: [0, 0], to: [2, 4], color: "blue" }],
             points: [{ x: 0, y: 0, label: "a" }, { x: 2, y: 4, label: "b" }, { x: 1, y: 1, label: "c = 1", color: "orange" }],
@@ -988,7 +1199,9 @@ const topic: Topic = {
     tvmC,
     rolleHipotesis,
     monotoniaProducto,
+    tablaSignosCrecimiento,
     estudioMonotonia,
+    extremosEnPlano,
     costoPromedio,
     utilidadMaxima,
   ],

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "@phosphor-icons/react";
 import type { TopicMeta } from "@/content/types";
-import { mastery, useProgress } from "@/lib/progress";
+import { dueCount, mastery, useProgress } from "@/lib/progress";
 
 function Ring({ value }: { value: number }) {
   const r = 15;
@@ -107,6 +107,26 @@ export function ContinueCard({ titles }: { titles: Record<string, string> }) {
       <span className="min-w-0 flex-1">
         <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-muted">Continúa donde quedaste</span>
         <span className="mt-0.5 block truncate font-semibold text-ink group-hover:text-accent">{titles[last[0]]}</span>
+      </span>
+      <ArrowRight size={20} className="text-accent transition-transform group-hover:translate-x-1" />
+    </Link>
+  );
+}
+
+export function ReviewNudge() {
+  const progress = useProgress();
+  const n = dueCount(progress);
+  if (!n) return null;
+  return (
+    <Link
+      href="/repaso"
+      className="rise group mt-3 flex max-w-md items-center gap-4 rounded-2xl border border-accent/30 bg-accent-soft/60 px-5 py-4 transition-colors hover:border-accent/60"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-accent">Repaso pendiente</span>
+        <span className="mt-0.5 block font-semibold text-ink">
+          {n === 1 ? "Tienes 1 ejercicio para repasar hoy" : `Tienes ${n} ejercicios para repasar hoy`}
+        </span>
       </span>
       <ArrowRight size={20} className="text-accent transition-transform group-hover:translate-x-1" />
     </Link>

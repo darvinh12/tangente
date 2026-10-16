@@ -121,9 +121,9 @@ export function MathInput({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2.5">
-        {before ? <Tex tex={before} className="shrink-0 text-[1.15rem]" /> : null}
-        <div className="relative min-w-0 flex-1">
+      <div className="flex flex-wrap items-center gap-2.5">
+        {before ? <Tex tex={before} className="max-w-full shrink-0 overflow-x-auto text-[1.15rem]" /> : null}
+        <div className="relative min-w-[200px] flex-1">
           {specialValue ? (
             <button
               type="button"

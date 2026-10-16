@@ -1,7 +1,7 @@
 "use client";
 
 import { Coordinates, LaTeX, Line, Mafs, Point, Polyline, Text } from "mafs";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import type { Curve, GraphSpec, Tone } from "@/content/types";
 import { compile } from "@/lib/math/parse";
 
@@ -15,8 +15,8 @@ export const TONES: Record<Tone, string> = {
   muted: "#9a9387",
 };
 
-export function niceStep(span: number): number {
-  const raw = span / 10;
+export function niceStep(span: number, target = 10): number {
+  const raw = span / Math.max(2, target);
   const p = Math.pow(10, Math.floor(Math.log10(raw)));
   const m = raw / p;
   const k = m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10;
@@ -89,12 +89,24 @@ export function CurvePlot({ curve, spec }: { curve: Curve; spec: GraphSpec }) {
   );
 }
 
-function Label({ x, y, text, color }: { x: number; y: number; text: string; color: string }) {
+function Label({
+  x,
+  y,
+  text,
+  color,
+  attach = "ne",
+}: {
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  attach?: "ne" | "nw" | "se" | "sw" | "n" | "e" | "w";
+}) {
   if (text.includes("$")) {
     return <LaTeX at={[x, y]} tex={text.replace(/\$/g, "")} color={color} />;
   }
   return (
-    <Text x={x} y={y} color={color} size={15} attach="ne" attachDistance={6}>
+    <Text x={x} y={y} color={color} size={15} attach={attach} attachDistance={6}>
       {text}
     </Text>
   );
@@ -109,16 +121,41 @@ export function GraphCanvas({
   children?: ReactNode;
   onClick?: (p: [number, number]) => void;
 }) {
-  const stepX = spec.step ?? niceStep(spec.x[1] - spec.x[0]);
-  const stepY = spec.step ?? niceStep(spec.y[1] - spec.y[0]);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(640);
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setWidth(Math.round(e.contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const height = spec.height ?? 320;
+  const spanX = spec.x[1] - spec.x[0];
+  const spanY = spec.y[1] - spec.y[0];
+  // Una marca cada ~48 px en x y cada ~34 px en y como mínimo.
+  const fit = (step: number, span: number, maxTicks: number) => {
+    let s = step;
+    while (span / s > maxTicks) s *= 2;
+    return s;
+  };
+  const maxX = Math.max(4, Math.floor(width / 48));
+  const maxY = Math.max(4, Math.floor(height / 34));
+  const stepX = fit(spec.step ?? niceStep(spanX, maxX), spanX, maxX);
+  const stepY = fit(spec.step ?? niceStep(spanY, maxY), spanY, maxY);
   const fmtTick = (n: number) => {
     const r = Math.round(n * 1000) / 1000;
     return String(r).replace(".", ",").replace("-", "−");
   };
+  // Sin número en el cero ni pegado a los bordes, donde queda cortado.
+  const labelX = (n: number) =>
+    Math.abs(n) < 1e-9 || n - spec.x[0] < spanX * 0.04 || spec.x[1] - n < spanX * 0.04 ? "" : fmtTick(n);
+  const labelY = (n: number) =>
+    Math.abs(n) < 1e-9 || n - spec.y[0] < spanY * 0.04 || spec.y[1] - n < spanY * 0.05 ? "" : fmtTick(n);
   return (
-    <div className="mafs-wrap overflow-hidden rounded-[14px] border border-line bg-surface">
+    <div ref={wrapRef} className="mafs-wrap overflow-hidden rounded-[14px] border border-line bg-surface">
       <Mafs
-        height={spec.height ?? 320}
+        height={height}
         viewBox={{ x: spec.x, y: spec.y, padding: 0 }}
         preserveAspectRatio={false}
         pan={false}
@@ -127,8 +164,8 @@ export function GraphCanvas({
       >
         <Coordinates.Cartesian
           subdivisions={false}
-          xAxis={{ lines: stepX, labels: (n) => (Math.abs(n) < 1e-9 ? "" : fmtTick(n)) }}
-          yAxis={{ lines: stepY, labels: (n) => (Math.abs(n) < 1e-9 ? "" : fmtTick(n)) }}
+          xAxis={{ lines: stepX, labels: labelX }}
+          yAxis={{ lines: stepY, labels: labelY }}
         />
         {spec.vlines?.map((l, i) => (
           <Line.ThroughPoints
@@ -165,7 +202,7 @@ export function GraphCanvas({
           l.label ? <Label key={`vl${i}`} x={l.x} y={spec.y[1] - (spec.y[1] - spec.y[0]) * 0.08} text={l.label} color={TONES[l.color ?? "red"]} /> : null,
         )}
         {spec.hlines?.map((l, i) =>
-          l.label ? <Label key={`hl${i}`} x={spec.x[1] - (spec.x[1] - spec.x[0]) * 0.14} y={l.y} text={l.label} color={TONES[l.color ?? "red"]} /> : null,
+          l.label ? <Label key={`hl${i}`} x={spec.x[1] - (spec.x[1] - spec.x[0]) * 0.03} y={l.y} text={l.label} color={TONES[l.color ?? "red"]} attach="nw" /> : null,
         )}
         {spec.curves?.map((c, i) => {
           if (!c.label) return null;
@@ -178,7 +215,7 @@ export function GraphCanvas({
             y = f(x);
           }
           if (!Number.isFinite(y)) return null;
-          return <Label key={`cl${i}`} x={x} y={y} text={c.label} color={TONES[c.color ?? "accent"]} />;
+          return <Label key={`cl${i}`} x={x} y={y} text={c.label} color={TONES[c.color ?? "accent"]} attach="nw" />;
         })}
         {spec.points?.map((p, i) => {
           const color = TONES[p.color ?? "accent"];

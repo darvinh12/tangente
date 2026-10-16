@@ -39,6 +39,11 @@ function xMinus(a: number): string {
   return a === 0 ? "x" : a > 0 ? `x - ${fmt(a)}` : `x + ${fmt(-a)}`;
 }
 
+/** Factor lineal: 0 -> "x", 3 -> "(x - 3)" */
+function fac(a: number): string {
+  return a === 0 ? "x" : `(${xMinus(a)})`;
+}
+
 /* ----------------------------------- ejercicios ----------------------------------- */
 
 const vfTangente: ExerciseGen = {
@@ -622,6 +627,166 @@ const horizontalCuadrante: ExerciseGen = {
   },
 };
 
+const ubicarTangencia: ExerciseGen = {
+  id: "ubicar-tangencia",
+  title: "Ubicar el punto de tangencia en el plano",
+  level: 2,
+  generate: (r) => {
+    const plane = { x: [-5, 5] as [number, number], y: [-6, 6] as [number, number] };
+    if (r.bool()) {
+      // Cúbica s((x - h)^3 - 3(x - h)) + d: tangente horizontal en x = h ± 1.
+      const s = r.pick([1, -1]);
+      const h = r.int(-2, 2);
+      const d = r.int(-2, 2);
+      const c = [s, -3 * s * h, s * (3 * h * h - 3), s * (3 * h - h ** 3) + d];
+      const mayor = r.bool();
+      const x0 = mayor ? h + 1 : h - 1;
+      const other = mayor ? h - 1 : h + 1;
+      const y0 = evalPoly(c, x0);
+      return {
+        statement: `La recta tangente a $f(x) = ${poly(c)}$ es horizontal en dos puntos. Halla el de abscisa ${mayor ? "mayor" : "menor"} y ubícalo en el plano.`,
+        sequential: true,
+        parts: [
+          {
+            kind: "expr",
+            prompt: "Abscisa del punto de tangencia",
+            before: "x_0 =",
+            answer: String(x0),
+            mistakes: [{ answer: String(other), feedback: `En ese punto la tangente también es horizontal, pero su abscisa es la ${mayor ? "menor" : "mayor"} de las dos.` }],
+          },
+          {
+            kind: "place",
+            prompt: "Arrastra el punto hasta el punto de tangencia. Al acertar verás la curva y la tangente.",
+            graph: plane,
+            items: [{ type: "point", label: "P", answer: [x0, y0], start: [4, -5] }],
+            reveal: [
+              { fn: poly(c), color: "accent" },
+              { fn: String(y0), color: "orange", dashed: true },
+            ],
+          },
+        ],
+        hints: ["Tangente horizontal quiere decir $f'(x) = 0$.", "Después calcula la altura con $f$, no con $f'$."],
+        solution: [
+          `$f'(x) = ${poly(dpoly(c))} = ${coef(3 * s, h + 1 === 0 ? `x${fac(h - 1)}` : `${fac(h - 1)}${fac(h + 1)}`)}$.`,
+          `$f'(x) = 0$ en $x = ${h - 1}$ y $x = ${h + 1}$. La abscisa ${mayor ? "mayor" : "menor"} es $x_0 = ${x0}$.`,
+          `$f(${x0}) = ${y0}$. El punto es $(${x0}, ${y0})$ y la tangente es la recta horizontal $y = ${y0}$.`,
+        ],
+      };
+    }
+    // Parábola a x^2 + b x + c con pendiente m en x0.
+    const a = r.pick([1, -1]);
+    const x0 = r.int(-3, 3);
+    const y0 = r.int(-4, 4);
+    const m = r.nz(-4, 4);
+    const b = m - 2 * a * x0;
+    const c = [a, b, y0 - a * x0 * x0 - b * x0];
+    const bt = y0 - m * x0;
+    return {
+      statement: `¿En qué punto de la gráfica de $f(x) = ${poly(c)}$ la recta tangente tiene pendiente $${m}$? Halla su abscisa y ubícalo en el plano.`,
+      sequential: true,
+      parts: [
+        { kind: "expr", prompt: "Abscisa del punto de tangencia", before: "x_0 =", answer: String(x0) },
+        {
+          kind: "place",
+          prompt: "Arrastra el punto hasta el punto de tangencia. Al acertar verás la curva y la tangente.",
+          graph: plane,
+          items: [{ type: "point", label: "P", answer: [x0, y0], start: [4, -5] }],
+          reveal: [
+            { fn: poly(c), color: "accent" },
+            { fn: lineTex(m, bt), color: "orange", dashed: true },
+          ],
+        },
+      ],
+      hints: [`La pendiente de la tangente es $f'(x)$. Resuelve $f'(x) = ${m}$.`, "Con la abscisa, calcula la altura en $f$."],
+      solution: [
+        `$f'(x) = ${poly(dpoly(c))}$.`,
+        `$${poly(dpoly(c))} = ${m}$ da $x_0 = ${x0}$.`,
+        `$f(${x0}) = ${y0}$. El punto es $(${x0}, ${y0})$ y la tangente es $y = ${lineTex(m, bt)}$.`,
+      ],
+    };
+  },
+};
+
+const tangenteParalelaPlano: ExerciseGen = {
+  id: "tangente-paralela-plano",
+  title: "Tangente paralela a una recta, en el plano (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    // f(x) = s(x - h)^3 + t(x - h) + d, con f'(x) = 3s(x - h)^2 + t = m en x = h ± 1.
+    let s: number, t: number, m: number;
+    do {
+      s = r.pick([1, -1]);
+      t = r.int(-3, 3);
+      m = 3 * s + t;
+    } while (m === 0);
+    const h = r.int(-2, 2);
+    const d = r.int(-2, 2);
+    const c = [s, -3 * s * h, 3 * s * h * h + t, -s * h ** 3 - t * h + d];
+    const mayor = r.bool();
+    const x0 = mayor ? h + 1 : h - 1;
+    const y0 = evalPoly(c, x0);
+    const bt = y0 - m * x0;
+    const B = r.nz(-6, 6);
+    const perp = r.bool(0.4);
+    const absM = Math.abs(m);
+    const lineEq = perp ? `x ${m < 0 ? "-" : "+"} ${absM === 1 ? "" : absM}y ${signed(B)} = 0` : `${coef(m, "x")} - y ${signed(B)} = 0`;
+    const slopeLine = perp ? frac(-1, m) : String(m);
+    return {
+      statement: `La gráfica de $f(x) = ${poly(c)}$ tiene dos rectas tangentes ${perp ? "perpendiculares" : "paralelas"} a la recta $${lineEq}$. Halla la que toca la curva en el punto de abscisa ${mayor ? "mayor" : "menor"}.`,
+      sequential: true,
+      parts: [
+        {
+          kind: "expr",
+          prompt: "Pendiente que deben tener las tangentes",
+          before: "m =",
+          answer: String(m),
+          mistakes: perp && slopeLine !== String(m) ? [{ answer: slopeLine, feedback: "Esa es la pendiente de la recta dada. La tangente es perpendicular, así que su pendiente es $-\\frac{1}{k}$." }] : [],
+        },
+        {
+          kind: "set",
+          prompt: "Abscisas donde $f'(x)$ toma ese valor",
+          before: "x \\in",
+          answer: [h - 1, h + 1],
+          mistakes: [{ answer: [x0], feedback: "La ecuación es de segundo grado y tiene dos soluciones. Escríbelas las dos." }],
+        },
+        {
+          kind: "place",
+          prompt: `Arrastra el punto hasta el punto de tangencia de abscisa ${mayor ? "mayor" : "menor"}. Al acertar verás la curva y la tangente.`,
+          graph: { x: [-5, 5], y: [-7, 7] },
+          items: [{ type: "point", label: "P", answer: [x0, y0], start: [4, -6] }],
+          reveal: [
+            { fn: poly(c), color: "accent" },
+            { fn: lineTex(m, bt), color: "orange", dashed: true },
+          ],
+        },
+        {
+          kind: "expr",
+          prompt: "Término independiente de la tangente $y = mx + b$",
+          before: "b =",
+          answer: String(bt),
+          mistakes: y0 !== bt ? [{ answer: String(y0), feedback: `$${y0}$ es la altura del punto de tangencia. Falta despejar $y$ en $y - f(x_0) = m(x - x_0)$.` }] : [],
+        },
+      ],
+      hints: [
+        perp
+          ? "Despeja $y$ en la recta dada para leer su pendiente $k$. La tangente buscada tiene pendiente $-\\frac{1}{k}$."
+          : "Despeja $y$ en la recta dada para leer su pendiente. Paralelas tienen la misma pendiente.",
+        "Iguala $f'(x)$ a esa pendiente. Salen dos abscisas.",
+        "Con el punto $(x_0, f(x_0))$ y la pendiente, escribe $y - f(x_0) = m(x - x_0)$.",
+      ],
+      solution: [
+        perp
+          ? `La recta dada tiene pendiente $${slopeLine}$. La perpendicular tiene pendiente $-1 \\div \\left(${slopeLine}\\right) = ${m}$.`
+          : `Despejando, la recta dada es $y = ${lineTex(m, B)}$, con pendiente $${m}$.`,
+        `$f'(x) = ${poly(dpoly(c))}$. Igualando a $${m}$: $${poly(dpoly(c))} = ${m}$, que da $x = ${h - 1}$ o $x = ${h + 1}$.`,
+        `La abscisa ${mayor ? "mayor" : "menor"} es $x_0 = ${x0}$, con $f(${x0}) = ${y0}$. El punto de tangencia es $(${x0}, ${y0})$.`,
+        `$y - ${p(y0)} = ${coef(m, fac(x0))}$, es decir, $y = ${lineTex(m, bt)}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -710,7 +875,7 @@ const topic: Topic = {
         {
           type: "definition",
           title: "Recta normal en x = a",
-          md: "$$y - f(a) = -\\frac{1}{f'(a)}\\,(x - a) \\qquad (f'(a) \\ne 0)$$\n\nSi $f'(a) = 0$ la tangente es horizontal y la normal es la recta vertical $x = a$.",
+          md: "$$y - f(a) = -\\frac{1}{f'(a)}\\,(x - a)$$\n\nVale cuando $f'(a) \\ne 0$. Si $f'(a) = 0$ la tangente es horizontal y la normal es la recta vertical $x = a$.",
         },
         {
           type: "example",
@@ -728,6 +893,7 @@ const topic: Topic = {
           spec: {
             x: [-2, 4],
             y: [-1, 5],
+            step: 1,
             curves: [
               { fn: "x^{2}", color: "accent" },
               { fn: "2x - 1", color: "orange", dashed: true, label: "tangente" },
@@ -787,6 +953,7 @@ const topic: Topic = {
           spec: {
             x: [-3, 3],
             y: [-4, 4],
+            step: 1,
             curves: [{ fn: "x^{3} - 3x", color: "accent" }],
             hlines: [
               { y: 2, color: "orange", dashed: true },
@@ -822,6 +989,23 @@ const topic: Topic = {
             statement: "¿En qué valor de $x$ la tangente a $f(x) = x^{2} - 6x + 5$ es horizontal?",
             parts: [{ kind: "expr", before: "x =", answer: "3" }],
             solution: ["$f'(x) = 2x - 6 = 0$ da $x = 3$."],
+          },
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "Arrastra el punto hasta el lugar de $f(x) = x^{2} - 4x + 1$ donde la tangente es horizontal. Al acertar verás la curva y la tangente.",
+            parts: [{
+              kind: "place",
+              graph: { x: [-2, 6], y: [-4, 6] },
+              items: [{ type: "point", label: "P", answer: [2, -3], start: [5, 4] }],
+              reveal: [
+                { fn: "x^{2} - 4x + 1", color: "accent" },
+                { fn: "-3", color: "orange", dashed: true },
+              ],
+            }],
+            hints: ["Resuelve $f'(x) = 0$ y calcula la altura con $f$."],
+            solution: ["$f'(x) = 2x - 4 = 0$ da $x = 2$, y $f(2) = 4 - 8 + 1 = -3$. El punto es $(2, -3)$ y la tangente es $y = -3$."],
           },
         },
       ],
@@ -904,6 +1088,7 @@ const topic: Topic = {
           spec: {
             x: [-0.5, 3],
             y: [-0.5, 5],
+            step: 1,
             curves: [
               { fn: "x^{2}", color: "accent" },
               { fn: "2x - 1", color: "orange", dashed: true },
@@ -973,8 +1158,10 @@ const topic: Topic = {
     tangenteLnExp,
     normal,
     pendienteDada,
+    ubicarTangencia,
     aproximacion,
     paralelaRecta,
+    tangenteParalelaPlano,
     incrementoDiferencial,
     tangenteCorteEje,
     horizontalCuadrante,

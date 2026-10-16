@@ -154,7 +154,7 @@ const clasificarGrafica: ExerciseGen = {
     const t = r.pick(["continua", "evitable", "evitable", "salto", "salto", "infinita"] as Tipo[]);
     const undef = r.bool();
     return {
-      statement: `Observa la gráfica de $f$ cerca de $x = ${a}$. ¿Es continua en ese punto? Si no lo es, ¿qué tipo de discontinuidad tiene?`,
+      statement: `Observa la gráfica de $f$. ¿Es continua en $x = ${a}$? Si no lo es, ¿qué tipo de discontinuidad tiene ahí?`,
       graph: oneDisc(t, a, k, r.pick([-3, 3]), undef),
       parts: [tipoChoice(t)],
       hints: ["Un punto hueco es un valor que no se toma. Un punto relleno es el valor de $f$ en ese $x$."],
@@ -432,7 +432,7 @@ const bosquejoDisc: ExerciseGen = {
     ];
     const all = r.shuffle([{ graph: good, ok: true, feedback: undefined as string | undefined }, ...wrong.map((w) => ({ ...w, ok: false }))]);
     return {
-      statement: `Se quiere graficar una función continua en $\\mathbb{R}$ salvo en tres puntos: una discontinuidad evitable en $x = ${pE}$, una inevitable de salto en $x = ${pS}$ y una infinita en $x = ${pI}$. ¿Cuál gráfica cumple todo?`,
+      statement: `Se quiere graficar una función continua en $\\mathbb{R}$ salvo en tres puntos:\n\n- discontinuidad evitable en $x = ${pE}$\n- inevitable de salto en $x = ${pS}$\n- inevitable infinita en $x = ${pI}$\n\n¿Cuál gráfica cumple todo?`,
       parts: [
         {
           kind: "choice",
@@ -601,6 +601,127 @@ const vfContinuidad: ExerciseGen = {
   },
 };
 
+const taparHueco: ExerciseGen = {
+  id: "tapar-hueco",
+  title: "Tapar el hueco de una discontinuidad evitable",
+  level: 1,
+  generate: (r) => {
+    const tpl = r.pick(["cuadrados", "trinomio", "redefinir"] as const);
+    let a: number, s: number;
+    if (tpl === "cuadrados") {
+      a = r.nz(-3, 3);
+      s = -a;
+    } else {
+      a = r.int(-4, 4);
+      do s = r.int(-5, 5); while (s === a || Math.abs(a - s) > 6);
+    }
+    const L = a - s;
+    const num = tpl === "cuadrados" ? `x^{2} - ${a * a}` : poly([1, -(a + s), a * s]);
+    const frTex = `\\dfrac{${num}}{${minus("x", a)}}`;
+    let c = 0;
+    if (tpl === "redefinir") do c = r.int(-6, 6); while (c === L);
+    const statement =
+      tpl === "redefinir"
+        ? `Sea $$G(x) = ${cases([[frTex, `x \\neq ${a}`], [String(c), `x = ${a}`]])}$$ El punto del plano es $(${a}, G(${a}))$. Muévelo hasta la altura que hace continua a $G$ en $x = ${a}$.`
+        : `La función $f(x) = ${frTex}$ no está definida en $x = ${a}$, así que su gráfica tiene un hueco. Arrastra el punto hasta el lugar exacto que hay que rellenar para que $f$ sea continua.`;
+    const factored = tpl === "cuadrados" ? `(${minus("x", a)})(${minus("x", -a)})` : `(${minus("x", a)})(${minus("x", s)})`;
+    return {
+      statement,
+      parts: [
+        {
+          kind: "place",
+          graph: { x: [-6, 6], y: [-8, 8], height: 280 },
+          items: [{ type: "point", label: "P", answer: [a, L], start: tpl === "redefinir" ? [a, c] : [-5, 7] }],
+          reveal: [{ fn: minus("x", s), breaks: [a], color: "accent" }],
+        },
+      ],
+      hints: [
+        tpl === "cuadrados" ? "El numerador es una diferencia de cuadrados." : `Factoriza el numerador: una de sus raíces es $${a}$.`,
+        `Simplifica y calcula el límite cuando $x \\to ${a}$. Esa es la altura del hueco.`,
+      ],
+      solution: [
+        `$${num} = ${factored}$. Para $x \\neq ${a}$ la fracción se simplifica a $${minus("x", s)}$.`,
+        `$${lim(String(a))} ${tpl === "redefinir" ? "G" : "f"}(x) = ${a} ${signed(-s)} = ${L}$. El límite existe, así que la discontinuidad es evitable.`,
+        tpl === "redefinir"
+          ? `Hoy $G(${a}) = ${c}$, distinto del límite. Redefiniendo $G(${a}) = ${L}$ queda continua: el punto va en $(${a}, ${L})$.`
+          : `Definiendo $f(${a}) = ${L}$ el hueco se tapa. El punto es $(${a}, ${L})$.`,
+      ],
+    };
+  },
+};
+
+const continuidadSignos: ExerciseGen = {
+  id: "continuidad-signos",
+  title: "Continuidad de una raíz o un logaritmo de un cociente (tipo parcial)",
+  level: 3,
+  exam: true,
+  generate: (r) => {
+    const kind = r.pick(["raiz", "log"] as const);
+    const [p, q] = r.sample([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], 2);
+    const flip = r.bool();
+    const numTex = flip ? (p === 0 ? "-x" : `${p} - x`) : minus("x", p);
+    const denTex = minus("x", q);
+    const quot = `\\dfrac{${numTex}}{${denTex}}`;
+    const fTex = kind === "raiz" ? `\\sqrt{${quot}}` : `\\ln\\left(${quot}\\right)`;
+    const pts = [p, q].sort((u, v) => u - v);
+    const probe = [pts[0] - 1, (pts[0] + pts[1]) / 2, pts[1] + 1];
+    const sg = (v: number) => (v > 0 ? 1 : -1) as 1 | -1;
+    const sN = probe.map((x) => sg(flip ? p - x : x - p));
+    const sD = probe.map((x) => sg(x - q));
+    const sQ = sN.map((s, j) => (s * sD[j]) as 1 | -1);
+    const bounds = [-Infinity, ...pts, Infinity];
+    const build = (closeP: boolean): Interval[] =>
+      sQ.flatMap((s, j) => {
+        if (s < 0) return [];
+        const lo = bounds[j];
+        const hi = bounds[j + 1];
+        return [iv(lo, hi, closeP && lo === p, closeP && hi === p)];
+      });
+    const ans = build(kind === "raiz");
+    const mistakes: { answer: Interval[]; feedback: Rich }[] = [];
+    if (kind === "raiz") {
+      mistakes.push({ answer: build(false), feedback: `En $x = ${p}$ el cociente vale $0$ y $\\sqrt{0} = 0$ existe. Ese extremo entra.` });
+      const withQ = ans.map((I) => ({ ...I, loClosed: I.loClosed || I.lo === q, hiClosed: I.hiClosed || I.hi === q }));
+      mistakes.push({ answer: withQ, feedback: `En $x = ${q}$ se anula el denominador. Ahí la función no existe.` });
+    } else {
+      mistakes.push({ answer: build(true), feedback: `En $x = ${p}$ el argumento vale $0$ y $\\ln 0$ no existe. Ese extremo no entra.` });
+    }
+    const signWord = (s: number) => (s > 0 ? "+" : "-");
+    return {
+      statement: `Determina el conjunto donde es continua $$f(x) = ${fTex}$$`,
+      sequential: true,
+      parts: [
+        {
+          kind: "signs",
+          prompt: "Primero, el signo del cociente. Completa la tabla.",
+          points: pts.map(String),
+          rows: [
+            { label: numTex, signs: sN },
+            { label: denTex, signs: sD },
+            { label: `\\frac{${numTex}}{${denTex}}`, signs: sQ },
+          ],
+        },
+        { kind: "interval", prompt: "Conjunto donde $f$ es continua:", answer: ans, mistakes },
+      ],
+      hints: [
+        kind === "raiz"
+          ? "La raíz es continua donde existe: el cociente tiene que ser mayor o igual que cero y el denominador distinto de cero."
+          : "El logaritmo es continuo donde existe: su argumento tiene que ser estrictamente positivo.",
+        `Los puntos críticos son $x = ${p}$, donde se anula el numerador, y $x = ${q}$, donde se anula el denominador.`,
+        "Toma un número de prueba en cada intervalo y mira el signo de cada factor.",
+      ],
+      solution: [
+        `${kind === "raiz" ? "La raíz" : "El logaritmo"} es continua en todo su dominio, así que basta resolver $${quot} ${kind === "raiz" ? "\\ge" : ">"} 0$.`,
+        `Con los puntos críticos $${pts[0]}$ y $${pts[1]}$ quedan tres intervalos. El signo del cociente es $${sQ.map(signWord).join("\\;")}$, en ese orden.`,
+        kind === "raiz"
+          ? `Se toman los intervalos con signo $+$. Se agrega $x = ${p}$, donde el cociente vale $0$, y se excluye $x = ${q}$, donde el denominador se anula.`
+          : `Se toman los intervalos con signo $+$, sin los extremos: en $x = ${p}$ el argumento vale $0$ y en $x = ${q}$ no existe.`,
+        `$f$ es continua en $${unionTex(ans)}$.`,
+      ],
+    };
+  },
+};
+
 /* ------------------------------------ lección ------------------------------------ */
 
 const topic: Topic = {
@@ -649,8 +770,8 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Si $\\lim_{x \\to 3} f(x) = 5$ y $f(3) = 5$, ¿es $f$ continua en $x = 3$?",
-            parts: [trueFalse(true, "Se cumplen las tres condiciones: el valor existe, el límite existe y coinciden.", "¿Es continua?")],
+            statement: "Si $\\lim_{x \\to 3} f(x) = 5$ y $f(3) = 5$, entonces $f$ es continua en $x = 3$.",
+            parts: [trueFalse(true, "Se cumplen las tres condiciones: el valor existe, el límite existe y coinciden.")],
             solution: ["Sí. El límite existe y es igual a $f(3)$."],
           },
         },
@@ -711,11 +832,11 @@ const topic: Topic = {
         },
         {
           type: "table",
-          headers: ["Tipo", "Qué pasa con los laterales", "¿Se arregla redefiniendo $f(a)$?"],
+          headers: ["Tipo", "Qué pasa con los laterales"],
           rows: [
-            ["Evitable", "Existen, son finitos e iguales. $f(a)$ no existe o es distinto", "Sí, poniendo $f(a)$ igual al límite"],
-            ["Inevitable de salto", "Existen, son finitos y distintos", "No"],
-            ["Inevitable infinita", "Al menos uno es $\\pm\\infty$", "No"],
+            ["Evitable", "Existen, son finitos e iguales, pero $f(a)$ no existe o es distinto. Se arregla poniendo $f(a)$ igual al límite."],
+            ["Inevitable de salto", "Existen, son finitos y distintos. Redefinir $f(a)$ no lo arregla."],
+            ["Inevitable infinita", "Al menos uno es $\\pm\\infty$. Redefinir $f(a)$ no lo arregla."],
           ],
         },
         { type: "graph", spec: oneDisc("evitable", 0, 1, 3, true), caption: "Evitable: un hueco. El límite existe, el punto falta." },
@@ -731,6 +852,22 @@ const topic: Topic = {
             "Basta tomar $A = 8$ para que el valor coincida con el límite.",
           ],
           answer: "Sí, con $A = 8$. La discontinuidad era evitable.",
+        },
+        {
+          type: "quick",
+          exercise: {
+            statement: "La gráfica de $f(x) = \\dfrac{x^2 - 9}{x - 3}$ tiene un hueco. Arrastra el punto hasta el lugar que lo tapa.",
+            parts: [
+              {
+                kind: "place",
+                graph: { x: [-6, 6], y: [-4, 10], height: 260 },
+                items: [{ type: "point", label: "P", answer: [3, 6], start: [-4, -2] }],
+                reveal: [{ fn: "x+3", breaks: [3], color: "accent" }],
+              },
+            ],
+            hints: ["Factoriza $x^2 - 9$ y simplifica. El hueco está en $x = 3$ y su altura es el límite."],
+            solution: ["Para $x \\neq 3$, $f(x) = x + 3$. El límite en $3$ vale $6$, así que el punto que falta es $(3, 6)$."],
+          },
         },
         {
           type: "note",
@@ -787,7 +924,7 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Sea $f(x) = x + 1$ si $x \\le 1$ y $f(x) = 3x - 1$ si $x > 1$. ¿Es continua en $x = 1$?",
+            statement: "¿Qué pasa en $x = 1$ con esta función?\n\n$$f(x) = \\begin{cases} x + 1 & \\text{si } x \\le 1 \\\\ 3x - 1 & \\text{si } x > 1 \\end{cases}$$",
             parts: [tipoChoice("continua")],
             solution: ["Por la izquierda y en el punto vale $2$. Por la derecha $3 - 1 = 2$. Es continua."],
           },
@@ -816,7 +953,7 @@ const topic: Topic = {
         {
           type: "example",
           title: "Dos parámetros",
-          problem: "Halla $a$ y $b$ para que $f(x) = \\begin{cases} x^2 & \\text{si } x < 1 \\\\ ax + b & \\text{si } 1 \\le x \\le 3 \\\\ 2x + 1 & \\text{si } x > 3 \\end{cases}$ sea continua en $\\mathbb{R}$.",
+          problem: "Halla $a$ y $b$ para que esta función sea continua en $\\mathbb{R}$:\n\n$$f(x) = \\begin{cases} x^2 & \\text{si } x < 1 \\\\ ax + b & \\text{si } 1 \\le x \\le 3 \\\\ 2x + 1 & \\text{si } x > 3 \\end{cases}$$",
           steps: [
             "En $x = 1$: por la izquierda $1^2 = 1$, y $f(1) = a + b$. Ecuación: $a + b = 1$.",
             "En $x = 3$: $f(3) = 3a + b$ y por la derecha $2 \\cdot 3 + 1 = 7$. Ecuación: $3a + b = 7$.",
@@ -833,7 +970,7 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Sea $f(x) = kx - 1$ si $x < 2$ y $f(x) = x^2 + 1$ si $x \\ge 2$. ¿Qué valor de $k$ la hace continua en $x = 2$?",
+            statement: "¿Qué valor de $k$ hace continua en $x = 2$ a esta función?\n\n$$f(x) = \\begin{cases} kx - 1 & \\text{si } x < 2 \\\\ x^2 + 1 & \\text{si } x \\ge 2 \\end{cases}$$",
             parts: [{ kind: "expr", before: "k =", answer: "3" }],
             solution: ["$f(2) = 5$ y por la izquierda $2k - 1$. Igualando, $2k = 6$ y $k = 3$."],
           },
@@ -882,9 +1019,9 @@ const topic: Topic = {
             y: [-2, 3],
             step: 0.5,
             curves: [{ fn: "x^{3} + x - 1", color: "accent" }],
-            points: [{ x: 0, y: -1, label: "p(0) = -1" }, { x: 1, y: 1, label: "p(1) = 1" }],
+            points: [{ x: 0, y: -1, label: "p(0) = −1" }, { x: 1, y: 1, label: "p(1) = 1" }],
           },
-          caption: "La curva pasa de abajo a arriba del eje sin cortarse, así que tiene que cruzarlo.",
+          caption: "La curva no tiene cortes y pasa de debajo del eje a encima, así que tiene que cruzarlo.",
         },
         {
           type: "note",
@@ -901,8 +1038,8 @@ const topic: Topic = {
         {
           type: "quick",
           exercise: {
-            statement: "Sea $f$ continua en $[2, 5]$ con $f(2) = 3$ y $f(5) = 9$. ¿Es seguro que existe $c \\in (2, 5)$ con $f(c) = 7$?",
-            parts: [trueFalse(true, "Como $7$ está entre $3$ y $9$, el teorema del valor intermedio lo garantiza.", "¿Es seguro?")],
+            statement: "Sea $f$ continua en $[2, 5]$ con $f(2) = 3$ y $f(5) = 9$. Entonces existe con seguridad algún $c \\in (2, 5)$ con $f(c) = 7$.",
+            parts: [trueFalse(true, "Como $7$ está entre $3$ y $9$, el teorema del valor intermedio lo garantiza.")],
             solution: ["Sí. Por el teorema del valor intermedio, toda altura entre $f(2) = 3$ y $f(5) = 9$ se alcanza."],
           },
         },
@@ -914,6 +1051,7 @@ const topic: Topic = {
     clasificarGrafica,
     dondeContinua,
     valorEvitable,
+    taparHueco,
     trozosUnPunto,
     parametroContinua,
     bolzano,
@@ -921,6 +1059,7 @@ const topic: Topic = {
     bosquejoDisc,
     trozosDosPuntos,
     parametrosDos,
+    continuidadSignos,
     vfContinuidad,
   ],
 };

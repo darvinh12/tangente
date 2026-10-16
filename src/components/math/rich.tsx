@@ -27,11 +27,33 @@ export function Tex({ tex, display = false, className }: { tex: string; display?
 }
 
 function Inlines({ items }: { items: Inline[] }) {
+  // Si después de una fórmula viene un signo de puntuación, se queda en el mismo renglón.
+  const glued = new Map<number, string>();
+  items.forEach((x, i) => {
+    const next = items[i + 1];
+    if (x.t === "math" && x.v.length <= 28 && next?.t === "text") {
+      const m = next.v.match(/^[.,;:)?!]+/);
+      if (m) glued.set(i, m[0]);
+    }
+  });
   return (
     <>
       {items.map((x, i) => {
-        if (x.t === "text") return <Fragment key={i}>{x.v}</Fragment>;
-        if (x.t === "math") return <Tex key={i} tex={x.v} />;
+        if (x.t === "text") {
+          const cut = glued.get(i - 1)?.length ?? 0;
+          return <Fragment key={i}>{cut ? x.v.slice(cut) : x.v}</Fragment>;
+        }
+        if (x.t === "math") {
+          const p = glued.get(i);
+          return p ? (
+            <span key={i} className="whitespace-nowrap">
+              <Tex tex={x.v} />
+              {p}
+            </span>
+          ) : (
+            <Tex key={i} tex={x.v} />
+          );
+        }
         if (x.t === "bold") return <strong key={i}><Inlines items={x.v} /></strong>;
         return <em key={i}><Inlines items={x.v} /></em>;
       })}
