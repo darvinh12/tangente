@@ -42,3 +42,4 @@ next-env.d.ts
 
 # índice generado en predev/prebuild
 /src/content/generated.ts
+/scripts/tmp-*
