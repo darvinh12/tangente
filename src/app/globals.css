@@ -29,20 +29,20 @@
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-:root,
 .mafs-wrap .MafsView {
-  --mafs-bg: transparent;
-  --mafs-fg: #1e1c19;
-  --mafs-origin-color: #847e73;
-  --mafs-line-color: #e3ddd1;
-  --mafs-blue: #2c5689;
-  --mafs-red: #b23f37;
-  --mafs-green: #2c7a4b;
-  --mafs-orange: #c26a1b;
-  --mafs-violet: #1d6b66;
-  --mafs-yellow: #9a6514;
-  --mafs-pink: #b23f37;
-  --mafs-indigo: #2c5689;
+  --mafs-bg: transparent !important;
+  --mafs-fg: #1e1c19 !important;
+  --mafs-origin-color: #847e73 !important;
+  --mafs-line-color: #e3ddd1 !important;
+  --mafs-blue: #2c5689 !important;
+  --mafs-red: #b23f37 !important;
+  --mafs-green: #2c7a4b !important;
+  --mafs-orange: #c26a1b !important;
+  --mafs-violet: #1d6b66 !important;
+  --mafs-yellow: #9a6514 !important;
+  --mafs-pink: #b23f37 !important;
+  --mafs-indigo: #2c5689 !important;
+  --grid-line-subdivision-color: #efebe2 !important;
 }
 
 html {

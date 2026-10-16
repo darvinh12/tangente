@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle, Lightbulb, XCircle, Eye } from "@phosphor-icon
 import { useMemo, useRef, useState } from "react";
 import type { Exercise, Part } from "@/content/types";
 import { Graph } from "@/components/math/graph";
-import { Rich } from "@/components/math/rich";
+import { Rich, RichInline } from "@/components/math/rich";
 import { answerText, emptyValue, gradePart, type PartValue, type Verdict } from "@/lib/grade";
 import { makeRng } from "@/lib/math/rng";
 import { PartInput } from "./part-input";
@@ -182,7 +182,7 @@ export function ExercisePlayer({
             {parts.map((p, i) => (
               <span key={i} className="mr-3 inline-block">
                 {parts.length > 1 ? <span className="text-muted">({i + 1}) </span> : null}
-                <Rich md={answerText(p)} className="inline [&>p]:inline" />
+                <RichInline md={answerText(p)} />
               </span>
             ))}
           </div>

@@ -32,8 +32,8 @@ function Slider({
 }) {
   return (
     <label className="flex items-center gap-3">
-      <span className="w-14 shrink-0 text-right">
-        <Tex tex={label} />
+      <span className="min-w-14 shrink-0 text-right text-[0.95rem] text-ink-2">
+        {/^[a-zA-Z]$/.test(label) || label.includes("\\") ? <Tex tex={label} /> : label}
       </span>
       <input
         type="range"
@@ -131,12 +131,17 @@ export function LimitWidget({ fn, a, x, y, breaks }: { fn: string; a: number; x:
   const d = Math.pow(10, -k / 25);
   const f = useMemo(() => compile(fn), [fn]);
   const spec: GraphSpec = { x, y, curves: [{ fn, breaks: breaks ?? [a] }], vlines: [{ x: a, color: "muted", dashed: true }] };
+  // Si los dos lados se acercan al mismo valor y f(a) no existe, se marca el hueco.
+  const yl = f(a - 1e-7);
+  const yr = f(a + 1e-7);
+  const hole = Number.isFinite(yl) && Number.isFinite(yr) && Math.abs(yl - yr) < 1e-4 && !Number.isFinite(f(a)) ? (yl + yr) / 2 : null;
   const xl = a - d;
   const xr = a + d;
   const rows = [1, 0.1, 0.01, 0.001];
   return (
     <div className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
       <GraphCanvas spec={spec}>
+        {hole !== null ? <Point x={a} y={hole} color="#1d6b66" svgCircleProps={{ r: 5, style: { fill: "#fffdf8", stroke: "#1d6b66", strokeWidth: 2.2 } }} /> : null}
         {Number.isFinite(f(xl)) ? <Point x={xl} y={f(xl)} color="#2c5689" /> : null}
         {Number.isFinite(f(xr)) ? <Point x={xr} y={f(xr)} color="#c26a1b" /> : null}
       </GraphCanvas>

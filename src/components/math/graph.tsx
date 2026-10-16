@@ -188,7 +188,7 @@ export function GraphCanvas({
               x={p.x}
               y={p.y}
               color={color}
-              svgCircleProps={p.open ? { fill: "#fffdf8", stroke: color, strokeWidth: 2.2, r: 5 } : { r: 5 }}
+              svgCircleProps={p.open ? { r: 5, style: { fill: "#fffdf8", stroke: color, strokeWidth: 2.2 } } : { r: 5 }}
             />
           );
         })}

@@ -8,7 +8,7 @@ import { TOPICS } from "@/content/catalog";
 import { loaders } from "@/content/generated";
 import type { Exercise, Topic } from "@/content/types";
 import { Graph } from "@/components/math/graph";
-import { Rich } from "@/components/math/rich";
+import { Rich, RichInline } from "@/components/math/rich";
 import { PartInput } from "@/components/exercise/part-input";
 import { choiceOrders } from "@/components/exercise/player";
 import { answerText, emptyValue, gradePart, isBlank, type PartValue, type Verdict } from "@/lib/grade";
@@ -231,7 +231,7 @@ export function ExamRunner({ exam }: { exam: ExamSpec }) {
                             {v.status === "correct" ? <p className="font-semibold text-good">Correcto</p> : (
                               <>
                                 <Rich md={v.message ?? ""} />
-                                <p className="mt-1 text-ink-2">Respuesta correcta: <Rich md={answerText(p)} className="inline [&>p]:inline" /></p>
+                                <p className="mt-1 text-ink-2">Respuesta correcta: <RichInline md={answerText(p)} /></p>
                               </>
                             )}
                           </div>
