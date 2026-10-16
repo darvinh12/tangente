@@ -50,6 +50,8 @@ Cada generador recibe un `Rng` (`r.int`, `r.nz`, `r.pick`, `r.bool`, `r.shuffle`
 | `set` | Conjuntos finitos | Números o letras. |
 | `choice` | Conceptos, V/F, elegir una gráfica | Usa `trueFalse` y `choice` de `../helpers`. Cada distractor lleva retroalimentación que explique el error. Las opciones pueden llevar `graph`. |
 | `point` | Ubicar un punto en el plano | Respuesta sobre la cuadrícula de `snap`. |
+| `signs` | Tablas de signos: inecuaciones, crecimiento, concavidad | `points` son los puntos críticos en orden, `rows` las filas con su signo (1 o -1) en cada intervalo. La última fila es el resultado. `given` deja filas ya llenas como ayuda. |
+| `place` | Arrastrar asíntotas y puntos sobre el plano | `items` con `vline`, `hline` o `point`. Las respuestas caen en la cuadrícula de `snap`. `reveal` son curvas que aparecen al acertar. |
 
 `sequential: true` muestra las partes una por una. Úsalo en problemas largos tipo parcial.
 

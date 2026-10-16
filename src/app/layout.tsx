@@ -3,7 +3,7 @@ import { Figtree, Fraunces } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "mafs/core.css";
 import "./globals.css";
-import { SiteHeader } from "@/components/site/header";
+import { SiteChrome } from "@/components/site/nav";
 import { SiteFooter } from "@/components/site/footer";
 
 const figtree = Figtree({
@@ -37,9 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${figtree.variable} ${fraunces.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <SiteChrome footer={<SiteFooter />}>{children}</SiteChrome>
       </body>
     </html>
   );

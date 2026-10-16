@@ -17,7 +17,11 @@ export type PartValue =
   | { kind: "expr"; latex: string }
   | { kind: "interval"; rows: IntervalRow[]; empty: boolean }
   | { kind: "set"; text: string }
-  | { kind: "point"; at: [number, number] | null };
+  | { kind: "point"; at: [number, number] | null }
+  /** Casillas por fila e intervalo: 0 vacía, 1 positiva, -1 negativa. */
+  | { kind: "signs"; cells: (0 | 1 | -1)[][] }
+  /** Posición de cada elemento: número para rectas, par para puntos. */
+  | { kind: "place"; pos: (number | [number, number])[] };
 
 export type Verdict =
   /** Bien. */
@@ -34,6 +38,9 @@ export function emptyValue(p: Part): PartValue {
     case "interval": return { kind: "interval", rows: [{ lo: "", hi: "", loClosed: false, hiClosed: false }], empty: false };
     case "set": return { kind: "set", text: "" };
     case "point": return { kind: "point", at: p.start ?? null };
+    case "signs":
+      return { kind: "signs", cells: p.rows.map((r, i) => (p.given?.includes(i) ? [...r.signs] : r.signs.map(() => 0 as const))) };
+    case "place": return { kind: "place", pos: placeStart(p) };
   }
 }
 
@@ -44,6 +51,8 @@ export function isBlank(v: PartValue): boolean {
     case "interval": return !v.empty && v.rows.every((r) => !r.lo.trim() && !r.hi.trim());
     case "set": return v.text.trim() === "";
     case "point": return v.at === null;
+    case "signs": return v.cells.every((row) => row.every((c) => c === 0));
+    case "place": return false;
   }
 }
 
@@ -198,7 +207,71 @@ export function gradePart(p: Part, v: PartValue): Verdict {
       if (Math.abs(y - ay) < 1e-6) return { status: "wrong", message: "La coordenada y está bien, revisa la x." };
       return { status: "wrong", message: "Ese no es el punto. Revisa las dos coordenadas." };
     }
+
+    case "signs": {
+      if (v.kind !== "signs") return { status: "invalid", message: "Completa la tabla." };
+      const fill = p.rows.findIndex((_, i) => !p.given?.includes(i) && v.cells[i].some((c) => c === 0));
+      if (fill !== -1) return { status: "invalid", message: `Faltan casillas en la fila $${p.rows[fill].label}$. Toca cada casilla para poner + o −.` };
+      const wrong: [number, number][] = [];
+      p.rows.forEach((r, i) => r.signs.forEach((sg, j) => {
+        if (v.cells[i][j] !== sg) wrong.push([i, j]);
+      }));
+      if (!wrong.length) return { status: "correct" };
+      const [i, j] = wrong[0];
+      const iv = signInterval(p.points, j);
+      const last = p.rows.length - 1;
+      const onlyResult = wrong.every(([r]) => r === last) && last > 0;
+      return {
+        status: "wrong",
+        message: `${wrong.length === 1 ? "Hay una casilla mal" : `Hay ${wrong.length} casillas mal`}. Revisa la fila $${p.rows[i].label}$ en el intervalo $${iv}$. ${
+          onlyResult
+            ? "Los factores están bien, así que el error está al multiplicar los signos de cada columna."
+            : "Prueba con un número de ese intervalo y mira si el factor da positivo o negativo."
+        }`,
+      };
+    }
+
+    case "place": {
+      if (v.kind !== "place") return { status: "invalid", message: "Mueve los elementos sobre el plano." };
+      for (const [k, it] of p.items.entries()) {
+        const u = v.pos[k];
+        const ok = it.type === "point"
+          ? Array.isArray(u) && Math.abs(u[0] - it.answer[0]) < 1e-6 && Math.abs(u[1] - it.answer[1]) < 1e-6
+          : typeof u === "number" && Math.abs(u - it.answer) < 1e-6;
+        if (!ok) {
+          const tip = it.type === "vline"
+            ? "Una asíntota vertical va donde la función se dispara: busca qué valor anula el denominador sin anular el numerador."
+            : it.type === "hline"
+              ? "Una asíntota horizontal es el valor al que se acerca la función cuando x se va a más o menos infinito."
+              : "Calcula las coordenadas antes de mover el punto.";
+          return { status: "wrong", message: `$${it.label}$ no está en su sitio. ${tip}` };
+        }
+      }
+      return { status: "correct" };
+    }
   }
+}
+
+/** Intervalo j de una tabla de signos como LaTeX. */
+export function signInterval(points: string[], j: number): string {
+  const a = j === 0 ? "-\\infty" : points[j - 1];
+  const b = j === points.length ? "+\\infty" : points[j];
+  return `(${a}, ${b})`;
+}
+
+/** Posiciones iniciales de los elementos de un ejercicio "place". */
+export function placeStart(p: Extract<Part, { kind: "place" }>): (number | [number, number])[] {
+  const snap = p.snap ?? 1;
+  const r = (n: number) => Math.round(n / snap) * snap;
+  const [x0, x1] = p.graph.x;
+  const [y0, y1] = p.graph.y;
+  let nv = 0;
+  let nh = 0;
+  return p.items.map((it) => {
+    if (it.type === "vline") return it.start ?? r(x0 + (x1 - x0) * (0.12 + 0.1 * nv++));
+    if (it.type === "hline") return it.start ?? r(y1 - (y1 - y0) * (0.12 + 0.1 * nh++));
+    return it.start ?? [r(x0 + (x1 - x0) * 0.85), r(y0 + (y1 - y0) * 0.15)];
+  });
 }
 
 /** Texto legible de la respuesta correcta, para mostrar al rendirse o en el simulacro. */
@@ -223,6 +296,14 @@ export function answerText(p: Part): Rich {
     }
     case "set": return `$${p.before ? p.before + " " : ""}${p.answer.length ? `\\{${p.answer.join(", ")}\\}` : "\\varnothing"}$`;
     case "point": return `$(${fmtNum(p.answer[0])}, ${fmtNum(p.answer[1])})$`;
+    case "signs": {
+      const r = p.rows[p.rows.length - 1];
+      return r.signs.map((sg, j) => `$${signInterval(p.points, j)}$: ${sg > 0 ? "+" : "−"}`).join(" · ");
+    }
+    case "place":
+      return p.items
+        .map((it) => it.type === "vline" ? `$x = ${fmtNum(it.answer)}$` : it.type === "hline" ? `$y = ${fmtNum(it.answer)}$` : `$${it.label} = (${fmtNum(it.answer[0])}, ${fmtNum(it.answer[1])})$`)
+        .join(" · ");
   }
 }
 

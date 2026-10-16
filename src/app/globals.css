@@ -49,6 +49,11 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background: var(--color-paper);
   color: var(--color-ink);

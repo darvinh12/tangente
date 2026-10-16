@@ -180,6 +180,38 @@ export type Part =
       /** Paso del imán al mover el punto. Por defecto 1. */
       snap?: number;
       start?: [number, number];
+    }
+  | {
+      /**
+       * Tabla de signos. El estudiante toca cada casilla para poner + o −.
+       * Los intervalos son los que quedan entre los puntos críticos.
+       */
+      kind: "signs";
+      prompt?: Rich;
+      /** Puntos críticos en orden creciente, en LaTeX ("-2", "\\frac{1}{2}"). */
+      points: string[];
+      /** Filas a llenar. La última suele ser el resultado ("f'(x)" o "\\frac{x-1}{x+2}"). */
+      rows: { label: string; signs: (1 | -1)[] }[];
+      /** Filas que ya vienen llenas como ayuda (por índice). */
+      given?: number[];
+    }
+  | {
+      /**
+       * Ubicar elementos sobre el plano arrastrándolos: asíntotas verticales u
+       * horizontales y puntos. Al acertar se puede mostrar la curva (`reveal`).
+       */
+      kind: "place";
+      prompt?: Rich;
+      graph: GraphSpec;
+      items: (
+        | { type: "vline"; label: string; answer: number; start?: number }
+        | { type: "hline"; label: string; answer: number; start?: number }
+        | { type: "point"; label: string; answer: [number, number]; start?: [number, number] }
+      )[];
+      /** Paso del imán. Por defecto 1. */
+      snap?: number;
+      /** Curvas que aparecen cuando todo está bien. */
+      reveal?: Curve[];
     };
 
 export interface Exercise {

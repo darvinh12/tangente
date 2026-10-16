@@ -215,6 +215,35 @@ function checkPart(where: string, p: Part) {
       if (Math.abs(x / s - Math.round(x / s)) > 1e-9 || Math.abs(y / s - Math.round(y / s)) > 1e-9) err(where, "el punto respuesta no cae en la cuadrícula del imán");
       break;
     }
+    case "signs": {
+      if (!p.rows.length) err(where, "tabla de signos sin filas");
+      p.points.forEach((pt) => checkTex(where, pt));
+      for (const r of p.rows) {
+        checkTex(where, r.label);
+        if (r.signs.length !== p.points.length + 1) err(where, `la fila "${r.label}" debe tener ${p.points.length + 1} signos`);
+        if (r.signs.some((s) => s !== 1 && s !== -1)) err(where, `la fila "${r.label}" tiene signos que no son 1 o -1`);
+      }
+      if ((p.given ?? []).length >= p.rows.length) err(where, "todas las filas vienen dadas, no hay nada que llenar");
+      break;
+    }
+    case "place": {
+      checkGraph(where, p.graph);
+      const s = p.snap ?? 1;
+      const onGrid = (n: number) => Math.abs(n / s - Math.round(n / s)) < 1e-9;
+      if (!p.items.length) err(where, "place sin elementos");
+      for (const it of p.items) {
+        checkTex(where, it.label);
+        if (it.type === "point") {
+          const [x, y] = it.answer;
+          if (x < p.graph.x[0] || x > p.graph.x[1] || y < p.graph.y[0] || y > p.graph.y[1] || !onGrid(x) || !onGrid(y)) err(where, `el punto ${it.label} queda fuera de la gráfica o de la cuadrícula`);
+        } else {
+          const [a, b] = it.type === "vline" ? p.graph.x : p.graph.y;
+          if (it.answer <= a || it.answer >= b || !onGrid(it.answer)) err(where, `${it.label} queda fuera de la gráfica o de la cuadrícula`);
+        }
+      }
+      for (const c of p.reveal ?? []) checkFn(`${where} reveal`, c.fn, ["x"], c.domain ?? p.graph.x);
+      break;
+    }
     default: err(where, `parte desconocida ${(p as { kind: string }).kind}`);
   }
 }

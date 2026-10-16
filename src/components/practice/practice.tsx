@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ExerciseGen, Topic } from "@/content/types";
 import { loaders } from "@/content/generated";
 import { ExercisePlayer } from "@/components/exercise/player";
-import { mastery, recordAttempt, useProgress } from "@/lib/progress";
+import { addMistake, mastery, recordAttempt, useProgress } from "@/lib/progress";
 import { makeRng, randomSeed } from "@/lib/math/rng";
 
 const LEVEL = {
@@ -165,6 +165,7 @@ export function Practice({ slug }: { slug: string }) {
               key={`${gen.id}-${seed}`}
               exercise={exercise}
               onSolved={(clean) => recordAttempt(slug, gen.id, clean)}
+              onMistake={() => addMistake(slug, gen.id)}
               onNext={() => {
                 const n = nextUnsolved(gen.id);
                 if (n && n.id !== gen.id) setGenId(n.id);

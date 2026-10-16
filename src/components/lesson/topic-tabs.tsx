@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, CheckCircle, PencilSimpleLine } from "@phosphor-icons/react";
+import { BookOpen, CaretDown, CheckCircle, PencilSimpleLine } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Practice } from "@/components/practice/practice";
 import { useProgress } from "@/lib/progress";
@@ -18,6 +18,7 @@ export function TopicTabs({
 }) {
   const [tab, setTab] = useState<Tab>("aprende");
   const [practiceMounted, setPracticeMounted] = useState(false);
+  const [secOpen, setSecOpen] = useState(false);
   const progress = useProgress();
   const read = new Set(progress.topics[slug]?.read ?? []);
 
@@ -43,6 +44,7 @@ export function TopicTabs({
   return (
     <div>
       <div className="sticky top-16 z-20 -mx-4 mb-10 border-b border-line bg-paper/90 px-4 backdrop-blur-md sm:-mx-6 sm:px-6">
+        <div className="flex items-center">
         <div role="tablist" className="flex gap-1">
           {(
             [
@@ -69,6 +71,35 @@ export function TopicTabs({
               />
             </button>
           ))}
+        </div>
+        {tab === "aprende" ? (
+          <div className="relative ml-auto lg:hidden">
+            <button
+              type="button"
+              onClick={() => setSecOpen((o) => !o)}
+              aria-expanded={secOpen}
+              className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm text-ink-2 hover:bg-sunk"
+            >
+              Secciones <CaretDown size={14} className={`transition-transform ${secOpen ? "rotate-180" : ""}`} />
+            </button>
+            {secOpen ? (
+              <div className="pop absolute right-0 top-11 w-[min(78vw,300px)] rounded-2xl border border-line bg-surface p-2 shadow-[0_18px_40px_-20px_rgb(60_50_30/0.4)]">
+                {sections.map((s, i) => (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={() => setSecOpen(false)}
+                    className="flex items-start gap-2.5 rounded-xl px-2.5 py-2 text-[0.95rem] text-ink-2 hover:bg-sunk"
+                  >
+                    <span className="w-5 shrink-0 text-sm tabular-nums text-muted">{i + 1}</span>
+                    <span className="min-w-0 flex-1 leading-snug">{s.title}</span>
+                    {read.has(s.id) ? <CheckCircle size={15} weight="fill" className="mt-0.5 shrink-0 text-good" /> : null}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         </div>
       </div>
 

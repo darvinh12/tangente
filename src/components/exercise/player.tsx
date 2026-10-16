@@ -61,6 +61,7 @@ function VerdictBox({ v }: { v: Verdict }) {
 export function ExercisePlayer({
   exercise,
   onSolved,
+  onMistake,
   onNext,
   nextLabel = "Otro ejercicio",
   compact,
@@ -68,6 +69,8 @@ export function ExercisePlayer({
   exercise: Exercise;
   /** Se llama una vez cuando todas las partes quedan bien. `clean` = sin ver la solución. */
   onSolved?: (clean: boolean) => void;
+  /** Se llama una sola vez, al primer error o al pedir la solución antes de resolver. */
+  onMistake?: () => void;
   onNext?: () => void;
   nextLabel?: string;
   compact?: boolean;
@@ -80,6 +83,12 @@ export function ExercisePlayer({
   const [solution, setSolution] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
   const reported = useRef(false);
+  const struggled = useRef(false);
+  const flagMistake = () => {
+    if (struggled.current) return;
+    struggled.current = true;
+    onMistake?.();
+  };
 
   const done = verdicts.every((v) => v?.status === "correct");
   const firstPending = verdicts.findIndex((v) => v?.status !== "correct");
@@ -96,7 +105,10 @@ export function ExercisePlayer({
       if (v.status === "wrong") wrong = true;
     }
     setVerdicts(next);
-    if (wrong) setShakeKey((k) => k + 1);
+    if (wrong) {
+      setShakeKey((k) => k + 1);
+      flagMistake();
+    }
     if (next.every((v) => v?.status === "correct") && !reported.current) {
       reported.current = true;
       onSolved?.(!solution);
@@ -104,6 +116,7 @@ export function ExercisePlayer({
   };
 
   const showSolution = () => {
+    if (!done) flagMistake();
     setSolution(true);
   };
 
@@ -136,6 +149,7 @@ export function ExercisePlayer({
                 order={orders[i]}
                 disabled={locked}
                 reveal={solution}
+                solved={v?.status === "correct"}
                 onSubmit={check}
                 onChange={(nv) => {
                   setValues((s) => s.map((x, k) => (k === i ? nv : x)));

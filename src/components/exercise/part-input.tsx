@@ -3,6 +3,7 @@
 import type { Part } from "@/content/types";
 import type { PartValue } from "@/lib/grade";
 import { ChoiceInput, IntervalInput, PointInput, SetInput } from "./inputs";
+import { PlaceInput, SignsInput } from "./interactive-inputs";
 import { MathInput } from "./math-input";
 
 export function PartInput({
@@ -13,6 +14,7 @@ export function PartInput({
   disabled,
   order,
   reveal,
+  solved,
 }: {
   part: Part;
   value: PartValue;
@@ -21,6 +23,8 @@ export function PartInput({
   disabled?: boolean;
   order: number[];
   reveal?: boolean;
+  /** La parte ya está bien respondida. */
+  solved?: boolean;
 }) {
   switch (part.kind) {
     case "choice":
@@ -74,6 +78,26 @@ export function PartInput({
           value={value as Extract<PartValue, { kind: "point" }>}
           onChange={onChange}
           disabled={disabled}
+        />
+      );
+    case "signs":
+      return (
+        <SignsInput
+          part={part}
+          value={value as Extract<PartValue, { kind: "signs" }>}
+          onChange={onChange}
+          disabled={disabled}
+          reveal={reveal}
+        />
+      );
+    case "place":
+      return (
+        <PlaceInput
+          part={part}
+          value={value as Extract<PartValue, { kind: "place" }>}
+          onChange={onChange}
+          disabled={disabled}
+          solved={solved || reveal}
         />
       );
   }

@@ -222,6 +222,7 @@ export function ExamRunner({ exam }: { exam: ExamSpec }) {
                         order={q.orders[j]}
                         disabled={phase === "done"}
                         reveal={phase === "done"}
+                        solved={v?.status === "correct"}
                         onChange={(nv) => setValues((s) => s.map((row, a) => (a === i ? row.map((x, b) => (b === j ? nv : x)) : row)))}
                       />
                       {v ? (
